@@ -215,28 +215,41 @@ jobs:
               body += "✅ All automated checks passed. No issues found.\n";
             }
             
-            const { data: comments } = await github.rest.issues.listComments({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-            
-            const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('## PR Auto Review'));
-            
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
+            // 发评论包在 try/catch 里：跨 fork PR 触发的 workflow，GITHUB_TOKEN 是
+            // 只读的（GitHub 安全机制），发评论会 403 Resource not accessible by
+            // integration。此前这步没容错，导致任何外部贡献者的 PR——哪怕所有 lint
+            // 全过——auto-review 都必然红叉（2026-08-17 实测 PR #163 复现）。
+            // 403 时不让 job 失败，改成把 review 正文打进 job 日志，结论仍可读。
+            try {
+              const { data: comments } = await github.rest.issues.listComments({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: body
               });
+
+              const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('## PR Auto Review'));
+
+              if (botComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: botComment.id,
+                  body: body
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: body
+                });
+              }
+            } catch (e) {
+              if (e.status === 403) {
+                core.warning('无法在 PR 上发评论（跨 fork PR，GITHUB_TOKEN 只读）。review 结果见下方 job 日志：\n\n' + body);
+              } else {
+                throw e;
+              }
             }
 
             // 评论已经发出去之后才失败，顺序不能颠倒：先 setFailed 会让 PR 上只剩一个

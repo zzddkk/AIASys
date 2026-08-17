@@ -19,8 +19,8 @@ jobs:
           TITLE="${{ github.event.pull_request.title }}"
           
           # Conventional Commits regex: type(scope): description
-          # Types: feat, fix, test, refactor, chore, style, docs, perf, build, ci, revert
-          if [[ ! "$TITLE" =~ ^(feat|fix|test|refactor|chore|style|docs|perf|build|ci|revert)(\(.+\))?:\ .+ ]]; then
+          # Types: feat, fix, test, refactor, chore, style, docs, perf, build, ci, revert, release
+          if [[ ! "$TITLE" =~ ^(feat|fix|test|refactor|chore|style|docs|perf|build|ci|revert|release)(\(.+\))?:\ .+ ]]; then
             echo "::error title=Invalid PR Title::PR title does not follow Conventional Commits format."
             echo "Title: $TITLE"
             echo "Expected format: type(scope): description"

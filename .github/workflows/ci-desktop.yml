@@ -80,10 +80,13 @@ jobs:
           python3 -c "
           import os, re
           version = os.environ['BASE_VERSION']
-          with open('pyproject.toml', 'r') as f:
+          # Windows runner 的 Python 默认 locale 编码是 cp1252，读含非 ASCII 字节
+          # （如 0x8d）的 pyproject.toml 会 charmap 解码崩溃。2026-08-17 实测
+          # v0.4.35-beta.1 桌面构建正是死在这里。显式指定 utf-8。
+          with open('pyproject.toml', 'r', encoding='utf-8') as f:
               content = f.read()
           content = re.sub(r'^version = \".*?\"', f'version = \"{version}\"', content, count=1, flags=re.MULTILINE)
-          with open('pyproject.toml', 'w') as f:
+          with open('pyproject.toml', 'w', encoding='utf-8') as f:
               f.write(content)
           "
 
