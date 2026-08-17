@@ -6,20 +6,18 @@ Agent 能力测试辅助脚本：发送 prompt 到 Agent，收集 SSE 流响应�
 
 import json
 import sys
-import urllib.request
-import urllib.error
 import time
+import urllib.error
+import urllib.request
 
 BASE_URL = "http://localhost:13001"
+
 
 def send_prompt(session_id: str, prompt: str):
     url = f"{BASE_URL}/api/agent/execute/stream"
     data = json.dumps({"session_id": session_id, "prompt": prompt}).encode("utf-8")
     req = urllib.request.Request(
-        url,
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST"
+        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
     )
     events = []
     tool_calls = []
@@ -73,28 +71,31 @@ def summarize(result):
     lines.append(f"elapsed: {result['elapsed_sec']}s")
     lines.append(f"events: {result['event_count']}")
     lines.append(f"tool_calls: {len(result['tool_calls'])}")
-    for tc in result['tool_calls']:
+    for tc in result["tool_calls"]:
         name = tc.get("name", "?")
         args = tc.get("arguments", {})
         lines.append(f"  -> {name}({json.dumps(args, ensure_ascii=False)[:120]})")
     lines.append(f"tool_results: {len(result['tool_results'])}")
-    for tr in result['tool_results']:
+    for tr in result["tool_results"]:
         status = "ok" if "error" not in str(tr).lower() else "error"
         lines.append(f"  <- {status}")
     # 收集所有文本内容
     texts = []
-    for c in result['contents']:
-        if c.get('content_type') == 'text':
-            texts.append(c.get('content', ''))
+    for c in result["contents"]:
+        if c.get("content_type") == "text":
+            texts.append(c.get("content", ""))
     if texts:
-        full_text = ''.join(texts)
+        full_text = "".join(texts)
         lines.append(f"text_output_preview: {full_text[:300]}")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print(f"Usage: {sys.argv[0]} <session_id> '<prompt>' [output.json]", file=sys.stderr)
+        print(
+            f"Usage: {sys.argv[0]} <session_id> '<prompt>' [output.json]",
+            file=sys.stderr,
+        )
         sys.exit(1)
     session_id = sys.argv[1]
     prompt = sys.argv[2]
@@ -106,6 +107,6 @@ if __name__ == "__main__":
     print(summary)
 
     if output_file and result:
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
         print(f"\nFull result saved to {output_file}", file=sys.stderr)

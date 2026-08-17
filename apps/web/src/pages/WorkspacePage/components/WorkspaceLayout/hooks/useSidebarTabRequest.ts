@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 export type WorkspaceSidebarTab =
   | "subagents"
-  | "artifacts"
-  | "terminal";
+  | "artifacts";
 
 export interface SidebarTabRequest {
   tab: WorkspaceSidebarTab;

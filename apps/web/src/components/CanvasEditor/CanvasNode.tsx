@@ -206,7 +206,7 @@ export const CanvasNodeComponent: React.FC<CanvasNodeProps> = React.memo(
             img: ({ src, alt }) => {
               const label = alt || src || "图片";
               return (
-                <span className="rounded bg-slate-900/5 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">
+                <span className="rounded bg-slate-900/5 px-1.5 py-0.5 text-micro font-medium text-slate-500">
                   图片：{label}
                 </span>
               );
@@ -292,7 +292,7 @@ export const CanvasNodeComponent: React.FC<CanvasNodeProps> = React.memo(
         ) : null}
         <div className="flex h-full flex-col overflow-hidden p-3">
           {showHeader ? (
-            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <div className="mb-2 flex items-center gap-1.5 text-micro font-semibold text-slate-500 dark:text-slate-400">
               {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
               <span>{getNodeTypeLabel(node)}</span>
             </div>
@@ -343,7 +343,7 @@ export const CanvasNodeComponent: React.FC<CanvasNodeProps> = React.memo(
               >
                 <Maximize2 className="h-3.5 w-3.5" />
               </button>
-              <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-b-md bg-slate-950/65 px-2 py-1 text-[11px] font-medium text-white">
+              <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-b-md bg-slate-950/65 px-2 py-1 text-micro font-medium text-white">
                 <span className="line-clamp-1">
                   {getWorkspaceFileLabel(node.file || "")}
                 </span>
@@ -357,16 +357,16 @@ export const CanvasNodeComponent: React.FC<CanvasNodeProps> = React.memo(
                   <div className="truncate text-sm font-semibold text-slate-900 dark:text-gray-100">
                     {getWorkspaceFileLabel(displayText)}
                   </div>
-                  <div className="mt-1 line-clamp-3 break-all text-[11px] leading-4 text-slate-500 dark:text-slate-400">
+                  <div className="mt-1 line-clamp-3 break-all text-micro leading-4 text-slate-500 dark:text-slate-400">
                     {displayText}
                   </div>
                   {node.subpath ? (
-                    <div className="mt-1 truncate rounded bg-slate-900/5 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                    <div className="mt-1 truncate rounded bg-slate-900/5 dark:bg-white/10 px-1.5 py-0.5 text-nano font-medium text-slate-500 dark:text-slate-400">
                       {node.subpath}
                     </div>
                   ) : null}
                 </div>
-                <span className="shrink-0 rounded bg-slate-900/5 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-bold leading-4 text-slate-500 dark:text-slate-400">
+                <span className="shrink-0 rounded bg-slate-900/5 dark:bg-white/10 px-1.5 py-0.5 text-nano font-bold leading-4 text-slate-500 dark:text-slate-400">
                   {getFileExtensionLabel(displayText)}
                 </span>
                 <button
@@ -392,7 +392,7 @@ export const CanvasNodeComponent: React.FC<CanvasNodeProps> = React.memo(
                   <div className="truncate text-sm font-semibold text-slate-900 dark:text-gray-100">
                     {getLinkHost(displayText)}
                   </div>
-                  <div className="mt-1 line-clamp-3 break-all text-[11px] leading-4 text-slate-500 dark:text-slate-400">
+                  <div className="mt-1 line-clamp-3 break-all text-micro leading-4 text-slate-500 dark:text-slate-400">
                     {displayText}
                   </div>
                 </div>
@@ -435,7 +435,7 @@ export const CanvasNodeComponent: React.FC<CanvasNodeProps> = React.memo(
                     </div>
                   }
                 >
-                  <div className="prose prose-sm max-w-none break-words text-current [overflow-wrap:anywhere] [&_*:first-child]:mt-0 [&_*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:rounded-md [&_pre]:px-2 [&_pre]:py-1.5 [&_pre]:text-[11px] [&_table]:text-[11px]">
+                  <div className="prose prose-sm max-w-none break-words text-current [overflow-wrap:anywhere] [&_*:first-child]:mt-0 [&_*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:rounded-md [&_pre]:px-2 [&_pre]:py-1.5 [&_pre]:text-micro [&_table]:text-micro">
                     <MarkdownContent
                       content={displayText}
                       components={markdownComponents}

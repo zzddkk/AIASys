@@ -145,7 +145,7 @@ export function RoleDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-background">
+      <DialogContent size="md" className="overflow-hidden flex flex-col bg-background">
         <DialogHeader className="shrink-0">
           <DialogTitle>协作专家详情</DialogTitle>
           <DialogDescription>
@@ -161,16 +161,16 @@ export function RoleDetailDialog({
                 {role.displayName}
               </span>
               {role.displayName !== role.name ? (
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="outline" className="text-nano">
                   {role.name}
                 </Badge>
               ) : null}
               {isSystemRole ? (
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="outline" className="text-nano">
                   系统
                 </Badge>
               ) : (
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="outline" className="text-nano">
                   自定义
                 </Badge>
               )}
@@ -189,15 +189,15 @@ export function RoleDetailDialog({
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant={role.hostSelectable ? "success" : "outline"}
-                className="text-[10px]"
+                className="text-nano"
               >
                 {visibilityLabel}
               </Badge>
-              <Badge variant="info" className="text-[10px]">
+              <Badge variant="info" className="text-nano">
                 {installedLabel}
               </Badge>
               {role.lockReason ? (
-                <Badge variant="warning" className="text-[10px]">
+                <Badge variant="warning" className="text-nano">
                   锁定
                 </Badge>
               ) : null}
@@ -261,7 +261,7 @@ export function RoleDetailDialog({
                         {sourceFileError}
                       </div>
                     ) : sourceFileContent !== null ? (
-                      <pre className="p-3 text-[11px] leading-5 text-foreground whitespace-pre-wrap break-words">
+                      <pre className="p-3 text-micro leading-5 text-foreground whitespace-pre-wrap break-words">
                         {sourceFileContent}
                       </pre>
                     ) : (
@@ -294,7 +294,7 @@ export function RoleDetailDialog({
                       <Badge
                         key={tool}
                         variant="outline"
-                        className="text-[10px] font-normal"
+                        className="text-nano font-normal"
                       >
                         {tool}
                       </Badge>

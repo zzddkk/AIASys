@@ -342,10 +342,10 @@ export function DataTablePreviewPanel({
           <div className="flex min-w-0 items-center gap-2">
             <Table className="h-4 w-4 shrink-0 text-tertiary" />
             <span className="truncate text-sm font-semibold">{node.name}</span>
-            <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-nano text-muted-foreground">
               多维表格
             </span>
-            <span className="shrink-0 text-[10px] text-muted-foreground">
+            <span className="shrink-0 text-nano text-muted-foreground">
               {records.length} 条记录
             </span>
           </div>
@@ -354,7 +354,7 @@ export function DataTablePreviewPanel({
               type="button"
               onClick={() => setShowColumnDialog(true)}
               disabled={saving || isLoading}
-              className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-[11px] font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+              className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-micro font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
             >
               <Settings2 className="h-3 w-3" />
               编辑列
@@ -363,7 +363,7 @@ export function DataTablePreviewPanel({
               type="button"
               onClick={() => void handleAddRecord()}
               disabled={saving || isLoading}
-              className="inline-flex h-7 items-center gap-1 rounded-md bg-primary px-2.5 text-[11px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="inline-flex h-7 items-center gap-1 rounded-md bg-primary px-2.5 text-micro font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               <Plus className="h-3 w-3" />
               添加记录
@@ -403,7 +403,7 @@ export function DataTablePreviewPanel({
               type="button"
               onClick={() => void handleAddRecord()}
               disabled={saving}
-              className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-[12px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-caption font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               <Plus className="h-3.5 w-3.5" />
               添加记录
@@ -412,7 +412,7 @@ export function DataTablePreviewPanel({
         ) : (
           <div className="p-4">
             <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-left text-[12px]">
+              <table className="w-full text-left text-caption">
                 <thead className="bg-muted/60">
                   <tr>
                     {columns.map((col) => (
@@ -490,7 +490,7 @@ export function DataTablePreviewPanel({
               type="button"
               onClick={() => void handleAddRecord()}
               disabled={saving}
-              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-[12px] text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary disabled:opacity-50"
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-caption text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary disabled:opacity-50"
             >
               <Plus className="h-3.5 w-3.5" />
               添加记录
@@ -540,16 +540,16 @@ export function DataTablePreviewPanel({
 
             <div className="p-4 space-y-4">
               {columnDialogError && (
-                <div className="rounded bg-error/10 px-3 py-2 text-[11px] text-error">
+                <div className="rounded bg-error/10 px-3 py-2 text-micro text-error">
                   {columnDialogError}
                 </div>
               )}
 
               {/* 当前列列表 */}
               <div className="space-y-2">
-                <h4 className="text-[11px] font-medium text-muted-foreground uppercase">当前列</h4>
+                <h4 className="text-micro font-medium text-muted-foreground uppercase">当前列</h4>
                 {columns.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground">暂无自定义列</p>
+                  <p className="text-micro text-muted-foreground">暂无自定义列</p>
                 ) : (
                   <div className="space-y-1">
                     {columns.map((col) => (
@@ -565,14 +565,14 @@ export function DataTablePreviewPanel({
                               onChange={(e) =>
                                 setEditingColumn({ ...editingColumn, name: e.target.value })
                               }
-                              className="h-7 w-full rounded border border-border bg-background px-2 text-[12px] outline-none focus:border-primary"
+                              className="h-7 w-full rounded border border-border bg-background px-2 text-caption outline-none focus:border-primary"
                             />
                             <select
                               value={editingColumn.type}
                               onChange={(e) =>
                                 setEditingColumn({ ...editingColumn, type: e.target.value })
                               }
-                              className="h-7 w-full rounded border border-border bg-background px-2 text-[12px] outline-none focus:border-primary"
+                              className="h-7 w-full rounded border border-border bg-background px-2 text-caption outline-none focus:border-primary"
                             >
                               {COLUMN_TYPES.map((t) => (
                                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -589,10 +589,10 @@ export function DataTablePreviewPanel({
                                   })
                                 }
                                 placeholder="选项1, 选项2, 选项3"
-                                className="h-7 w-full rounded border border-border bg-background px-2 text-[12px] outline-none focus:border-primary"
+                                className="h-7 w-full rounded border border-border bg-background px-2 text-caption outline-none focus:border-primary"
                               />
                             )}
-                            <label className="flex items-center gap-1.5 text-[11px]">
+                            <label className="flex items-center gap-1.5 text-micro">
                               <input
                                 type="checkbox"
                                 checked={editingColumn.required || false}
@@ -608,7 +608,7 @@ export function DataTablePreviewPanel({
                                 type="button"
                                 onClick={() => void handleUpdateColumn()}
                                 disabled={saving}
-                                className="inline-flex h-6 items-center gap-1 rounded bg-primary px-2 text-[11px] text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                                className="inline-flex h-6 items-center gap-1 rounded bg-primary px-2 text-micro text-primary-foreground hover:opacity-90 disabled:opacity-50"
                               >
                                 <Check className="h-3 w-3" />
                                 保存
@@ -617,7 +617,7 @@ export function DataTablePreviewPanel({
                                 type="button"
                                 onClick={() => setEditingColumn(null)}
                                 disabled={saving}
-                                className="inline-flex h-6 items-center gap-1 rounded border border-border px-2 text-[11px] hover:bg-muted disabled:opacity-50"
+                                className="inline-flex h-6 items-center gap-1 rounded border border-border px-2 text-micro hover:bg-muted disabled:opacity-50"
                               >
                                 取消
                               </button>
@@ -626,12 +626,12 @@ export function DataTablePreviewPanel({
                         ) : (
                           <>
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-[12px] font-medium truncate">{col.name}</span>
-                              <span className="shrink-0 rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">
+                              <span className="text-caption font-medium truncate">{col.name}</span>
+                              <span className="shrink-0 rounded bg-muted px-1 py-0.5 text-nano text-muted-foreground">
                                 {COLUMN_TYPES.find((t) => t.value === col.type)?.label || col.type}
                               </span>
                               {col.required && (
-                                <span className="shrink-0 text-[10px] text-error">必填</span>
+                                <span className="shrink-0 text-nano text-error">必填</span>
                               )}
                             </div>
                             <div className="flex items-center gap-1 ml-2">
@@ -664,7 +664,7 @@ export function DataTablePreviewPanel({
 
               {/* 添加新列 */}
               <div className="border-t border-border pt-4 space-y-3">
-                <h4 className="text-[11px] font-medium text-muted-foreground uppercase">添加列</h4>
+                <h4 className="text-micro font-medium text-muted-foreground uppercase">添加列</h4>
                 <div className="space-y-2">
                   <input
                     type="text"
@@ -673,14 +673,14 @@ export function DataTablePreviewPanel({
                       setNewColumnForm({ ...newColumnForm, name: e.target.value })
                     }
                     placeholder="列名"
-                    className="h-8 w-full rounded border border-border bg-background px-2.5 text-[12px] outline-none focus:border-primary"
+                    className="h-8 w-full rounded border border-border bg-background px-2.5 text-caption outline-none focus:border-primary"
                   />
                   <select
                     value={newColumnForm.type}
                     onChange={(e) =>
                       setNewColumnForm({ ...newColumnForm, type: e.target.value })
                     }
-                    className="h-8 w-full rounded border border-border bg-background px-2.5 text-[12px] outline-none focus:border-primary"
+                    className="h-8 w-full rounded border border-border bg-background px-2.5 text-caption outline-none focus:border-primary"
                   >
                     {COLUMN_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -694,10 +694,10 @@ export function DataTablePreviewPanel({
                         setNewColumnForm({ ...newColumnForm, options: e.target.value })
                       }
                       placeholder="选项1, 选项2, 选项3"
-                      className="h-8 w-full rounded border border-border bg-background px-2.5 text-[12px] outline-none focus:border-primary"
+                      className="h-8 w-full rounded border border-border bg-background px-2.5 text-caption outline-none focus:border-primary"
                     />
                   )}
-                  <label className="flex items-center gap-1.5 text-[11px]">
+                  <label className="flex items-center gap-1.5 text-micro">
                     <input
                       type="checkbox"
                       checked={newColumnForm.required}
@@ -712,7 +712,7 @@ export function DataTablePreviewPanel({
                     type="button"
                     onClick={() => void handleAddColumn()}
                     disabled={saving || !newColumnForm.name.trim()}
-                    className="inline-flex h-8 w-full items-center justify-center gap-1 rounded-md bg-primary px-3 text-[12px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                    className="inline-flex h-8 w-full items-center justify-center gap-1 rounded-md bg-primary px-3 text-caption font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     添加列
@@ -774,7 +774,7 @@ function CellEditor({
           onBlur={() => onSave()}
           onKeyDown={handleKeyDown}
           disabled={saving}
-          className="h-7 min-w-[80px] rounded border border-border bg-background px-2 py-0.5 text-[12px] outline-none focus:border-primary"
+          className="h-7 min-w-[80px] rounded border border-border bg-background px-2 py-0.5 text-caption outline-none focus:border-primary"
         >
           {column.options.map((opt) => (
             <option key={opt} value={opt}>
@@ -815,7 +815,7 @@ function CellEditor({
           onKeyDown={handleKeyDown}
           disabled={saving}
           placeholder={column.options ? column.options.join(", ") : "逗号分隔"}
-          className="h-7 w-full rounded border border-border bg-background px-2 py-0.5 text-[12px] outline-none focus:border-primary"
+          className="h-7 w-full rounded border border-border bg-background px-2 py-0.5 text-caption outline-none focus:border-primary"
         />
         {column.options && (
           <div className="flex flex-wrap gap-1">
@@ -833,7 +833,7 @@ function CellEditor({
                     : [...current, opt];
                   onChange(next.join(", "));
                 }}
-                className={`rounded px-1.5 py-0.5 text-[10px] ${
+                className={`rounded px-1.5 py-0.5 text-nano ${
                   value.split(",").map((s) => s.trim()).includes(opt)
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground"
@@ -879,7 +879,7 @@ function CellEditor({
         onBlur={() => onSave()}
         onKeyDown={handleKeyDown}
         disabled={saving}
-        className="h-7 min-w-[80px] flex-1 rounded border border-border bg-background px-2 py-0.5 text-[12px] outline-none focus:border-primary"
+        className="h-7 min-w-[80px] flex-1 rounded border border-border bg-background px-2 py-0.5 text-caption outline-none focus:border-primary"
       />
     </div>
   );

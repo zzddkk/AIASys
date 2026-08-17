@@ -30,7 +30,7 @@ export const EdgeLabelDialog: React.FC<EdgeLabelDialogProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onCancel(); }}>
-      <DialogContent className="max-w-sm">
+      <DialogContent size="xs">
         <DialogHeader>
           <DialogTitle>编辑连线标签</DialogTitle>
         </DialogHeader>
@@ -82,7 +82,7 @@ export const FilePickerDialog: React.FC<FilePickerDialogProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
-      <DialogContent className="max-w-xl">
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>
             {mode === "image" ? "添加图片节点" : "添加文档节点"}
@@ -114,7 +114,7 @@ export const FilePickerDialog: React.FC<FilePickerDialogProps> = ({
                       <span className="block truncate font-medium text-foreground">
                         {getWorkspaceFileLabel(file.name)}
                       </span>
-                      <span className="block truncate text-[11px] text-muted-foreground">
+                      <span className="block truncate text-micro text-muted-foreground">
                         {file.name}
                       </span>
                     </span>

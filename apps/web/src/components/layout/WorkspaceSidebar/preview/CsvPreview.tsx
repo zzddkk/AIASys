@@ -454,13 +454,13 @@ export const CsvPreview: React.FC<CsvPreviewProps> = ({
               {fileName}
             </span>
             {data ? (
-              <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+              <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 font-mono text-nano text-muted-foreground">
                 {formatBytes(data.size)}
                 {data.total_columns ? ` · ${data.total_columns} 列` : ""}
               </span>
             ) : null}
             {isUrlFallback ? (
-              <span className="shrink-0 rounded-full bg-warning-container px-1.5 py-0.5 text-[10px] text-warning">
+              <span className="shrink-0 rounded-full bg-warning-container px-1.5 py-0.5 text-nano text-warning">
                 简略预览
               </span>
             ) : null}
@@ -476,7 +476,7 @@ export const CsvPreview: React.FC<CsvPreviewProps> = ({
                       hasChanges ? "bg-warning" : "bg-success",
                     )}
                   />
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-micro text-muted-foreground">
                     {hasChanges ? "未保存" : "已保存"}
                   </span>
                 </div>
@@ -489,7 +489,7 @@ export const CsvPreview: React.FC<CsvPreviewProps> = ({
                     setEditedRows(data?.rows.map((row) => [...row]) ?? null);
                     setHasChanges(false);
                   }}
-                  className="rounded bg-secondary px-2.5 py-0.5 text-[11px] text-secondary-foreground transition-colors hover:bg-secondary/80"
+                  className="rounded bg-secondary px-2.5 py-0.5 text-micro text-secondary-foreground transition-colors hover:bg-secondary/80"
                   data-testid="csv-preview-toggle-edit"
                 >
                   {isEditing ? "预览" : "编辑当前页"}
@@ -499,7 +499,7 @@ export const CsvPreview: React.FC<CsvPreviewProps> = ({
                     type="button"
                     onClick={handleSave}
                     disabled={isSaving || !hasChanges}
-                    className="flex items-center gap-1 rounded bg-primary px-2.5 py-0.5 text-[11px] text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50"
+                    className="flex items-center gap-1 rounded bg-primary px-2.5 py-0.5 text-micro text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50"
                     data-testid="csv-preview-save"
                   >
                     {isSaving ? (
@@ -588,7 +588,7 @@ export const CsvPreview: React.FC<CsvPreviewProps> = ({
 
       {data ? (
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-border bg-muted/20 px-3 py-2">
-          <div className="flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
+          <div className="flex min-w-0 items-center gap-2 text-micro text-muted-foreground">
             <span>
               行 {startRow}-{endRow}
             </span>
@@ -616,7 +616,7 @@ export const CsvPreview: React.FC<CsvPreviewProps> = ({
               >
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
-            <span className="px-2 text-[11px] text-muted-foreground">
+            <span className="px-2 text-micro text-muted-foreground">
               第 {page} 页
             </span>
               <button
@@ -632,12 +632,12 @@ export const CsvPreview: React.FC<CsvPreviewProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-muted-foreground">每页</span>
+            <span className="text-micro text-muted-foreground">每页</span>
               <select
                 value={pageSize}
                 onChange={(event) => setPageSizeSafely(Number(event.target.value))}
                 disabled={loading}
-                className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground outline-none"
+                className="h-7 rounded-md border border-border bg-background px-2 text-micro text-foreground outline-none"
                 data-testid="csv-preview-page-size"
               >
               {PAGE_SIZE_OPTIONS.map((size) => (
@@ -674,7 +674,7 @@ export const CsvPreview: React.FC<CsvPreviewProps> = ({
                   setColumnLimitSafely(Number(event.target.value))
                 }
                 disabled={loading}
-                className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground outline-none"
+                className="h-7 rounded-md border border-border bg-background px-2 text-micro text-foreground outline-none"
                 data-testid="csv-preview-column-limit"
               >
                 {COLUMN_LIMIT_OPTIONS.map((size) => (

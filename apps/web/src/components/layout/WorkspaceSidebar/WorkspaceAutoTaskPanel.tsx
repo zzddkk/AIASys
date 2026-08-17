@@ -210,7 +210,7 @@ export function WorkspaceAutoTaskPanel({
             <Button
               type="button"
               size="sm"
-              className="h-8 gap-1.5 rounded-xl px-3 text-[12px]"
+              className="gap-1.5 rounded-xl px-3 text-caption"
               onClick={() => setCategorySelectorOpen(true)}
             >
               <Plus className="h-3.5 w-3.5" />
@@ -220,7 +220,7 @@ export function WorkspaceAutoTaskPanel({
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 gap-1.5 rounded-xl px-3 text-[12px]"
+              className="gap-1.5 rounded-xl px-3 text-caption"
               onClick={() => void autoTask.loadAutoTasks()}
               disabled={autoTask.isLoading}
             >
@@ -403,7 +403,7 @@ function AutoTaskFailureBanner({
           </div>
           <div className="mt-1 space-y-0.5">
             {tasks.slice(0, 3).map((task) => (
-              <div key={task.task_id} className="truncate text-[12px] leading-5">
+              <div key={task.task_id} className="truncate text-caption leading-5">
                 {getAutoTaskTitle(task)}
                 {task.consecutive_errors > 0
                   ? ` · 连续 ${task.consecutive_errors} 次异常`
@@ -412,7 +412,7 @@ function AutoTaskFailureBanner({
               </div>
             ))}
             {tasks.length > 3 ? (
-              <div className="text-[11px] opacity-70">
+              <div className="text-micro opacity-70">
                 还有 {tasks.length - 3} 个任务…
               </div>
             ) : null}
@@ -420,7 +420,7 @@ function AutoTaskFailureBanner({
         </div>
         <button
           type="button"
-          className="shrink-0 text-[11px] underline hover:opacity-70"
+          className="shrink-0 text-micro underline hover:opacity-70"
           onClick={onDismiss}
         >
           忽略

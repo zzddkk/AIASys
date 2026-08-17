@@ -331,7 +331,7 @@ export const FileMentionPicker = forwardRef<FileMentionPickerRef, FileMentionPic
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="truncate font-medium">{candidate.name}</div>
-                  <div className="truncate text-[10px] text-muted-foreground">
+                  <div className="truncate text-nano text-muted-foreground">
                     {candidate.scope === "current" ? "当前工作区" : "全局工作区"} · {candidate.path}
                   </div>
                 </div>

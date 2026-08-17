@@ -4,6 +4,7 @@ import {
   createWorkspace,
   deleteWorkspace,
   registerLifecycleUser,
+  openWorkspaceFilesPanel
 } from "./support";
 
 test.describe("文件保存快捷键", () => {
@@ -13,7 +14,7 @@ test.describe("文件保存快捷键", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
 
     const api = page.request;
-    const user = await registerLifecycleUser(api);
+    await registerLifecycleUser(api);
     const workspace = await createWorkspace(api, {
       title: `浏览器回归-保存快捷键-${Date.now()}`,
       mode: "analysis",
@@ -42,17 +43,7 @@ test.describe("文件保存快捷键", () => {
         { waitUntil: "domcontentloaded" },
       );
       await expect(page.locator("textarea")).toBeVisible();
-
-      const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-      if ((await panel.count()) === 0 || !(await panel.isVisible())) {
-        const fileTab = page.locator("button[aria-label='文件']");
-        if (await fileTab.isVisible()) {
-          await fileTab.click();
-        } else {
-          await page.getByRole("button", { name: "当前工作区", exact: true }).click();
-        }
-      }
-      await expect(panel).toBeVisible();
+      const panel = await openWorkspaceFilesPanel(page);
       await panel.getByPlaceholder("搜索文件或目录...").fill(codeFileName);
       await expect(panel.getByText(codeFileName, { exact: true })).toBeVisible();
 
@@ -84,13 +75,13 @@ test.describe("文件保存快捷键", () => {
       await page.keyboard.type(updatedContent);
 
       // 确认未保存状态
-      await expect(page.getByText("未保存")).toBeVisible();
+      await expect(page.getByText("未保存").first()).toBeVisible(); // 多处渲染，取其一
 
       // 按下 Ctrl+S 保存
       await page.keyboard.press("Control+s");
 
       // 等待保存完成，状态变为已保存
-      await expect(page.getByText("已保存")).toBeVisible();
+      await expect(page.getByText("已保存").first()).toBeVisible();
 
       // 通过 API 验证文件内容已持久化
       const contentResponse = await api.get(
@@ -108,7 +99,7 @@ test.describe("文件保存快捷键", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
 
     const api = page.request;
-    const user = await registerLifecycleUser(api);
+    await registerLifecycleUser(api);
     const workspace = await createWorkspace(api, {
       title: `浏览器回归-Markdown保存快捷键-${Date.now()}`,
       mode: "analysis",
@@ -137,17 +128,7 @@ test.describe("文件保存快捷键", () => {
         { waitUntil: "domcontentloaded" },
       );
       await expect(page.locator("textarea")).toBeVisible();
-
-      const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-      if ((await panel.count()) === 0 || !(await panel.isVisible())) {
-        const fileTab = page.locator("button[aria-label='文件']");
-        if (await fileTab.isVisible()) {
-          await fileTab.click();
-        } else {
-          await page.getByRole("button", { name: "当前工作区", exact: true }).click();
-        }
-      }
-      await expect(panel).toBeVisible();
+      const panel = await openWorkspaceFilesPanel(page);
       await panel.getByPlaceholder("搜索文件或目录...").fill(markdownFileName);
       await expect(panel.getByText(markdownFileName, { exact: true })).toBeVisible();
 
@@ -176,13 +157,13 @@ test.describe("文件保存快捷键", () => {
       await page.keyboard.type(updatedContent);
 
       // 确认未保存状态
-      await expect(page.getByText("未保存")).toBeVisible();
+      await expect(page.getByText("未保存").first()).toBeVisible(); // 多处渲染，取其一
 
       // 按下 Ctrl+S 保存
       await page.keyboard.press("Control+s");
 
       // 等待保存完成
-      await expect(page.getByText("已保存")).toBeVisible();
+      await expect(page.getByText("已保存").first()).toBeVisible();
 
       // 验证文件内容已持久化
       const contentResponse = await api.get(

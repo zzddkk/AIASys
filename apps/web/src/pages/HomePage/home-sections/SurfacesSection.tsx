@@ -27,7 +27,7 @@ export function SurfacesSection({ isAuthenticated }: SurfacesSectionProps) {
           )}
 
           <div className="rounded-[2rem] border border-foreground/8 bg-white/78 dark:bg-gray-900/78 p-6 shadow-[0_34px_72px_-54px_rgba(15,23,42,0.34)] backdrop-blur-sm sm:p-7">
-            <div className="text-[11px] font-mono tracking-[0.2em] text-muted-foreground">
+            <div className="text-micro font-mono tracking-[0.2em] text-muted-foreground">
               先帮你判断
             </div>
             <p className="mt-4 text-xl font-medium leading-9 tracking-[-0.03em] text-foreground sm:text-2xl">
@@ -60,7 +60,7 @@ export function SurfacesSection({ isAuthenticated }: SurfacesSectionProps) {
                 <div className="flex items-center justify-between">
                   <Badge
                     variant="outline"
-                    className="rounded-full border-foreground/8 bg-foreground px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.18em] text-white"
+                    className="rounded-full border-foreground/8 bg-foreground px-2.5 py-0.5 sm:px-3 sm:py-1 text-nano sm:text-micro font-mono uppercase tracking-[0.18em] text-white"
                   >
                     主要入口
                   </Badge>

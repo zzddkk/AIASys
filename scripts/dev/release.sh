@@ -9,7 +9,8 @@
 #   - 必须在 main 分支上执行
 #   - 工作区必须干净
 #   - 必须已存在 docs/changelog/v{version}_{YYYY-MM-DD}.md
-#   - 版本号会同步到 web/desktop/pyproject.toml
+#   - 版本号会同步到 根/web/desktop package.json 与 backend/pyproject.toml（见 VERSION_FILES）
+#   - --dry-run 零副作用：跑完自动还原版本号文件
 #   - 自动提交、打 tag v{version} 并推送到 upstream
 
 set -euo pipefail
@@ -121,16 +122,47 @@ update_json_version() {
 update_toml_version() {
   local file="$1"
   local version="$2"
-  python3 -c "
-import re
-with open('$file', 'r') as f:
-    content = f.read()
-content = re.sub(r'^version = \".*?\"', 'version = \"$version\"', content, count=1, flags=re.MULTILINE)
-with open('$file', 'w') as f:
-    f.write(content)
-"
+  # 用 node 而不是 python3：Windows 的 Git Bash 里没有 python3（只有 python 或
+  # 干脆不在 PATH），2026-08-16 实测发布脚本在 Windows 上跑到这一步直接
+  # `python3: command not found` 中断——前置检查全过、版本号只改了一半。
+  # 脚本上面已经依赖 node 处理 package.json，统一用 node 就没有第二个运行时依赖。
+  # 语义与原 python 实现一致：只替换首个行首 `version = "..."`（对应 count=1 + MULTILINE）。
+  node -e "
+    const fs = require('fs');
+    const file = process.argv[1];
+    const version = process.argv[2];
+    const src = fs.readFileSync(file, 'utf8');
+    const re = /^version = \".*?\"/m;
+    if (!re.test(src)) {
+      console.error('错误：在 ' + file + ' 里找不到行首的 version = \"...\"');
+      process.exit(1);
+    }
+    fs.writeFileSync(file, src.replace(re, 'version = \"' + version + '\"'));
+  " "$file" "$version"
 }
 
+# 承载版本号的全部文件，只在这里列一次——此前 update / git diff / git add 三处
+# 各列一遍，漏改一处就会静默漂移：根 package.json 正是这样在 0.4.34 那次发布里
+# 被漏掉，一直停在 0.4.33（2026-08-15 实测）。
+VERSION_FILES=(
+  # 根 package.json 的 version 目前没有任何消费者（CI 读的是 apps/desktop 与
+  # apps/web 各自的 package.json）。仍然纳入同步而不是删掉它：留着不管必然漂移，
+  # 而漂移出来的旧版本号会误导读它的人和 AI（本轮就误判过一次当前版本）。
+  "package.json"
+  "apps/web/package.json"
+  "apps/desktop/package.json"
+  "apps/backend/pyproject.toml"
+)
+
+# 演练模式下装 EXIT trap：版本号同步中途失败（缺 node、文件里没有 version 行等）
+# 也要还原。2026-08-16 实测过一次真实后果——同步在 python3 缺失处中断，三个
+# package.json 已被改成新版本号却留在工作区，之后被误提交进测试环境。
+# 只在 dry-run 装：真实发布要的就是这些改动留下并被提交。
+if [[ "$DRY_RUN" == true ]]; then
+  trap 'git checkout -- "${VERSION_FILES[@]}" 2>/dev/null || true' EXIT
+fi
+
+update_json_version "package.json" "$VERSION"
 update_json_version "apps/web/package.json" "$VERSION"
 update_json_version "apps/desktop/package.json" "$VERSION"
 update_toml_version "apps/backend/pyproject.toml" "$VERSION"
@@ -138,16 +170,18 @@ update_toml_version "apps/backend/pyproject.toml" "$VERSION"
 # 6. 检查版本号是否真的改了
 if [[ -n "$(git status --short)" ]]; then
   echo "==> 版本号变更如下："
-  git diff -- apps/web/package.json apps/desktop/package.json apps/backend/pyproject.toml
+  git diff -- "${VERSION_FILES[@]}"
 else
   echo "==> 版本号已是 $VERSION，无需变更"
 fi
 
 # 7. 演练模式：不实际提交和 tag
 if [[ "$DRY_RUN" == true ]]; then
+  # 演练必须零副作用。原先只提示「请手动 reset」，忘了就留下一个版本号被改过的
+  # 脏工作区，而下一次真实发布的前置检查恰好要求工作区干净——等于给自己埋雷。
+  # 还原交给上面的 EXIT trap，这里只说明结果——避免两处各写一遍还原逻辑。
   echo ""
-  echo "==> [DRY RUN] 演练完成，不会执行提交、打 tag 和推送"
-  echo "    版本号已临时修改，请手动 reset 或继续真实发布"
+  echo "==> [DRY RUN] 演练完成：前置检查全过，版本号文件将被还原，未提交、未打 tag、未推送"
   echo ""
   echo "    如需继续真实发布，请重新执行（去掉 --dry-run）："
   echo "      ./scripts/dev/release.sh $VERSION"
@@ -161,7 +195,7 @@ if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
   exit 1
 fi
 
-git add apps/web/package.json apps/desktop/package.json apps/backend/pyproject.toml
+git add "${VERSION_FILES[@]}"
 git commit -m "chore(release): bump version to $VERSION"
 
 # 9. 打 tag 并推送

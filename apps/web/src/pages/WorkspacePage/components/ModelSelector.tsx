@@ -14,6 +14,8 @@ import {
   type LLMProviderConfigWithMeta,
 } from "@/lib/api/llm";
 import { Settings2Icon } from "./chatShellIcons";
+import { ModelCapabilityBadges } from "./ModelCapabilityBadges";
+import { modelThinkingMode } from "../hooks/useModelSelection";
 import { useFileUploadToast } from "@/components/file/FileUploadToast";
 
 const PROVIDER_GRADIENTS: Record<string, { gradient: string; initial: string }> = {
@@ -85,7 +87,6 @@ interface ModelSelectorProps {
   thinkingEffort?: "low" | "medium" | "high";
   setThinkingEnabled?: (enabled: boolean) => void;
   setThinkingEffort?: (effort: "low" | "medium" | "high") => void;
-  selectedModelSupportsThinking?: boolean;
   onOpenConfig?: () => void;
   disabled?: boolean;
 }
@@ -99,7 +100,6 @@ export function ModelSelector({
   thinkingEffort = "high",
   setThinkingEnabled,
   setThinkingEffort,
-  selectedModelSupportsThinking = false,
   onOpenConfig,
   disabled,
 }: ModelSelectorProps) {
@@ -261,6 +261,12 @@ export function ModelSelector({
     setOpen(false);
   };
 
+  // 思考三态：always_thinking 模型不提供开关（后端强制开启，开关是假控件）
+  const thinkingMode = modelThinkingMode(
+    userModels.find((item) => item.id === selectedModelId),
+  );
+  const thinkingOn = thinkingMode === "always" ? true : thinkingEnabled;
+
   const isSelected = (modelId: string) => selectedModelId === modelId;
 
   const renderModelItem = (model: LLMModelConfig, badge?: string) => {
@@ -273,18 +279,19 @@ export function ModelSelector({
         key={model.id + (badge ?? "")}
         type="button"
         onClick={() => handleSelect(model.id)}
-        className={`w-full flex items-center gap-2.5 px-2.5 py-2 text-left hover:bg-accent rounded-[10px] transition-colors ${selected ? "bg-primary/10" : ""}`}
+        className={`w-full flex items-center gap-2.5 px-2.5 py-2 text-left hover:bg-accent rounded-md transition-colors ${selected ? "bg-primary/10" : ""}`}
       >
         <span
           className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
         >
           {initial}
         </span>
-        <span className="flex-1 min-w-0 text-[13px] font-medium truncate">
+        <span className="flex-1 min-w-0 text-body font-medium truncate">
           {model.name}
         </span>
+        <ModelCapabilityBadges capabilities={model.capabilities} />
         {badge ? (
-          <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground flex-shrink-0">
+          <span className="text-nano px-1 py-0.5 rounded bg-muted text-muted-foreground flex-shrink-0">
             {badge}
           </span>
         ) : null}
@@ -298,7 +305,7 @@ export function ModelSelector({
       ? createPortal(
           <div
             ref={panelRef}
-            className="fixed z-[9999] w-[300px] bg-popover border border-border rounded-2xl shadow-lg overflow-hidden"
+            className="fixed z-[9999] w-[300px] bg-popover border border-border rounded-md shadow-md overflow-hidden"
             style={{ bottom: panelPos.bottom, left: panelPos.left }}
           >
             <div className="p-3 border-b border-border">
@@ -310,7 +317,7 @@ export function ModelSelector({
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="搜索模型..."
-                  className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-muted-foreground"
+                  className="flex-1 bg-transparent text-body outline-none placeholder:text-muted-foreground"
                 />
               </div>
             </div>
@@ -323,14 +330,14 @@ export function ModelSelector({
               ) : null}
 
               {!search.trim() ? (
-                <div className="px-2.5 pt-2 pb-1 text-[11px] leading-5 text-muted-foreground">
+                <div className="px-2.5 pt-2 pb-1 text-micro leading-5 text-muted-foreground">
                   这里只显示当前已配置并启用的模型。更多服务商或模型，请去设置里补充。
                 </div>
               ) : null}
 
               {recentModels.length > 0 ? (
                 <div className="mb-1">
-                  <div className="px-2.5 pt-2 pb-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  <div className="px-2.5 pt-2 pb-1 text-micro font-semibold text-muted-foreground uppercase tracking-wide">
                     最近使用
                   </div>
                   {recentModels.map((model) => renderModelItem(model, "最近"))}
@@ -339,7 +346,7 @@ export function ModelSelector({
 
               {Array.from(groupedModels.entries()).map(([providerId, models]) => (
                 <div key={providerId} className="mb-1">
-                  <div className="px-2.5 pt-2 pb-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  <div className="px-2.5 pt-2 pb-1 text-micro font-semibold text-muted-foreground uppercase tracking-wide">
                     {getProviderName(providerId)}
                   </div>
                   {models.map((model) => renderModelItem(model))}
@@ -353,32 +360,41 @@ export function ModelSelector({
               ) : null}
             </div>
 
-            {selectedModelSupportsThinking && setThinkingEnabled ? (
+            {thinkingMode !== "none" && setThinkingEnabled ? (
               <div className="border-t border-border p-2.5">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[13px] font-medium">深度思考</span>
-                  <button
-                    type="button"
-                    onClick={() => setThinkingEnabled(!thinkingEnabled)}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      thinkingEnabled ? "bg-primary" : "bg-muted-foreground/30"
-                    }`}
-                  >
+                  <span className="text-body font-medium">深度思考</span>
+                  {thinkingMode === "always" ? (
                     <span
-                      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                        thinkingEnabled ? "translate-x-4.5" : "translate-x-0.5"
+                      className="rounded bg-primary/10 px-1.5 py-0.5 text-nano font-medium text-primary"
+                      title="该模型始终开启思考，无法关闭"
+                    >
+                      常开
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setThinkingEnabled(!thinkingEnabled)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        thinkingEnabled ? "bg-primary" : "bg-muted-foreground/30"
                       }`}
-                    />
-                  </button>
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          thinkingEnabled ? "translate-x-4.5" : "translate-x-0.5"
+                        }`}
+                      />
+                    </button>
+                  )}
                 </div>
-                {thinkingEnabled && setThinkingEffort ? (
+                {thinkingOn && setThinkingEffort ? (
                   <div className="flex items-center gap-1">
                     {(["low", "medium", "high"] as const).map((level) => (
                       <button
                         key={level}
                         type="button"
                         onClick={() => setThinkingEffort(level)}
-                        className={`flex-1 text-[11px] py-1 rounded-md transition-colors ${
+                        className={`flex-1 text-micro py-1 rounded-md transition-colors ${
                           thinkingEffort === level
                             ? "bg-primary/10 text-primary font-medium"
                             : "bg-muted text-muted-foreground hover:bg-accent"
@@ -402,7 +418,7 @@ export function ModelSelector({
                 className="w-full flex items-center gap-2 px-2.5 py-2 text-left hover:bg-accent rounded-[10px] transition-colors text-muted-foreground"
               >
                 <Settings2Icon className="h-3.5 w-3.5" />
-                <span className="text-[13px]">配置更多服务商和模型...</span>
+                <span className="text-body">配置更多服务商和模型...</span>
               </button>
             </div>
           </div>,

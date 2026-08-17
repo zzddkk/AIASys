@@ -146,7 +146,7 @@ export function WorkspaceDialogLayer({
         open={overlayState.showAgentConfigDialog}
         onOpenChange={overlayState.setShowAgentConfigDialog}
       >
-        <DialogContent className="flex h-[88vh] max-w-[min(1280px,94vw)] flex-col gap-0 overflow-hidden p-0 bg-background">
+        <DialogContent size="full" tall className="overflow-hidden bg-background">
           <DialogTitle className="sr-only">当前会话配置</DialogTitle>
           <DialogDescription className="sr-only">
             配置当前会话的工作说明、工具策略和运行时策略。

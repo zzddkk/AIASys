@@ -21,7 +21,10 @@ test.describe("Agent runtime compaction settings", () => {
         },
       );
 
-      await page.getByTestId("input-tool-config").click();
+      // 入口已从输入框工具栏收敛到 DockHeader 的「会话设置」下拉
+      // （2026-08-14 会话配置入口收敛，见迭代记录/2026-08-14-会话配置入口收敛.md）
+      await page.getByRole("button", { name: "会话设置" }).click();
+      await page.getByRole("menuitem", { name: "会话配置" }).click();
       const sessionDialog = page.getByRole("dialog").filter({
         hasText: "当前会话配置",
       });
@@ -86,12 +89,15 @@ test.describe("Agent runtime compaction settings", () => {
         .toBe("0.67|session_override|true");
 
       await page.reload({ waitUntil: "domcontentloaded" });
-      await page.getByTestId("input-tool-config").click();
 
+      // 对话框的打开状态同步在 URL（openAgentConfigDialog ->
+      // replaceWorkspaceOverlay("agent_config")，useWorkspaceOverlayState.ts），
+      // reload 后 syncRouteOverlay 会自动重开对话框。旧版在这里再点一次
+      // 旧入口（input-tool-config 输入框按钮），点击会被已打开的对话框遮罩拦截到超时。
       const reloadedDialog = page.getByRole("dialog").filter({
         hasText: "当前会话配置",
       });
-      await expect(reloadedDialog).toBeVisible();
+      await expect(reloadedDialog).toBeVisible({ timeout: 15_000 });
       await expect(
         reloadedDialog.getByTestId("agent-runtime-reserved-context-size"),
       ).toHaveValue("32000");

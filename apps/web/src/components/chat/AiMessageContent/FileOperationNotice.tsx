@@ -109,7 +109,7 @@ export const FileOperationNotice = memo(function FileOperationNotice({
     <div className="mb-2 flex items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3 py-2">
       <Icon className={`h-4 w-4 flex-shrink-0 ${config.color}`} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[11px] font-medium text-muted-foreground">
+        <span className="text-micro font-medium text-muted-foreground">
           {config.label}
         </span>
         <span
@@ -123,7 +123,7 @@ export const FileOperationNotice = memo(function FileOperationNotice({
         <button
           type="button"
           onClick={handleOpen}
-          className="flex flex-shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:bg-accent"
+          className="flex flex-shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-micro font-medium text-foreground transition-colors hover:bg-accent"
         >
           <FolderOpen className="h-3 w-3" />
           打开

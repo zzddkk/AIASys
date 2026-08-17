@@ -114,7 +114,11 @@ test.describe("DataAnalysis streaming browser regression", () => {
       });
       await gotoAnalysisSession(page, sessionId, workspace.workspaceId);
 
-      await expect(page.getByTestId("context-usage-value")).toHaveText("0/200K");
+      // 用量条现在是 dropdown 变体（TokenUsageBar variant="dropdown"），内联的
+      // context-usage-value 不再挂载；可见读数是「上下文与预算」触发器上的百分比：
+      // pct=0 显示 "0%"，pct=0.6 显示 "0.6%"（toFixed(1)，见 TokenUsageBar.tsx）。
+      const contextTrigger = page.getByRole("button", { name: "上下文与预算" });
+      await expect(contextTrigger).toContainText("0%");
 
       const input = page.locator("textarea");
       await input.fill("请模拟一段用于刷新上下文统计的回复");
@@ -122,10 +126,10 @@ test.describe("DataAnalysis streaming browser regression", () => {
 
       await expect(page.getByText(CHUNK_1, { exact: true })).toBeVisible();
       await expect
-        .poll(async () => await page.getByTestId("context-usage-value").textContent(), {
+        .poll(async () => await contextTrigger.textContent(), {
           timeout: 10_000,
         })
-        .toBe("1K/200K");
+        .toContain("0.6%");
       expect(tokenStatsCalls).toBeGreaterThanOrEqual(2);
     } finally {
       await page.unroute(
@@ -163,7 +167,8 @@ test.describe("DataAnalysis streaming browser regression", () => {
 
       await expect(page.getByText("本地笔记本执行")).toBeVisible();
       await expect(page.getByText("输入参数")).toBeVisible();
-      await expect(page.getByText("执行结果")).toBeVisible();
+      // 「执行结果」在详情卡片里出现两处（标题与区块头），只需证明区块在。
+      await expect(page.getByText("执行结果").first()).toBeVisible();
       await expect(page.getByText("print(98)")).toBeVisible();
       await expect(page.getByText("98", { exact: true })).toBeVisible();
 

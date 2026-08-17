@@ -1,0 +1,28 @@
+# 仓库根的 ruff 配置，作用范围是 apps/ 之外的 Python 脚本（主要是 scripts/）。
+#
+# 为什么需要这份文件：apps/backend/pyproject.toml 只管 backend 自己的目录树。
+# 在没有本文件时，ruff 对 scripts/ 下的文件向上找不到任何配置，于是回退到
+# **内置默认值**（line-length 88、只启用 E/F）。这套隐式标准与 backend 的
+# line-length 100 不一致，而且一旦将来有人在仓库根添加 pyproject.toml，
+# scripts/ 的检查规则就会在无人察觉的情况下整体变化。显式写下来，
+# 让「用哪套规则」成为一个可读、可 review 的决定。
+#
+# 规则刻意与 apps/backend/pyproject.toml 的 [tool.ruff] 保持一致，
+# 避免同一个仓库里两种格式风格来回打架。改动其中一处时请同步另一处。
+
+line-length = 100
+target-version = "py312"
+
+# 只检查仓库根下的脚本目录：apps/ 各自有自己的配置与门，
+# 在这里重复检查会让同一个文件被两套配置判定。
+include = ["scripts/**/*.py"]
+
+[lint]
+select = [
+    "F", # pyflakes：未定义名字、未使用 import 等真实缺陷
+    "I", # isort：import 顺序
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"

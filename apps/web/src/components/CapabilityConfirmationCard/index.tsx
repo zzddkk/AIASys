@@ -121,6 +121,23 @@ export const CapabilityConfirmationCard: React.FC<CapabilityConfirmationCardProp
     }
   }, [isTerminal, isSubmitting, onReject, feedback]);
 
+  // Esc = 拒绝（对齐 codex：dismissal 永不静默映射为继续）。
+  // 反馈输入框内的 Esc 不拦截，留给输入框自身行为。
+  React.useEffect(() => {
+    if (status !== "pending") return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
+        return;
+      }
+      e.preventDefault();
+      void handleReject();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [status, handleReject]);
+
   const renderStatus = () => {
     if (status === "approved") {
       return (
@@ -249,19 +266,19 @@ export const CapabilityConfirmationCard: React.FC<CapabilityConfirmationCardProp
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" size="sm" onClick={handleReject} disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
-              拒绝
+              拒绝（Esc）
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleApprove("once")}
+              onClick={() => handleApprove("session")}
               disabled={isSubmitting}
             >
-              允许
+              本会话内总是允许
             </Button>
-            <Button size="sm" onClick={() => handleApprove("session")} disabled={isSubmitting}>
+            <Button size="sm" onClick={() => handleApprove("once")} disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
-              本会话允许
+              仅本次允许
             </Button>
           </div>
         </>

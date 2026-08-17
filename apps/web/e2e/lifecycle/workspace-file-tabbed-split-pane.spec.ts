@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   createWorkspace,
   deleteWorkspace,
+  openWorkspaceFilesPanel,
   registerLifecycleUser,
   seedWorkspaceFile,
 } from "./support";
@@ -47,16 +48,7 @@ test.describe("Workspace file tabbed split pane", () => {
       );
       await expect(page.locator("textarea")).toBeVisible();
 
-      // Open artifacts panel
-      const fileTab = page.locator("button[aria-label='文件']");
-      if (await fileTab.isVisible()) {
-        await fileTab.click();
-      } else {
-        await page.getByRole("button", { name: "资产", exact: true }).click();
-      }
-
-      const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-      await expect(panel).toBeVisible();
+      const panel = await openWorkspaceFilesPanel(page);
 
       const openFileInCanvas = async (fileName: string) => {
         await panel
@@ -83,8 +75,10 @@ test.describe("Workspace file tabbed split pane", () => {
       await openFileInCanvas(file2Name);
 
       // Both tab divs should be present (each tab div has title matching the file name)
-      const file1TabDiv = page.locator(`div[title="${file1Name}"]`).first();
-      const file2TabDiv = page.locator(`div[title="${file2Name}"]`).first();
+      // tab 的 title 取自 tab.file.name，现行实现带工作区相对路径前缀
+      // （workspace/tab-split-file-1.py），与 office 预览的 iframe title 同源漂移。
+      const file1TabDiv = page.locator(`div[title$="${file1Name}"]`).first();
+      const file2TabDiv = page.locator(`div[title$="${file2Name}"]`).first();
       await expect(file1TabDiv).toBeVisible();
       await expect(file2TabDiv).toBeVisible();
 
@@ -121,9 +115,13 @@ test.describe("Workspace file tabbed split pane", () => {
       await expect(splitDownBtns.first()).toBeVisible();
 
       // Find which pane has file2 active and click its split-down button
-      const file2TabDivs = page.locator(`div[title="${file2Name}"]`);
+      const file2TabDivs = page.locator(`div[title$="${file2Name}"]`);
       // file2 is in the right pane; its tab bar contains the split-down button
-      const file2PaneTabBar = file2TabDivs.first().locator("xpath=ancestor::div[contains(@class, 'flex h-9')]");
+      // tab bar 的样式类从 flex h-9 变成 flex h-11 过一次了，class 定位必腐，
+      // 改用 WorkspaceTabBar 根元素的 data-testid。
+      const file2PaneTabBar = file2TabDivs
+        .first()
+        .locator('xpath=ancestor::*[@data-testid="workspace-tab-bar"]');
       const file2SplitDownBtn = file2PaneTabBar.locator('button[title="向下拆分"]');
       await file2SplitDownBtn.click();
 
@@ -153,10 +151,10 @@ test.describe("Workspace file tabbed split pane", () => {
       // Close duplicated file2 tabs first.
       // The close button (X icon) is inside the tab div and has title="关闭标签".
       for (let attempt = 0; attempt < 3; attempt += 1) {
-        const file2TabCount = await page.locator(`div[title="${file2Name}"]`).count();
+        const file2TabCount = await page.locator(`div[title$="${file2Name}"]`).count();
         if (file2TabCount === 0) break;
         await page
-          .locator(`div[title="${file2Name}"]`)
+          .locator(`div[title$="${file2Name}"]`)
           .first()
           .locator('button[title="关闭标签"]')
           .click();
@@ -164,7 +162,7 @@ test.describe("Workspace file tabbed split pane", () => {
       }
 
       // Now only file1 remains in a single pane. Close it.
-      const file1CloseBtn = page.locator(`div[title="${file1Name}"]`)
+      const file1CloseBtn = page.locator(`div[title$="${file1Name}"]`)
         .first()
         .locator('button[title="关闭标签"]');
       await file1CloseBtn.click();

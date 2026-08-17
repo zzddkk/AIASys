@@ -711,8 +711,11 @@ export function NewWorkspaceDialog({
       }}
     >
       <DialogContent
+        size="md"
         className={cn(
-          "max-w-2xl p-0 gap-0",
+          // p-0 gap-0 有意保留：这个对话框自己排版（内部有分步 header 与 footer），
+          // 但不定高（内容高度随步骤变化）。tall 档管不到这种「自排版 + 不定高」的组合。
+          "p-0 gap-0",
           effectiveLifecycleState.isBusy && "[&>button]:hidden",
         )}
         onEscapeKeyDown={(event) => {
@@ -733,7 +736,7 @@ export function NewWorkspaceDialog({
             <FolderPlus className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
             新建工作区
           </DialogTitle>
-          <DialogDescription className="text-[11px] leading-5">
+          <DialogDescription className="text-micro leading-5">
             填写基本信息并选择运行环境，模板仅决定初始文件内容。
           </DialogDescription>
         </DialogHeader>
@@ -860,7 +863,7 @@ export function NewWorkspaceDialog({
                         onClick={() => setPreviewExpanded((v) => !v)}
                         className="flex w-full items-center justify-between border-b border-border bg-muted/40 px-3 py-1.5 text-left"
                       >
-                        <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                        <span className="flex items-center gap-1.5 text-micro font-medium text-muted-foreground">
                           <FileText className="h-3 w-3" />
                           选择要导入的文件
                         </span>
@@ -893,10 +896,10 @@ export function NewWorkspaceDialog({
                       onClick={() => setCapabilitiesExpanded((v) => !v)}
                       className="flex w-full items-center justify-between border-b border-border bg-muted/40 px-3 py-1.5 text-left"
                     >
-                      <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                      <span className="flex items-center gap-1.5 text-micro font-medium text-muted-foreground">
                         <Puzzle className="h-3 w-3" />
                         推荐能力
-                        <span className="text-[10px] text-muted-foreground/70">
+                        <span className="text-nano text-muted-foreground/70">
                           ({selectedCapabilities.size} 项已选)
                         </span>
                       </span>
@@ -930,7 +933,7 @@ export function NewWorkspaceDialog({
                             .filter(([, g]) => g.items.length > 0)
                             .map(([kind, g]) => (
                               <div key={kind} className="space-y-1.5">
-                                <div className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+                                <div className="flex items-center gap-1 text-micro font-medium text-muted-foreground">
                                   {g.icon}
                                   {g.label}
                                 </div>
@@ -1032,9 +1035,9 @@ export function NewWorkspaceDialog({
                   <span className="font-medium text-foreground">已选择：</span>
                   {selectedFolderPath ?? webFolderFiles[0]?.webkitRelativePath.split("/")[0] ?? "文件夹"}
                   {webFolderFiles.length > 1 && (
-                    <span className="ml-1 text-[10px]">(+{webFolderFiles.length - 1} 个文件夹)</span>
+                    <span className="ml-1 text-nano">(+{webFolderFiles.length - 1} 个文件夹)</span>
                   )}
-                  <span className="ml-1 text-[10px]">
+                  <span className="ml-1 text-nano">
                     ({webFolderFiles.length} 个文件)
                   </span>
                 </div>
@@ -1076,10 +1079,10 @@ export function NewWorkspaceDialog({
                     onClick={() => setFolderImportExpanded((v) => !v)}
                     className="flex w-full items-center justify-between border-b border-border bg-muted/40 px-3 py-1.5 text-left"
                   >
-                    <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                    <span className="flex items-center gap-1.5 text-micro font-medium text-muted-foreground">
                       <FileText className="h-3 w-3" />
                       选择要导入的文件
-                      <span className="text-[10px] text-muted-foreground/70">
+                      <span className="text-nano text-muted-foreground/70">
                         ({selectedImportFiles.size} 项已选)
                       </span>
                     </span>
@@ -1111,7 +1114,7 @@ export function NewWorkspaceDialog({
                 selectedTemplate.runtime_resources &&
                 (selectedTemplate.runtime_resources.python_env_id ||
                   selectedTemplate.runtime_resources.node_env_id) && (
-                  <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-1 text-micro text-muted-foreground">
                     <Lightbulb className="h-3 w-3" />
                     推荐：
                     {[
@@ -1197,9 +1200,9 @@ export function NewWorkspaceDialog({
                               selectableRegisteredEnvs.length === 0
                             }
                           >
-                            <SelectTrigger
+                            <SelectTrigger size="sm"
                               id="registered-python-choice"
-                              className="h-8 w-full min-w-0 max-w-full text-xs"
+                              className="w-full min-w-0 max-w-full text-xs"
                             >
                               <SelectValue placeholder="选择已登记 Python">
                                 {selectedRegisteredEnv?.display_name ||
@@ -1222,7 +1225,7 @@ export function NewWorkspaceDialog({
                                       {env.display_name || env.name}
                                     </span>
                                     <span
-                                      className="truncate font-mono text-[11px] text-muted-foreground"
+                                      className="truncate font-mono text-micro text-muted-foreground"
                                       title={env.executable}
                                     >
                                       {env.executable}
@@ -1234,7 +1237,7 @@ export function NewWorkspaceDialog({
                           </Select>
                           {selectedRegisteredEnv?.executable ? (
                             <div
-                              className="min-w-0 truncate font-mono text-[11px] text-muted-foreground"
+                              className="min-w-0 truncate font-mono text-micro text-muted-foreground"
                               title={selectedRegisteredEnv.executable}
                             >
                               {selectedRegisteredEnv.executable}
@@ -1341,7 +1344,7 @@ export function NewWorkspaceDialog({
           if (!open) setPreviewingTemplate(null);
         }}
       >
-        <DialogContent className="max-w-3xl p-0 gap-0">
+        <DialogContent size="md" className="p-0 gap-0">
           <DialogHeader className="border-b px-6 py-4">
             <DialogTitle className="flex items-center gap-2 text-base">
               <FileText className="h-5 w-5 text-muted-foreground" />
@@ -1350,7 +1353,7 @@ export function NewWorkspaceDialog({
                 模板预览
               </span>
             </DialogTitle>
-            <DialogDescription className="text-[11px] leading-5">
+            <DialogDescription className="text-micro leading-5">
               {previewingTemplate?.description || "该模板包含以下预置文件"}
             </DialogDescription>
           </DialogHeader>

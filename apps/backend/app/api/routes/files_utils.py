@@ -844,8 +844,18 @@ def _get_session_owner_user_id(user_id: str, session_id: str) -> Optional[str]:
         if meta_path.exists():
             data = json.loads(Path(as_system_path(meta_path)).read_text(encoding="utf-8"))
             return data.get("user_id")
-    except Exception:
-        pass
+    except Exception as exc:
+        # 这个函数的结果决定 download 接口权限检查的目标（files_core.py 的
+        # actual_user_id 分支）。metadata 损坏时仍回退到 URL 参数（路径解析本身
+        # 按 target_user_id 隔离，不构成越权），但必须留日志——否则「权限检查
+        # 对象悄悄错了」这类问题只能靠猜。2026-08-13 错误处理反模式扫描补。
+        logger.warning(
+            "读取 session metadata 失败，权限检查回退到 URL 参数 user_id: "
+            "user_id=%s session_id=%s error=%s",
+            user_id,
+            session_id,
+            exc,
+        )
     return None
 
 

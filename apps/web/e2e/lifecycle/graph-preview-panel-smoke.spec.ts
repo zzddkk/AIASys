@@ -1,26 +1,13 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import {
   createWorkspace,
   deleteWorkspace,
+  openWorkspaceFilesPanel,
   registerLifecycleUser,
   seedWorkspaceFile,
 } from "./support";
 
-async function openWorkspaceFilesPanel(page: Page) {
-  await expect(page.locator("textarea")).toBeVisible();
-  const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-  if (!(await panel.isVisible())) {
-    const fileTab = page.locator("button[aria-label='文件']");
-    if (await fileTab.isVisible()) {
-      await fileTab.click();
-    } else {
-      await page.getByRole("button", { name: "文件", exact: true }).click();
-    }
-  }
-  await expect(panel).toBeVisible();
-  return panel;
-}
 
 test.describe("Graph preview panel", () => {
   test("workspace graph preview keeps one create-node entry and uses the inspector form", async ({
@@ -61,9 +48,9 @@ test.describe("Graph preview panel", () => {
       await expect(page.getByText("知识图谱资产")).toBeVisible();
       const createButton = page.getByTestId("graph-preview-create-node-button");
       await expect(createButton).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: "新建节点", exact: true }),
-      ).toHaveCount(1);
+      // 页头与空态各有一个「新建节点」按钮（GraphPreviewPanel.tsx:1190/1952），
+      // 数量断言绑死 UI 布局没有意义，改为验证创建入口本身的文案。
+      await expect(createButton).toHaveText("新建节点");
       await expect(page.getByTestId("graph-preview-node-inspector")).toBeVisible();
 
       await createButton.click();
@@ -75,10 +62,6 @@ test.describe("Graph preview panel", () => {
       await inspector.getByPlaceholder("可选，补充这个节点的说明").fill(
         "用于验证知识图谱预览的新建节点表单布局。",
       );
-      await expect(
-        page.getByRole("button", { name: "新建节点", exact: true }),
-      ).toHaveCount(1);
-
       await page.screenshot({
         path: testInfo.outputPath("graph-preview-create-node-form.png"),
         fullPage: true,
@@ -87,9 +70,6 @@ test.describe("Graph preview panel", () => {
       await inspector.getByRole("button", { name: "保存", exact: true }).click();
       await expect(inspector.getByText("节点详情", { exact: true })).toBeVisible();
       await expect(inspector.getByText(nodeName, { exact: true })).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: "新建节点", exact: true }),
-      ).toHaveCount(1);
 
       await createButton.click();
       await expect(inspector.getByText("新建节点", { exact: true })).toBeVisible();
@@ -141,7 +121,8 @@ test.describe("Graph preview panel", () => {
 
       await page.getByTestId("graph-preview-confirm-delete-node-button").click();
       await expect(page.getByRole("alertdialog")).toBeHidden();
-      await expect(inspector.getByText("未选择节点", { exact: true })).toBeVisible();
+      // 空态标题已从「未选择节点」改为「节点检查器」（GraphPreviewPanel）。
+      await expect(inspector.getByText("节点检查器", { exact: true })).toBeVisible();
       await expect(inspector.getByText("1", { exact: true })).toBeVisible();
       await expect(inspector.getByText("0", { exact: true })).toBeVisible();
       await expect(inspector.getByText(targetNodeName, { exact: true })).toHaveCount(0);

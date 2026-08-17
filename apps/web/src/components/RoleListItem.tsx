@@ -95,30 +95,30 @@ export function RoleListItem({
               {role.displayName}
             </span>
             {role.displayName !== role.name ? (
-              <Badge variant="outline" className="text-[10px]">
+              <Badge variant="outline" className="text-nano">
                 {role.name}
               </Badge>
             ) : null}
             {isSystemRole ? (
-              <Badge variant="outline" className="text-[10px]">
+              <Badge variant="outline" className="text-nano">
                 系统
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-[10px]">
+              <Badge variant="outline" className="text-nano">
                 自定义
               </Badge>
             )}
-            <Badge variant={statusVariant} className="text-[10px]">
+            <Badge variant={statusVariant} className="text-nano">
               {statusLabel}
             </Badge>
             {/* 管理视图显示安装位置标签 */}
             {installedLabel && !isMarketView ? (
-              <Badge variant="info" className="text-[10px]">
+              <Badge variant="info" className="text-nano">
                 {installedLabel}
               </Badge>
             ) : null}
             {role.lockReason ? (
-              <Badge variant="warning" className="text-[10px]">
+              <Badge variant="warning" className="text-nano">
                 锁定
               </Badge>
             ) : null}
@@ -145,7 +145,7 @@ export function RoleListItem({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1.5 text-xs"
+                className="gap-1.5 text-xs"
                 onClick={(e) => {
                   e.stopPropagation();
                   void onEnableDefault(role);
@@ -161,7 +161,7 @@ export function RoleListItem({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1.5 text-xs"
+                className="gap-1.5 text-xs"
                 onClick={(e) => {
                   e.stopPropagation();
                   void onEnableWorkspace(role);
@@ -183,8 +183,8 @@ export function RoleListItem({
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
-                className="h-8 w-8 rounded-lg p-0"
+                size="icon-sm"
+                className="rounded-lg p-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(role);
@@ -201,7 +201,7 @@ export function RoleListItem({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "h-8 rounded-lg text-destructive hover:text-destructive",
+                  "rounded-lg text-destructive hover:text-destructive",
                   isSystemRole ? "px-2 text-xs" : "w-8 p-0",
                 )}
                 onClick={(e) => {
@@ -227,7 +227,7 @@ export function RoleListItem({
 
         {/* 第三行：模型 + 工具（合并为一行） */}
         {(role.model || role.toolCount > 0) && (
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="mt-0.5 text-micro text-muted-foreground">
             {role.model ? `模型: ${role.model}` : null}
             {role.model && role.toolCount > 0 ? " · " : null}
             {role.toolCount > 0 ? `工具: ${role.toolCount} 个` : null}

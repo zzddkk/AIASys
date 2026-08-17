@@ -54,11 +54,11 @@ VITE_AUTH_MODE=local
 
 ## 关键模块
 
-- `src/pages/DataAnalysisPage/`：主工作台（输入、消息区、左右侧栏、弹窗）
-- `src/hooks/useCodeExecutor.ts`：会话、提交、上传、停止、工作区联动
+- `src/pages/WorkspacePage/`：主工作台（输入、消息区、左右侧栏、弹窗）
+- `src/pages/WorkspacePage/hooks/useCodeExecutor/`：会话、提交、上传、停止、工作区联动
 - `src/hooks/useAgentStream.ts`：Agent 流式执行封装
 - `src/components/layout/WorkspaceSidebar/`：执行事件与工件视图
-- `src/components/AskUserDialog/`：人机确认交互
+- `src/components/AskUserInlineCard/`：人机确认交互（聊天流内联卡片，已替代弹窗）
 - `src/config/api.ts`：统一 API 常量
 
 ## 常用命令

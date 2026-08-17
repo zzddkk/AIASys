@@ -87,8 +87,8 @@ export function SessionLifecycleDialogs({
         open={isExecutionRecordsDialogOpen}
         onOpenChange={onExecutionRecordsDialogOpenChange}
       >
-        <DialogContent
-          className="grid h-[80vh] max-h-[80vh] sm:max-w-4xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0"
+        <DialogContent size="lg" tall
+          className="grid-rows-[auto_minmax(0,1fr)] overflow-hidden"
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             window.requestAnimationFrame(() => {
@@ -113,7 +113,7 @@ export function SessionLifecycleDialogs({
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="conversation">
                 对话上下文
-                <span className="ml-2 text-[11px] text-muted-foreground">
+                <span className="ml-2 text-micro text-muted-foreground">
                   {conversationHistoryMessages.length +
                     historicalConversationBatches.reduce(
                       (total, batch) => total + batch.messages.length,
@@ -124,7 +124,7 @@ export function SessionLifecycleDialogs({
 
               <TabsTrigger value="execution">
                 代码执行
-                <span className="ml-2 text-[11px] text-muted-foreground">
+                <span className="ml-2 text-micro text-muted-foreground">
                   {executionRecordsSummary?.execution_record_count ??
                     effectiveSessionStatus?.execution_record_count ??
                     0}

@@ -163,7 +163,7 @@ def test_wrap_uv_shell_command_uses_uv_project_and_workspace_directory(
     workspace = tmp_path / "workspace"
     project_dir = tmp_path / "workspace" / "env"
     project_dir.mkdir(parents=True)
-    (project_dir / "pyproject.toml").write_text("[project]\nname = \"test\"\n", encoding="utf-8")
+    (project_dir / "pyproject.toml").write_text('[project]\nname = "test"\n', encoding="utf-8")
     plan = RuntimeExecutionPlan(
         sandbox_mode="local",
         env_id="uv-env",
@@ -206,7 +206,7 @@ def test_wrap_uv_shell_command_uses_powershell_on_windows(
     workspace = tmp_path / "workspace"
     project_dir = tmp_path / "workspace" / "env"
     project_dir.mkdir(parents=True)
-    (project_dir / "pyproject.toml").write_text("[project]\nname = \"test\"\n", encoding="utf-8")
+    (project_dir / "pyproject.toml").write_text('[project]\nname = "test"\n', encoding="utf-8")
     plan = RuntimeExecutionPlan(
         sandbox_mode="local",
         env_id="uv-env",

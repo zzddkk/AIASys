@@ -19,7 +19,7 @@ export function CapabilitiesSection() {
           )}
 
           <div className="rounded-[2rem] border border-foreground/8 bg-white/74 p-6 shadow-[0_34px_70px_-52px_rgba(15,23,42,0.35)] backdrop-blur-sm sm:p-7">
-            <div className="text-[11px] font-mono tracking-[0.2em] text-muted-foreground">
+            <div className="text-micro font-mono tracking-[0.2em] text-muted-foreground">
               适合的工作方式
             </div>
             <p className="mt-4 text-xl font-medium leading-9 tracking-[-0.03em] text-foreground sm:text-2xl">
@@ -74,7 +74,7 @@ export function CapabilitiesSection() {
                     </div>
                     <Badge
                       variant="outline"
-                      className="rounded-full border-foreground/8 bg-white/80 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground"
+                      className="rounded-full border-foreground/8 bg-white/80 px-3 py-1 text-micro font-mono uppercase tracking-[0.18em] text-muted-foreground"
                     >
                       核心能力
                     </Badge>

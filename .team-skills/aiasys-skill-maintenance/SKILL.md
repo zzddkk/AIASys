@@ -226,4 +226,3 @@ docs: 更新前端架构 Skill，同步 WorkspacePage Pane/Dock 布局变更
 - `.team-skills/aiasys-git-workflow`：commit 前检查引用本 Skill
 - `.team-skills/team-skill-governance`：团队 Skill 治理规则
 - `.team-skills/team-skill-guide`：Skill 发现入口，变更后需同步
-- `.team-skills/doc-maintenance`：用户-facing 文档同步规范

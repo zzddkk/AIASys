@@ -274,7 +274,7 @@ function MaterialState({ value }: { value: boolean | null }) {
   return (
     <span
       className={cn(
-        "rounded-full border px-2 py-0.5 text-[11px] font-medium",
+        "rounded-full border px-2 py-0.5 text-micro font-medium",
         value === true && "border-success/20 bg-success-container text-on-success-container",
         value === false && "border-warning/20 bg-warning-container text-on-warning-container",
         value === null && "border-border bg-muted text-muted-foreground",
@@ -297,7 +297,7 @@ function RuntimePathRow({
   const text = String(value || "").trim();
   return (
     <div className="grid gap-1 rounded-xl border border-border bg-background px-3 py-2 md:grid-cols-[96px_minmax(0,1fr)_auto] md:items-center">
-      <div className="text-[11px] font-semibold text-muted-foreground">
+      <div className="text-micro font-semibold text-muted-foreground">
         {label}
       </div>
       <div
@@ -388,7 +388,7 @@ function RuntimeEnvControlledPreview({
           <section className="rounded-2xl border border-border bg-card px-4 py-4">
             <div className="grid gap-3 md:grid-cols-4">
               <div>
-                <div className="text-[11px] font-semibold text-muted-foreground">
+                <div className="text-micro font-semibold text-muted-foreground">
                   当前环境
                 </div>
                 <div className="mt-1 truncate text-sm font-semibold text-foreground">
@@ -396,7 +396,7 @@ function RuntimeEnvControlledPreview({
                 </div>
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-muted-foreground">
+                <div className="text-micro font-semibold text-muted-foreground">
                   类型
                 </div>
                 <div className="mt-1 text-sm font-semibold text-foreground">
@@ -404,7 +404,7 @@ function RuntimeEnvControlledPreview({
                 </div>
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-muted-foreground">
+                <div className="text-micro font-semibold text-muted-foreground">
                   状态
                 </div>
                 <div className="mt-1 text-sm font-semibold text-foreground">
@@ -412,7 +412,7 @@ function RuntimeEnvControlledPreview({
                 </div>
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-muted-foreground">
+                <div className="text-micro font-semibold text-muted-foreground">
                   依赖包
                 </div>
                 <div className="mt-1 text-sm font-semibold text-foreground">
@@ -465,7 +465,7 @@ function RuntimeEnvControlledPreview({
                 依赖包列表
               </div>
               {packages.length > visiblePackages.length ? (
-                <div className="text-[11px] text-muted-foreground">
+                <div className="text-micro text-muted-foreground">
                   先显示 {visiblePackages.length} 个
                 </div>
               ) : null}
@@ -475,7 +475,7 @@ function RuntimeEnvControlledPreview({
                 {visiblePackages.map((pkg) => (
                   <span
                     key={`${pkg.name}-${pkg.version}`}
-                    className="rounded-full border border-border bg-background px-2.5 py-1 font-mono text-[11px] text-foreground"
+                    className="rounded-full border border-border bg-background px-2.5 py-1 font-mono text-micro text-foreground"
                     title={`${pkg.name} ${pkg.version}`}
                   >
                     {pkg.name}
@@ -2025,10 +2025,10 @@ const WorkspaceAssetPanelComponent: React.FC<WorkspaceAssetPanelProps> = ({
           {/* Info card */}
           <div className="flex-shrink-0 border-b border-border bg-background px-3 py-2.5">
             <div className="rounded-xl border border-border bg-muted/20 px-3 py-2.5">
-              <div className="text-[11px] font-medium text-foreground">
+              <div className="text-micro font-medium text-foreground">
                 {infoCardTitle}
               </div>
-              <div className="mt-1 truncate text-[11px] leading-5 text-muted-foreground">
+              <div className="mt-1 truncate text-micro leading-5 text-muted-foreground">
                 {infoCardDescription}
               </div>
             </div>
@@ -2095,7 +2095,7 @@ const WorkspaceAssetPanelComponent: React.FC<WorkspaceAssetPanelProps> = ({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="mt-4 h-8 text-xs"
+                    className="mt-4 text-xs"
                     onClick={onOpenWorkspaceSettings}
                   >
                     管理全局资源
@@ -2118,7 +2118,7 @@ const WorkspaceAssetPanelComponent: React.FC<WorkspaceAssetPanelProps> = ({
               <div className="truncate text-xs font-semibold text-foreground">
                 {headerTitle}
               </div>
-              <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              <div className="mt-0.5 truncate text-micro text-muted-foreground">
                 根目录
               </div>
             </div>
@@ -2224,7 +2224,7 @@ const WorkspaceAssetPanelComponent: React.FC<WorkspaceAssetPanelProps> = ({
                     return (
                       <div
                         key={file.name}
-                        className={`group flex max-w-[220px] items-center gap-1 rounded-t-xl border px-2 py-1.5 text-[11px] transition-colors ${
+                        className={`group flex max-w-[220px] items-center gap-1 rounded-t-xl border px-2 py-1.5 text-micro transition-colors ${
                           active
                             ? "border-border border-b-background bg-background text-foreground shadow-sm"
                             : "border-transparent bg-transparent text-muted-foreground hover:bg-background/70 hover:text-foreground"
@@ -2263,7 +2263,7 @@ const WorkspaceAssetPanelComponent: React.FC<WorkspaceAssetPanelProps> = ({
                     >
                       {isGlobal ? "global" : "workspace"} / {selectedFile.name}
                     </div>
-                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    <div className="mt-0.5 text-micro text-muted-foreground">
                       已打开 {openFiles.length} 个文件
                     </div>
                   </div>
@@ -2317,7 +2317,7 @@ const WorkspaceAssetPanelComponent: React.FC<WorkspaceAssetPanelProps> = ({
                 </div>
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
                   <div className="rounded-2xl border border-border bg-muted/10 px-4 py-4">
-                    <div className="text-[11px] font-medium text-muted-foreground">最近更新</div>
+                    <div className="text-micro font-medium text-muted-foreground">最近更新</div>
                     <div className="mt-3 space-y-2">
                       {recentFiles.map((file) => (
                         <button
@@ -2330,13 +2330,13 @@ const WorkspaceAssetPanelComponent: React.FC<WorkspaceAssetPanelProps> = ({
                             <div className="truncate text-sm font-medium text-foreground">
                               {file.name}
                             </div>
-                            <div className="mt-1 text-[11px] text-muted-foreground">
+                            <div className="mt-1 text-micro text-muted-foreground">
                               {file.mtime
                                 ? `更新时间：${new Date(file.mtime).toLocaleString("zh-CN", { hour12: false })}`
                                 : "时间未知"}
                             </div>
                           </div>
-                          <span className="text-[11px] text-muted-foreground">点击预览</span>
+                          <span className="text-micro text-muted-foreground">点击预览</span>
                         </button>
                       ))}
                     </div>

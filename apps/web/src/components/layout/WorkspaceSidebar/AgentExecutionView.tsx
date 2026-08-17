@@ -83,20 +83,20 @@ export function AgentExecutionView({
             {subagent.subagent_type || "协作节点"}
           </div>
         </div>
-        <Badge variant="outline" className="shrink-0 rounded-full text-[11px]">
+        <Badge variant="outline" className="shrink-0 rounded-full text-micro">
           {subagent.status}
         </Badge>
       </div>
 
       <div className="mt-4 grid gap-2 text-xs">
         <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-          <div className="text-[11px] text-muted-foreground">节点路径</div>
+          <div className="text-micro text-muted-foreground">节点路径</div>
           <div className="mt-1 break-all font-mono text-foreground">
             {subagent.agent_path || (subagent.meta.agent_path as string | undefined) || subagent.id}
           </div>
         </div>
         <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-          <div className="text-[11px] text-muted-foreground">父级</div>
+          <div className="text-micro text-muted-foreground">父级</div>
           <div className="mt-1 break-all font-mono text-foreground">
             {subagent.parent_agent_id || (subagent.meta.parent_agent_id as string | undefined) || "主控"}
           </div>
@@ -117,7 +117,7 @@ export function AgentExecutionView({
                   key={`${(msg.role as string | undefined) ?? "msg"}-${index}-${String((msg.content as string | undefined) ?? "").slice(0, 16)}`}
                   className="rounded-xl border border-border bg-muted/20 px-3 py-2"
                 >
-                  <div className="text-[11px] font-medium text-muted-foreground">
+                  <div className="text-micro font-medium text-muted-foreground">
                     {formatRole(msg.role as string | undefined)}
                   </div>
                   <pre className="mt-1 whitespace-pre-wrap break-words font-sans text-xs leading-5 text-foreground">
@@ -146,11 +146,11 @@ export function AgentExecutionView({
                 key={`${event.type}:${event.tool_call_id || index}`}
                 className="rounded-xl border border-border bg-muted/20 px-3 py-2"
               >
-                <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                <div className="flex items-center justify-between gap-2 text-micro text-muted-foreground">
                   <span>{event.type === "tool_call" ? "调用" : "结果"}</span>
                   <span className="font-mono">{(event.tool_name as string | undefined) || (event.tool_call_id as string | undefined) || "unknown"}</span>
                 </div>
-                <pre className="mt-1 max-h-24 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-5 text-foreground">
+                <pre className="mt-1 max-h-24 overflow-auto whitespace-pre-wrap break-words font-mono text-micro leading-5 text-foreground">
                   {toDisplayText(event.arguments || event.content || event)}
                 </pre>
               </div>
@@ -171,7 +171,7 @@ export function AgentExecutionView({
         <div className="mt-2 space-y-1">
           {subagent.output_files.length > 0 ? (
             subagent.output_files.map((file) => (
-              <div key={file.path} className="truncate font-mono text-[11px] text-muted-foreground">
+              <div key={file.path} className="truncate font-mono text-micro text-muted-foreground">
                 {file.name}
               </div>
             ))

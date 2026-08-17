@@ -102,17 +102,17 @@ export function DatabaseSchemaTree({
   return (
     <div className="flex h-full flex-col bg-muted/20">
       <div className="flex-shrink-0 border-b border-border px-3 py-2">
-        <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+        <div className="flex items-center gap-2 text-micro font-medium text-muted-foreground uppercase tracking-wide">
           <Database className="h-3 w-3" />
           表结构
         </div>
         <div className="mt-2 relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-          <Input
+          <Input size="xs"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="搜索表..."
-            className="h-7 pl-7 text-[11px]"
+            className="pl-7 text-micro"
           />
         </div>
       </div>
@@ -150,7 +150,7 @@ export function DatabaseSchemaTree({
                   <button
                     type="button"
                     onClick={() => onSchemaToggle(group.schema)}
-                    className="flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-[12px] font-medium text-foreground hover:bg-muted transition-colors"
+                    className="flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-caption font-medium text-foreground hover:bg-muted transition-colors"
                   >
                     {isSchemaExpanded ? (
                       <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
@@ -159,7 +159,7 @@ export function DatabaseSchemaTree({
                     )}
                     <Database className="h-3 w-3 shrink-0 text-muted-foreground" />
                     <span className="truncate">{group.schema}</span>
-                    <span className="ml-auto text-[10px] text-muted-foreground/60">
+                    <span className="ml-auto text-nano text-muted-foreground/60">
                       {group.tables.length}
                     </span>
                   </button>
@@ -189,7 +189,7 @@ export function DatabaseSchemaTree({
             })}
           </div>
         ) : (
-          <div className="px-2 py-4 text-center text-[11px] text-muted-foreground/60">
+          <div className="px-2 py-4 text-center text-micro text-muted-foreground/60">
             {searchQuery.trim() ? "无匹配的表" : "暂无数据表"}
           </div>
         )}
@@ -225,7 +225,7 @@ function TableTreeItem({
     <div>
       <div
         className={cn(
-          "flex w-full items-center gap-0.5 rounded px-1.5 py-1 text-left text-[12px] transition-colors group",
+          "flex w-full items-center gap-0.5 rounded px-1.5 py-1 text-left text-caption transition-colors group",
           isSelected
             ? "bg-primary/10 text-primary"
             : "text-foreground hover:bg-muted"
@@ -272,17 +272,17 @@ function TableTreeItem({
             tableDetail.columns.map((col) => (
               <div
                 key={col.name}
-                className="flex items-center gap-1 py-0.5 text-[11px] text-muted-foreground"
+                className="flex items-center gap-1 py-0.5 text-micro text-muted-foreground"
               >
                 <span className="truncate">{col.name}</span>
-                <span className="shrink-0 text-[10px] opacity-60">{col.type}</span>
+                <span className="shrink-0 text-nano opacity-60">{col.type}</span>
                 {!col.nullable && (
-                  <span className="shrink-0 text-[10px] text-primary">NOT NULL</span>
+                  <span className="shrink-0 text-nano text-primary">NOT NULL</span>
                 )}
               </div>
             ))
           ) : (
-            <div className="py-1 text-[11px] text-muted-foreground/60">无列信息</div>
+            <div className="py-1 text-micro text-muted-foreground/60">无列信息</div>
           )}
         </div>
       ) : null}

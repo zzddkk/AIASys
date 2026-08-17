@@ -11,8 +11,15 @@ from typing import Any
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionChunk
 
-from .base import BaseLlmClient, LlmChunk, LlmDelta, LlmRequestOptions
+from .base import (
+    BaseLlmClient,
+    LlmChunk,
+    LlmDelta,
+    LlmRequestOptions,
+    normalize_openai_finish_reason,
+)
 from .message_protocol import InternalMessage, to_openai_chat_messages
+from .reasoning_tag_splitter import ReasoningTagSplitter
 from .thinking_mapper import apply_openai_chat_thinking_options
 
 logger = logging.getLogger(__name__)
@@ -99,11 +106,15 @@ class OpenAIChatClient(BaseLlmClient):
         model: str,
         reasoning_key: str | None = None,
         reasoning_format: str | None = None,
+        reasoning_in_content_tag: str | None = None,
     ):
         self.model = model.strip()
         self._base_url = base_url.rstrip("/") if base_url else ""
         self._reasoning_key = reasoning_key
         self._reasoning_format = reasoning_format
+        # 标签名（如 "think"）。仅对显式声明该形态的 provider 生效；None = 不启用。
+        # 不做全局猜测：用户正文里可能出现合法的 <think> 字样，无条件剥离会吃掉用户内容。
+        self._reasoning_in_content_tag = reasoning_in_content_tag
 
         client_kwargs: dict[str, Any] = {
             "api_key": api_key.strip(),
@@ -175,10 +186,28 @@ class OpenAIChatClient(BaseLlmClient):
         return kwargs
 
     async def _do_stream(self, **kwargs: Any) -> AsyncGenerator[LlmChunk, None]:
+        # 每个流新建一个 splitter：状态跨 chunk 累积，实例复用会串流。
+        # 未配置 reasoning_in_content_tag 时为 None，走原路径，零行为变更。
+        splitter = (
+            ReasoningTagSplitter(self._reasoning_in_content_tag)
+            if self._reasoning_in_content_tag
+            else None
+        )
         async for raw in await self._client.chat.completions.create(**kwargs):
-            chunk = self._normalize_chunk(raw)
+            chunk = self._normalize_chunk(raw, splitter)
             if chunk is not None:
                 yield chunk
+        # 兜底 flush：正常情况下残留已在 finish_reason 那一帧合并掉，这里返回空。
+        # 仅当流没有任何一帧带 finish_reason 时才会真的产出内容，防止尾部被吞。
+        if splitter is not None:
+            tail_content, tail_reasoning = splitter.flush()
+            if tail_content or tail_reasoning:
+                yield LlmChunk(
+                    delta=LlmDelta(
+                        content=tail_content or None,
+                        reasoning_content=tail_reasoning or None,
+                    )
+                )
 
     def _convert_messages(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         converted = to_openai_chat_messages(messages)
@@ -192,7 +221,11 @@ class OpenAIChatClient(BaseLlmClient):
                     msg[reasoning_key] = msg.pop("reasoning_content")
         return converted
 
-    def _normalize_chunk(self, raw: ChatCompletionChunk) -> LlmChunk | None:
+    def _normalize_chunk(
+        self,
+        raw: ChatCompletionChunk,
+        splitter: ReasoningTagSplitter | None = None,
+    ) -> LlmChunk | None:
         """将 OpenAI SDK 的 ChatCompletionChunk 转为 LlmChunk。"""
         choices = raw.choices
         if not choices:
@@ -238,13 +271,28 @@ class OpenAIChatClient(BaseLlmClient):
                     reasoning_content = val
                     break
 
+        content = delta.content
+        if splitter is not None:
+            # 把正文里 <tag>…</tag> 包裹的推理切出来，归入 reasoning 通道。
+            split_content, split_reasoning = splitter.feed(content or "")
+            if choice.finish_reason is not None:
+                # 在最终帧就地收尾，把残留合并进这一帧。若改为流末另发一帧，
+                # 那一帧会落在 finish_reason 之后，下游可能已结束处理而丢内容。
+                tail_content, tail_reasoning = splitter.flush()
+                split_content += tail_content
+                split_reasoning += tail_reasoning
+            content = split_content or None
+            if split_reasoning:
+                reasoning_content = (reasoning_content or "") + split_reasoning
+
         return LlmChunk(
             delta=LlmDelta(
-                content=delta.content,
+                content=content,
                 reasoning_content=reasoning_content,
                 tool_calls=tool_calls,
             ),
-            finish_reason=choice.finish_reason,
+            finish_reason=normalize_openai_finish_reason(choice.finish_reason),
+            raw_finish_reason=choice.finish_reason,
             usage=None,
         )
 

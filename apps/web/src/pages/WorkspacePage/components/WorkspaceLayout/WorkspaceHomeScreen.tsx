@@ -31,7 +31,7 @@ export function WorkspaceHomeScreen({
         <section className="rounded-2xl border border-border bg-card p-8 shadow-sm">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl space-y-5">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-micro font-medium uppercase tracking-[0.18em] text-muted-foreground">
                 Workspace Home
               </div>
               <BrandLogo
@@ -97,7 +97,7 @@ export function WorkspaceHomeScreen({
                       <div className="rounded-2xl border border-border bg-muted p-3 text-muted-foreground">
                         <FolderKanban className="h-5 w-5 text-tertiary" />
                       </div>
-                      <div className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      <div className="rounded-full border border-border bg-muted px-2.5 py-1 text-micro font-medium text-muted-foreground">
                         任务工作区
                       </div>
                     </div>

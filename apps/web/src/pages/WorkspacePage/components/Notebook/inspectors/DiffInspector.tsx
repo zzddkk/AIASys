@@ -61,7 +61,7 @@ export function DiffInspector({
                   {hasDiff && (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/10"
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-micro font-medium text-primary hover:bg-primary/10"
                       onClick={(e) => {
                         e.stopPropagation();
                         setExpandedCellId(

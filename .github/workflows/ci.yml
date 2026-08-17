@@ -4,7 +4,11 @@ on:
   pull_request:
     branches: [main, dev]
   push:
-    branches: [main, dev]
+    # 含 integration/**：长期集成分支上此前一次 CI 都不跑。2026-08-10 实测，
+    # integration/v1 上累积的提交从未经过任何 CI 门——本地跑过不等于 CI 跑过
+    # （两者的 OS、依赖版本、是否有 vendor 二进制都不同）。集成分支正是最需要
+    # 提前发现跨平台问题的地方，等合进 dev 再暴露就晚了。
+    branches: [main, dev, 'integration/**']
     paths-ignore:
       - 'docs/**'
       - 'design-draft/**'
@@ -23,6 +27,10 @@ concurrency:
 jobs:
   web-check:
     runs-on: ubuntu-latest
+    # 硬上限。没有它时，任何挂起（卡住不返回，既不失败也不通过）会一直占用 runner 到
+    # GitHub 的默认上限 6 小时。挂起比失败更糟：看不到结论、烧配额、还会阻塞后续队列。
+    # 30 分钟对本 job 是宽松的——实测 npm ci + lint + tsc + test + build 合计约 4 分钟。
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: apps/web
@@ -40,23 +48,222 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # --max-warnings 是棘轮。eslint 的 warning 默认不影响退出码：2026-08-09 实测
+      # `eslint .` 报 "4 problems (0 errors, 4 warnings)" 而退出码仍是 0，等于这一步
+      # 在 CI 里永远通过。锁住当前数量，只许减不许增。
+      #
+      # 现存 4 个，修掉后请把这里的阈值一起降下来：
+      #   - src/components/ui/dropdown-menu.tsx:68,69  no-explicit-any
+      #     （shadcn 生成组件的类型转发，改动有连带风险，优先级低）
+      #   - e2e/manual/chat-deep-audit.spec.ts:13  no-explicit-any
+      #     （2026-08-11 从 e2e/ 根层移入 e2e/manual/，那批零断言的人工审查脚本
+      #     统一挪进去了，路径随之变化；warning 数量不变，仍是 4）
+      #   - src/pages/WorkspacePage/hooks/useWorkspaceRuntimeControls.ts:490
+      #     react-hooks/exhaustive-deps（多余依赖，这个改起来最安全）
+      #
+      # 已知覆盖缺口：eslint.config.js 只声明 files: ["**/*.{ts,tsx}"]，.mjs / .js 完全
+      # 不在检查范围——实测点名一个含 debugger + 未使用变量的 .mjs，eslint 同样返回 0。
+      # 于是 scripts/committed/*.mjs 与 src/**/__tests__/*.test.mjs 都没有 lint 覆盖。
+      # 扩大范围会引出一批新问题，不在本次范围内，先记录在此。
+      # lefthook.yml 纪律 6 的静态强制器：禁止 run 内联多行脚本。
+      # 理由见 scripts/dev/lefthook/check-inline-scripts.mjs 头注释——内联脚本在
+      # Windows 下会被命令行解析截断，导致 pre-commit hook 恒定通过（frontend-lint
+      # 曾因此放行含 parse error 的文件数日）。CI 是 ubuntu、不复现该截断，
+      # 但这条检查是静态的，放这里能防住「本机没装 lefthook 的人改坏配置」。
+      # 先跑自证：本检查自己也可能退化成恒绿。
+      # 引用完整性：CI 与 npm scripts 指向的脚本必须都在版本库里。
+      # 这道检查存在的理由是本地测不出这类失效——本地看工作区、CI 看版本库，
+      # 在「文件是否存在」上两者不等价。2026-08-16 实测：守卫脚本落在被
+      # .gitignore 忽略的目录里，本地五道校验全绿而 CI 直接 Cannot find module。
+      # 首次运行即查出另一处存量死引用（perf:smoke:analysis 指向从未提交的文件）。
+      - name: Tracked-script reference guard
+        run: |
+          node ../../scripts/dev/check_tracked_scripts.mjs --self-test
+          node ../../scripts/dev/check_tracked_scripts.mjs
+
+      - name: Lefthook inline-script guard
+        run: |
+          node ../../scripts/dev/lefthook/check-inline-scripts.mjs --self-test
+          node ../../scripts/dev/lefthook/check-inline-scripts.mjs
+
       - name: Lint
-        run: npm run lint
+        run: npm run lint -- --max-warnings=4
 
-      - name: Unit tests
-        run: npm run test:unit
+      # 设计 token 守卫。lint 管不到这类问题——eslint 不理解 Tailwind 类名的语义，
+      # 「这个 Select 高 40px 而旁边的 Button 高 36px」在它眼里是两个合法字符串。
+      #
+      # 三条规则：硬编码字号（text-[Npx]）、原语高度覆写（Button/Input/SelectTrigger
+      # 上手写 h-N）、Dialog 宽高覆写（DialogContent 上手写 max-w-*/h-[Nvh]）。
+      # 全部走 TS AST 而不是行正则：第一版用行正则报 23 处违规，改 AST 后报 245 处，
+      # 漏的 222 处全是 JSX 属性跨多行的写法（tagName 与 className 不在同一行）。
+      # 守卫漏检比没守卫更危险，它会给出「已经干净了」的假信号。
+      #
+      # 需要例外时在该行加 token-guard-ignore 注释并写明理由，别改规则放水。
+      - name: Design token guard
+        run: npm run check:tokens
 
+      # 用 npm run type-check（脚本内是 `tsc -b --noEmit`），不要直接写 `npx tsc --noEmit`。
+      # apps/web/tsconfig.json 是 project references 结构（files: []），不带 -b 时
+      # tsc 不检查任何源文件，会静默通过——2026-08-09 实测：`tsc --noEmit` 退出码 0、
+      # 零输出，而 `tsc -b --noEmit` 在同一 commit 上报 4 条错误。
+      # 放在测试之前，让类型错误尽早失败。
       - name: Type check
-        run: npx tsc --noEmit
+        run: npm run type-check
+
+      # `npm test` 串起两套测试，缺一不可：
+      #   test:unit   → scripts/committed/run-unit-tests.mjs，跑 src/ 下递归发现的
+      #                 .test.mjs 自执行断言脚本（存量 4 个文件、23 个断言）
+      #   test:vitest → vitest run，跑 .test.ts / .test.tsx（组件与 hook 测试）
+      #
+      # 不要退回只跑其中一个。两处历史缺口都是「范围写死」导致的：
+      # 原先 test:unit 是 `node ... src/utils/__tests__/*.test.mjs`，glob 在 Windows
+      # cmd 下不展开、且 node 收到多文件参数只执行第一个；范围又固定在 utils 一个
+      # 目录，于是 components/ 与 hooks/ 下另外两个测试文件（21 个断言）从上线起
+      # 从未被执行过——手动跑它们其实是通过的，纯粹是没人跑。
+      - name: Unit tests
+        run: npm test
+
+      # 前端侧的测试有效性门，与 backend job 里那步是同一个脚本、同一套判定，
+      # 只是分 runner 跑：本 job 有 node_modules 但没有 python venv，
+      # backend job 反之。脚本只用 Python 标准库，runner 自带的 python3 够用。
+      #
+      # 覆盖的两个探针都对着 AiMessageContent 的可见性判断：
+      #   display-hint-not-in-merge-condition —— 合并条件漏掉 display_hint 时，
+      #     [visible, hidden] 会把 hidden 段的内容拼进可见文本（2026-08-10 实测的真缺陷）；
+      #   hidden-segment-still-rendered —— hidden 判断失效时隐藏内容全部进 DOM。
+      # 这两条守的是「后端说了不该显示的内容，前端真的没显示」，属于用户可见的
+      # 隐私/正确性边界，不能只靠人眼看界面确认。
+      - name: Test-effectiveness probes (frontend)
+        run: |
+          python3 ../../scripts/dev/verify_test_probes.py --self-test --runner vitest
+          python3 ../../scripts/dev/verify_test_probes.py --runner vitest
+
+      # 设计 token 守卫也要被探针验证：它同样会安静地失效（AST 漏一种 JSX 写法、
+      # 规则正则少一个分支，扫描都照常输出「通过，0 处违规」）。一个从不失败的
+      # 守卫与不存在的守卫等价。三条规则各注入一处真实违规，要求守卫必须报错。
+      - name: Test-effectiveness probes (design tokens)
+        run: |
+          python3 ../../scripts/dev/verify_test_probes.py --self-test --runner tokens
+          python3 ../../scripts/dev/verify_test_probes.py --runner tokens
 
       - name: Build
         run: npm run build
 
+
+  e2e-lifecycle:
+    # 浏览器生命周期回归：58 条 Playwright 用例，覆盖会话/画布/图谱/预览/流式渲染。
+    # 2026-08-12 实测本地串行 58/58 全绿；此前这批测试断言大面积腐烂，
+    # 修复过程还抓出 5 个真实产品缺陷（alert-dialog asChild 丢 onClick、
+    # RoleVisibilityPopover portal 冒泡、virtual-core 尺寸补偿拖滚动、
+    # 程序化滚动时间窗吞用户上滑、画布卸载丢最后一次编辑）。
+    runs-on: windows-latest
+
+    # Windows runner 的 Python 默认按控制台代码页（cp1252）编码 stdout，
+    # 任何打印中文的脚本都会 UnicodeEncodeError 并非零退出。2026-08-16 实测：
+    # download_vendor_binaries.py 因此崩掉 → vendor 二进制缺失 → 后端起不来 →
+    # 整个 e2e 套件失败，而日志里只有一行 charmap 编码错。
+    # 脚本内部已各自 reconfigure，这里是 job 级兜底，覆盖还没改的其他脚本。
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
+    # 硬上限。本地串行实测约 25 分钟；runner 更慢，60 分钟是两倍余量。
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "apps/backend/uv.lock"
+
+      - name: Install backend dependencies
+        # 用 step 级 working-directory 覆盖 job 默认的 apps/web。
+        # 不要写 cd "$GITHUB_WORKSPACE/..."：windows-latest 的 run 默认 shell 是
+        # pwsh，$GITHUB_WORKSPACE 在 pwsh 里不是环境变量语法，展开为空字符串
+        # （2026-08-13 CI 实测：cd 到 D:\apps\backend 挂掉）。
+        working-directory: apps/backend
+        run: uv sync --frozen
+
+      # 同 backend job 的说明：fresh checkout 没有 vec0.dll，e2e 起真实后端需要它
+      - name: Download sqlite-vec vendor binary
+        working-directory: apps/backend
+        run: node ../desktop/scripts/download-sqlite-vec-binary.cjs
+
+      # 后端启动硬性要求 config.toml（找不到直接 FileNotFoundError，服务起不来，
+      # readiness 门空转到 60 分钟 job 超时被杀——2026-08-13 CI 实测烧了整整一小时）。
+      # config.toml 被 gitignore，CI 上必须从 example 复制；e2e 不调真实 LLM，
+      # example 里的占位 key 够用。windows runner 默认 pwsh，Copy-Item 是原生命令。
+      - name: Prepare backend config.toml
+        working-directory: apps/backend
+        run: Copy-Item config.example.toml config.toml
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      # workers/retries 由 playwright.lifecycle.config.ts 按 CI 环境变量自动取值
+      # （workers=2、retries=1）——交互时序类抖动用一次重试吸收，这是该文件里
+      # 写明的实测决策。本地 --workers=1 串行验证过 58/58，CI 上不要改成 0 重试。
+      - name: Run lifecycle e2e
+        run: npx playwright test --config=playwright.lifecycle.config.ts --reporter=list
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: lifecycle-e2e-report
+          path: |
+            apps/web/playwright-report/lifecycle
+            apps/web/test-results/lifecycle
+          retention-days: 7
   backend:
-    runs-on: ubuntu-latest
+    strategy:
+      # 一个平台失败不掩盖另一个平台的结果：跨平台问题往往只在单侧出现。
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    # 硬上限，理由同 web-check。这个 job 更需要它：2026-08-09 实测过一次真实挂起——
+    # 用反向探针把 check_write_guard 改成无条件放行后，test_team_write_guard.py 的
+    # test_write_outside_scope_blocked 卡住不返回（同批 lease 测试则是 3 秒内正常失败）。
+    # 原因是这类测试断言的正是「底层工具不被调用」，一旦守卫失效，被拦的调用就真的发生
+    # 了。没有超时保护时，这种失败形态在 CI 上表现为 job 跑到 runner 上限，看不出任何
+    # 结论。全量 pytest 实测 193-206 秒，25 分钟留了足够余量。
+    timeout-minutes: 25
+    # Windows 观察期：这是第一次把 Windows 纳入 CI。主力开发在 Windows，但此前 CI 只跑
+    # ubuntu，Windows 特有问题（路径分隔符、glob 不展开、shell 差异、文件锁）全靠人肉发现。
+    # 已知案例：test_file_utils 的路径失真、test:unit 的 glob 在 Windows 不展开、
+    # test_powershell_prompt_section 偶发失败。
+    #
+    # 观察期内 Windows 侧失败不阻塞合并（继续报红但 workflow 整体不失败），先收集真实
+    # 失败清单；逐个修完后删掉这一行，windows-latest 即正式进入门禁。
+    #
+    # 这一条是本文件里唯一有意保留的 continue-on-error，作用范围严格限定在「新纳入的
+    # 平台」而非「某项检查」——它不会让任何检查在 ubuntu 上失效。不要把它当成处理
+    # 失败的通用手段扩散到别处。
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
     defaults:
       run:
         working-directory: apps/backend
+    # Windows runner 默认控制台编码是 cp1252，凡向 stdout 打印非 ASCII 的 Python
+    # 进程都会 charmap 报错（2026-08-13 CI 实测：skill 脚本测试 3 条、探针脚本
+    # 自身的中文输出 1 处）。放在 job 级，所有步骤统一生效；对 ubuntu 无害。
+    env:
+      PYTHONUTF8: "1"
 
     steps:
       - uses: actions/checkout@v6
@@ -70,17 +277,204 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      # sqlite-vec 的 vec0.dll/.so 被 gitignore（apps/backend/.gitignore），fresh
+      # checkout 里没有；不补的话凡加载 vec0 的测试在 CI 必挂（2026-08-13 windows
+      # 侧实测 5 条 RuntimeError，且报错文案误导成「不支持当前平台」）。脚本按
+      # 平台自动选型，输出固定落在 apps/backend/vendor/sqlite-vec/<平台>/。
+      - name: Download sqlite-vec vendor binary
+        run: node ../desktop/scripts/download-sqlite-vec-binary.cjs
+
+      # ubuntu runner 没有任何 CJK 字体，test_font_helper 断言能匹配到系统中文字体
+      # 必挂。装 wqy-zenhei 而不是 fonts-noto-cjk：matplotlib 只索引 ttc 的第一个
+      # face（3.10.8 实测：msyh.ttc 里的 Microsoft YaHei UI 不在 ttflist），而
+      # NotoSansCJK-Regular.ttc 的 face 0 是 JP，不在候选列表；WenQuanYi Zen Hei
+      # 是其 ttc 的 face 0，能被匹配（2026-08-13 CI 实测 noto 装了仍失败）。
+      - name: Install CJK fonts (ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y fonts-wqy-zenhei
+
+      # ── 以下静态检查只在 ubuntu 跑一次 ──────────────────────────────────
+      # 理由：格式与 lint 结果跨平台一致，跑两遍纯属浪费；而 pylint 评分与 mypy
+      # 错误数在不同平台可能有细微差异（平台相关的 stub 与条件分支），棘轮阈值
+      # 若同时在两个平台校验会出现无意义的红。
+
+      # ruff check 此前完全不在 CI 里（只有 format --check），导致 lint 规则形同虚设：
+      # 2026-08-09 实测 dev 基线上 `ruff check app/ tests/` 有 40 个 error（未使用导入、
+      # import 未排序、未定义名称等，其中 8 个 F821 是真实缺陷）。已在本分支清零。
+      - name: Ruff lint
+        if: matrix.os == 'ubuntu-latest'
+        run: uv run ruff check app/ tests/
+
+      # 范围必须含 tests/。原先只查 app/，于是 tests/ 下积压了 10 个未格式化文件
+      # （含上游 79206e9 新增的两个测试文件），而 app/ 侧 431 个文件全部合格。
       - name: Ruff format check
-        run: uv run ruff format --check app/
+        if: matrix.os == 'ubuntu-latest'
+        run: uv run ruff format --check app/ tests/
 
-      - name: Pylint check
-        run: uv run pylint --disable=R,C --exit-zero app/
+      # 仓库根 scripts/ 下的 9 个 Python 脚本此前没有任何 lint 覆盖：上面两步只查
+      # apps/backend 内部，而这些脚本恰恰是开发与发布链路的工具（vendor 下载、
+      # 发布、代码统计、测试重跑），坏掉的影响面不比应用代码小。
+      #
+      # 2026-08-10 首次纳入时实测 5 个问题：1 个 F401 未使用 import、4 个 import
+      # 未排序，另有 7 个文件从未格式化过。
+      #
+      # 配置走仓库根的 ruff.toml（line-length 100，与 backend 对齐）。在此之前
+      # scripts/ 向上找不到配置、静默套用 ruff 内置默认值（88），本地与 CI 只是
+      # 碰巧一致；ruff.toml 把这件事变成显式决定。
+      - name: Ruff lint & format (repo-root scripts)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          uv run ruff check ../../scripts/
+          uv run ruff format --check ../../scripts/
 
-      - name: Type check (mypy)
-        run: uv run mypy app/ || true
+      # 文档写错源码路径不会让任何检查变红，但会持续误导读它的人和 AI。
+      # 2026-08-10 实测一次事故：AI 拿到一条不存在的目录路径后，顺着错误前提
+      # 编出整份「目录清单 + 能力字段表 + 精确行号」的幻觉报告——错的不是模型，
+      # 是它读到的文档。同批核验在 318 份文档里查出 38 个失效路径引用，其中
+      # 一整族源于 DataAnalysisPage 重命名为 WorkspacePage 后架构文档没跟着改。
+      #
+      # 只对「描述当前状态」的文档报警；changelog 是历史快照，记录当时的路径，
+      # 重构后失效属正常，不纳入。--self-test 先自证检测器既能抓错也不恒红。
+      - name: Doc path check (文档引用的源码路径必须存在)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          python3 ../../scripts/dev/check_doc_paths.py --self-test
+          python3 ../../scripts/dev/check_doc_paths.py
 
+      # 棘轮，不是归零。原先是 `--exit-zero`，等于永远通过；实测评分 8.58/10。
+      # 分数提高后请上调这里的阈值，把收益锁住。
+      - name: Pylint (ratchet, 分数不得低于基线)
+        if: matrix.os == 'ubuntu-latest'
+        run: uv run pylint --disable=R,C --fail-under=8.5 app/
+
+      # 棘轮，同上。原先是 `mypy app/ || true`，等于永远通过；实测 1526 errors / 199 files。
+      # 基线与说明都在 apps/backend/.mypy-baseline（含 ubuntu 与 Windows 数字可能不一致的
+      # 处理办法，首次在 CI 上跑请先读它）。
+      - name: Mypy (ratchet, 错误数不得超过基线)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          # 基线文件里允许写注释，取最后一个非注释非空行作为数字。
+          BASE=$(grep -vE '^[[:space:]]*(#|$)' .mypy-baseline | tail -1 | tr -d '[:space:]')
+          case "$BASE" in
+            ''|*[!0-9]*)
+              echo "::error::.mypy-baseline 里没解析出有效数字，读到的是 [$BASE]"
+              exit 1
+              ;;
+          esac
+
+          # 只跑一次 mypy，输出复用到后面的解析与报错展示。
+          # 这里的 `|| true` 是必要的而非假绿：mypy 有错误时退出码非 0，若不吞掉，
+          # 步骤会在拿到输出前就中断，棘轮比对根本没机会执行。真正的判定是下面的
+          # COUNT 与 BASE 比较，它会真的 exit 1。
+          OUT=$(uv run mypy app/ 2>&1 || true)
+          COUNT=$(printf '%s\n' "$OUT" | sed -n 's/^Found \([0-9]\{1,\}\) error.*/\1/p' | tail -1)
+
+          if [ -z "$COUNT" ]; then
+            # mypy 全绿时不输出 "Found N errors"，而是 "Success: no issues found"。
+            # 这里要区分「真的 0 错」与「mypy 自己崩了」——后者也没有 Found 行，
+            # 若不区分就会把崩溃当成通过，正是本次要消灭的那类假绿。
+            if printf '%s\n' "$OUT" | grep -q "Success: no issues found"; then
+              COUNT=0
+            else
+              echo "::error::无法从 mypy 输出解析错误数（既无 'Found N errors' 也无 Success 行），可能是 mypy 崩溃或输出格式变化"
+              printf '%s\n' "$OUT" | tail -20
+              exit 1
+            fi
+          fi
+
+          echo "mypy 错误数：$COUNT（基线 $BASE）"
+          if [ "$COUNT" -gt "$BASE" ]; then
+            echo "::error::mypy 错误数从 $BASE 增加到 $COUNT，不允许变差。请修掉新增的类型错误。"
+            printf '%s\n' "$OUT" | tail -30
+            exit 1
+          fi
+          if [ "$COUNT" -lt "$BASE" ]; then
+            echo "::notice::mypy 错误数降到 $COUNT，请把 apps/backend/.mypy-baseline 更新为该值以锁定收益。"
+          fi
+
+      # ── 测试：两个平台都跑 ──────────────────────────────────────────────
+      # 三处改动，均有实测依据：
+      # 1. 移除原先 9 个 --ignore（test_auto_tasks_routes / test_compaction /
+      #    test_folder_import_routes / test_font_helper / test_global_workspace_file_routes /
+      #    test_runtime_execution / test_session_execution_journal /
+      #    test_session_runtime_state / test_sqlite_kb_service）。
+      #    2026-08-09 实测这 9 个文件在 dev 基线上 124 passed 全通过，忽略清单已过期；
+      #    其中 test_compaction.py 正是上游 79206e9 改动的文件，却从不在 CI 中运行。
+      # 2. 去掉 `if: github.event_name == 'pull_request'`：原先 push 到 main/dev 不跑测试，
+      #    直接推送的改动完全没有测试覆盖。
+      # 3. 把 `-x`（首败即停）换成 `--maxfail=5`：首败即停会掩盖同批的其它失败，
+      #    每轮 CI 只能暴露一个问题；给 5 个额度，既能看到问题面又不会跑满全程。
       - name: Run tests
-        if: github.event_name == 'pull_request'
-        run: uv run pytest -v -x --ignore=tests/test_auto_tasks_routes.py --ignore=tests/test_compaction.py --ignore=tests/test_folder_import_routes.py --ignore=tests/test_font_helper.py --ignore=tests/test_global_workspace_file_routes.py --ignore=tests/test_runtime_execution.py --ignore=tests/test_session_execution_journal.py --ignore=tests/test_session_runtime_state.py --ignore=tests/test_sqlite_kb_service.py
+        run: uv run pytest -q --maxfail=5
 
+      # 测试有效性门：往源码里注入缺陷，要求对应测试必须失败。
+      #
+      # 为什么需要它：上面那步全绿只证明「当前代码没触发这些断言」，不证明
+      # 「断言真的在约束什么」。断言写歪（比较两个常量、mock 掉被测逻辑本身）
+      # 时测试会永久绿着，而它守护的行为其实早已无人看管——一个从不失败的
+      # 检查与一个不存在的检查等价，但前者还额外提供了虚假的安全感。
+      #
+      # 先跑 --self-test 再跑正式探针，顺序不能反：自证用两个反向案例
+      # （无害改动必须被判为假绿、坏锚点必须被判为不可用）验证判定逻辑本身
+      # 没恒真。若判定逻辑坏了，后面「全部有效」的结论就是一句空话，
+      # 那时应当直接失败，而不是拿着一份不可信的报告继续。
+      #
+      # 脚本会临时改写源文件并在 finally 中恢复，退出前校验哈希一致；
+      # CI 是一次性容器，即便恢复失败也不影响后续运行。
+      #
+      # --runner pytest 是必需的：本 job 不装 apps/web 的 node_modules，
+      # 前端那两个 vitest 探针在这里必然失败。它们由 web-check job 负责。
+      - name: Test-effectiveness probes
+        run: |
+          uv run python ../../scripts/dev/verify_test_probes.py --self-test --runner pytest
+          uv run python ../../scripts/dev/verify_test_probes.py --runner pytest
 
+  # apps/desktop 的轻量单测门。
+  #
+  # 为什么不复用 desktop-pr-check.yml：那个 workflow 只在 pull_request 触发，且要
+  # 完整构建 web dist + electron 包，一次十几分钟。push 到集成分支时它不跑，于是
+  # desktop 侧改动在合进 dev 之前没有任何自动检查——2026-08-10 就靠人眼才发现
+  # download-sqlite-vec-binary.cjs 被改出语法错误。
+  #
+  # 这个 job 只跑 npm ci + test:unit（本地实测 2.1 秒，含递归扫 scripts/ 下所有
+  # .cjs 过 node --check 的语法门），跟完整构建互补而不重复。
+  desktop-check:
+    runs-on: ubuntu-latest
+    # 硬上限，理由同上面两个 job：挂起比失败更糟，看不到结论还烧配额。
+    # 本 job 实测只有依赖安装是变量，15 分钟足够宽松。
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/desktop
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: Install dependencies
+        env:
+          # 单测不碰 electron 二进制（实测依赖只有 tar / iconv-lite，
+          # 且 ELECTRON_OVERRIDE_DIST_PATH 指向不存在的路径时 71 条测试照样全过），
+          # 跳过这 100+ MB 下载能省掉大半 job 时间和一个常见的网络失败源。
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+        run: npm ci
+
+      - name: Unit tests
+        # test:unit 走 scripts/run-unit-tests.cjs 递归发现，不依赖 shell 展开 glob，
+        # 且发现不到测试时 exit 1——避免「一个测试都没跑」被伪装成绿灯。
+        run: npm run test:unit
+
+      - name: Integration tests
+        # 真实系统调用级测试：端口探测/回退/服务复用判定（node:test，无需 electron 二进制）。
+        # 本地 Windows 实测 9/9；本 job 在 ubuntu 上走 lsof/ps 分支，与 Windows 的
+        # PowerShell 分支形成双平台覆盖。canReuseService 的健康复用场景对
+        # readListeningProcess 的超时敏感（Windows 分支 2000ms 假红、8000ms 实测全绿），
+        # ubuntu 的 lsof 调用在 runner 上远快于 PowerShell，无此风险。
+        run: npm run test:integration

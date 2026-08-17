@@ -306,14 +306,14 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
               );
             })}
           </svg>
-          <div className="border-t border-slate-200 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-2 py-1 text-[10px] font-medium text-slate-500 dark:text-gray-400">
+          <div className="border-t border-slate-200 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 px-2 py-1 text-nano font-medium text-slate-500 dark:text-gray-400">
             {nodes.length} 节点 / {edges.length} 连线
           </div>
         </div>
       ) : null}
 
       {isPanning ? (
-        <div className="pointer-events-none absolute bottom-36 left-3 rounded-md border border-slate-200 dark:border-gray-700 bg-white/85 dark:bg-gray-900/85 px-2.5 py-1 text-[11px] font-medium text-slate-500 dark:text-gray-400 shadow-sm backdrop-blur">
+        <div className="pointer-events-none absolute bottom-36 left-3 rounded-md border border-slate-200 dark:border-gray-700 bg-white/85 dark:bg-gray-900/85 px-2.5 py-1 text-micro font-medium text-slate-500 dark:text-gray-400 shadow-sm backdrop-blur">
           正在移动画布
         </div>
       ) : null}

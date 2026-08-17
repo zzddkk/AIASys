@@ -52,8 +52,8 @@ export function CollaborationRolesSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="max-w-6xl h-[86vh] overflow-hidden p-0 gap-0 flex flex-col bg-background"
+      <DialogContent size="xl" tall
+        className="overflow-hidden bg-background"
         data-testid="collaboration-roles-settings-dialog"
       >
         <DialogHeader className="px-6 pt-5 pb-0">
@@ -112,10 +112,10 @@ export function CollaborationRolesSettingsDialog({
                 <div className="flex h-full flex-col gap-3">
                   {/* 来源标识 */}
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full border border-tertiary/30 bg-tertiary-container px-3 py-1 text-[11px] text-on-tertiary-container">
+                    <span className="rounded-full border border-tertiary/30 bg-tertiary-container px-3 py-1 text-micro text-on-tertiary-container">
                       AIASys
                     </span>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-micro text-muted-foreground">
                       系统内置协作专家
                     </span>
                   </div>

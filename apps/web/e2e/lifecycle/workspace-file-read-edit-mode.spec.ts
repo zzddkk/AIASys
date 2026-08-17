@@ -4,6 +4,7 @@ import {
   createWorkspace,
   deleteWorkspace,
   registerLifecycleUser,
+  openWorkspaceFilesPanel
 } from "./support";
 
 test.describe("Workspace file read and edit modes", () => {
@@ -15,7 +16,7 @@ test.describe("Workspace file read and edit modes", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
 
     const api = page.request;
-    const user = await registerLifecycleUser(api);
+    await registerLifecycleUser(api);
     const workspace = await createWorkspace(api, {
       title: `浏览器回归-文件读写模式-${Date.now()}`,
       mode: "analysis",
@@ -86,17 +87,7 @@ test.describe("Workspace file read and edit modes", () => {
         { waitUntil: "domcontentloaded" },
       );
       await expect(page.locator("textarea")).toBeVisible();
-
-      const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-      if ((await panel.count()) === 0 || !(await panel.isVisible())) {
-        const fileTab = page.locator("button[aria-label='文件']");
-        if (await fileTab.isVisible()) {
-          await fileTab.click();
-        } else {
-          await page.getByRole("button", { name: "当前工作区", exact: true }).click();
-        }
-      }
-      await expect(panel).toBeVisible();
+      const panel = await openWorkspaceFilesPanel(page);
       await panel.getByPlaceholder("搜索文件或目录...").fill(codeFileName);
       await expect(panel.getByText(codeFileName, { exact: true })).toBeVisible();
 
@@ -259,17 +250,7 @@ test.describe("Workspace file read and edit modes", () => {
         { waitUntil: "domcontentloaded" },
       );
       await expect(page.locator("textarea")).toBeVisible();
-
-      const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-      if ((await panel.count()) === 0 || !(await panel.isVisible())) {
-        const fileTab = page.locator("button[aria-label='文件']");
-        if (await fileTab.isVisible()) {
-          await fileTab.click();
-        } else {
-          await page.getByRole("button", { name: "当前工作区", exact: true }).click();
-        }
-      }
-      await expect(panel).toBeVisible();
+      const panel = await openWorkspaceFilesPanel(page);
       await panel.getByPlaceholder("搜索文件或目录...").fill(htmlFileName);
       await expect(panel.getByText(htmlFileName, { exact: true })).toBeVisible();
 

@@ -140,9 +140,9 @@ export function HostNodeCard({ host }: { host: ExecutionTree["host"] }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-medium">当前会话</span>
-            <span className={cn("text-[10px] font-medium", config.color)}>{config.label}</span>
+            <span className={cn("text-nano font-medium", config.color)}>{config.label}</span>
           </div>
-          <div className="text-[10px] text-muted-foreground/70 mt-0.5">
+          <div className="text-nano text-muted-foreground/70 mt-0.5">
             {stepText}
           </div>
         </div>
@@ -244,13 +244,13 @@ export function SubAgentCallCard({
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="text-sm font-medium truncate">{displayName}</span>
             {hasChildren ? (
-              <span className="shrink-0 text-[10px] text-muted-foreground/50">
+              <span className="shrink-0 text-nano text-muted-foreground/50">
                 {childCount}
               </span>
             ) : null}
           </div>
           {/* 紧凑元信息行，确保不换行 */}
-          <div className="flex items-center gap-x-1.5 text-[10px] text-muted-foreground/70 mt-0.5 whitespace-nowrap">
+          <div className="flex items-center gap-x-1.5 text-nano text-muted-foreground/70 mt-0.5 whitespace-nowrap">
             <span className={cn("font-medium shrink-0", config.color)}>{config.label}</span>
             <span className="text-border shrink-0">·</span>
             <span className="shrink-0">Step {step_number}</span>
@@ -353,7 +353,7 @@ export function SubAgentCallCard({
         <div className="mt-1.5 ml-[52px] flex items-center gap-2">
           <Progress value={progress} className="h-0.5 flex-1" />
           {stepText ? (
-            <span className="text-[10px] text-muted-foreground/60 whitespace-nowrap shrink-0">
+            <span className="text-nano text-muted-foreground/60 whitespace-nowrap shrink-0">
               {stepText}
             </span>
           ) : null}
@@ -368,10 +368,10 @@ export function SubAgentCallCard({
             {subagent.role_summary ? (
               <div className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-2">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] font-medium text-foreground">
+                  <span className="text-micro font-medium text-foreground">
                     {subagent.role_summary.display_name}
                   </span>
-                  <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
+                  <Badge variant="outline" className="text-nano px-1 py-0 h-4">
                     {subagent.role_summary.role_id}
                   </Badge>
                   {subagent.role_summary.tool_policy ? (
@@ -381,7 +381,7 @@ export function SubAgentCallCard({
                           ? "outline"
                           : "secondary"
                       }
-                      className="text-[9px] px-1 py-0 h-4"
+                      className="text-nano px-1 py-0 h-4"
                     >
                       {subagent.role_summary.tool_policy === "inherit"
                         ? "继承模式"
@@ -389,29 +389,29 @@ export function SubAgentCallCard({
                     </Badge>
                   ) : null}
                   {subagent.role_summary.supports_background ? (
-                    <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
+                    <Badge variant="outline" className="text-nano px-1 py-0 h-4">
                       可后台
                     </Badge>
                   ) : null}
                 </div>
                 {subagent.role_summary.description ? (
-                  <p className="mt-1 text-[10px] text-muted-foreground leading-relaxed">
+                  <p className="mt-1 text-nano text-muted-foreground leading-relaxed">
                     {subagent.role_summary.description}
                   </p>
                 ) : null}
                 {subagent.role_summary.when_to_use ? (
-                  <p className="mt-1 text-[10px] text-muted-foreground leading-relaxed">
+                  <p className="mt-1 text-nano text-muted-foreground leading-relaxed">
                     建议：{subagent.role_summary.when_to_use}
                   </p>
                 ) : null}
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {subagent.role_summary.capabilities.map((capability) => (
-                    <Badge key={capability} variant="outline" className="text-[9px] px-1 py-0 h-4">
+                    <Badge key={capability} variant="outline" className="text-nano px-1 py-0 h-4">
                       {capability}
                     </Badge>
                   ))}
                   {subagent.role_summary.permissions.map((permission) => (
-                    <Badge key={permission} variant="secondary" className="text-[9px] px-1 py-0 h-4">
+                    <Badge key={permission} variant="secondary" className="text-nano px-1 py-0 h-4">
                       {permission}
                     </Badge>
                   ))}
@@ -420,17 +420,17 @@ export function SubAgentCallCard({
             ) : null}
 
             {/* 实例元数据 */}
-            <div className="text-[10px] text-muted-foreground/70 space-y-0.5">
-              <div>ID: <code className="bg-muted/50 px-1 rounded text-[9px]">{subagent.id.slice(0, 8)}...</code></div>
-              <div>主控会话: <code className="bg-muted/50 px-1 rounded text-[9px]">{formatShortId(subagent.host_session_id)}</code></div>
+            <div className="text-nano text-muted-foreground/70 space-y-0.5">
+              <div>ID: <code className="bg-muted/50 px-1 rounded text-nano">{subagent.id.slice(0, 8)}...</code></div>
+              <div>主控会话: <code className="bg-muted/50 px-1 rounded text-nano">{formatShortId(subagent.host_session_id)}</code></div>
               {subagent.parent_agent_id ? (
-                <div>父节点: <code className="bg-muted/50 px-1 rounded text-[9px]">{formatShortId(subagent.parent_agent_id)}</code></div>
+                <div>父节点: <code className="bg-muted/50 px-1 rounded text-nano">{formatShortId(subagent.parent_agent_id)}</code></div>
               ) : null}
               {parentToolCallId ? (
-                <div>父调用: <code className="bg-muted/50 px-1 rounded text-[9px]">{formatShortId(parentToolCallId)}</code></div>
+                <div>父调用: <code className="bg-muted/50 px-1 rounded text-nano">{formatShortId(parentToolCallId)}</code></div>
               ) : null}
               {subagent.agent_path ? (
-                <div>路径: <code className="bg-muted/50 px-1 rounded text-[9px]">{subagent.agent_path}</code></div>
+                <div>路径: <code className="bg-muted/50 px-1 rounded text-nano">{subagent.agent_path}</code></div>
               ) : null}
               <div className="flex gap-3">
                 <span>创建于 {new Date(subagent.created_at).toLocaleString()}</span>

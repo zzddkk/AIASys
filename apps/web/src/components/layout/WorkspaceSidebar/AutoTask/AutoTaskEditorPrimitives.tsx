@@ -24,7 +24,7 @@ export function SectionBlock({
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold text-foreground">{title}</div>
           {description ? (
-            <div className="mt-1 text-[12px] leading-5 text-muted-foreground">
+            <div className="mt-1 text-caption leading-5 text-muted-foreground">
               {description}
             </div>
           ) : null}
@@ -88,7 +88,7 @@ export function ChoiceButton<TValue extends string>({
         <span className="block text-sm font-semibold">{label}</span>
         <span
           className={cn(
-            "mt-1 block text-[12px] leading-5",
+            "mt-1 block text-caption leading-5",
             selected ? "text-background/75" : "text-muted-foreground",
           )}
         >
@@ -110,14 +110,14 @@ export function PreviewRow({
 }) {
   return (
     <div className="border-t border-border/70 py-2.5 first:border-t-0 first:pt-0 last:pb-0">
-      <div className="text-[11px] font-semibold text-muted-foreground">
+      <div className="text-micro font-semibold text-muted-foreground">
         {label}
       </div>
       <div className="mt-1 text-sm font-medium leading-6 text-foreground">
         {value}
       </div>
       {hint ? (
-        <div className="mt-1 text-[11px] leading-5 text-muted-foreground">
+        <div className="mt-1 text-micro leading-5 text-muted-foreground">
           {hint}
         </div>
       ) : null}
@@ -140,7 +140,7 @@ export function ToggleRow({
     <div className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/10 px-3 py-3">
       <div>
         <div className="text-sm font-medium text-foreground">{title}</div>
-        <div className="mt-1 text-[12px] leading-5 text-muted-foreground">
+        <div className="mt-1 text-caption leading-5 text-muted-foreground">
           {description}
         </div>
       </div>

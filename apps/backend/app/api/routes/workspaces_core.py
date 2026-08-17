@@ -33,6 +33,7 @@ from app.models.llm_selection import (
 from app.models.session import ExecutionRecord
 from app.models.user import UserInfo
 from app.models.workspace import (
+    ArchiveConversationRequest,
     ConversationListResponse,
     ConversationRunsResponse,
     CreateConversationRequest,
@@ -75,23 +76,43 @@ async def get_global_experts(
     return get_global_expert_catalog(user_id=current_user.user_id)
 
 
-@global_experts_router.get(
-    "/policy",
-    response_model=GlobalCollaborationPolicyResponse,
-)
-async def get_global_expert_policy(
-    current_user: UserInfo = Depends(require_auth()),
-):
-    return get_global_collaboration_policy(user_id=current_user.user_id)
+# ---------------------------------------------------------------------------
+# 协作专家端点：global（我的默认）与 workspace（工作区）双作用域共享实现
+#
+# 两侧端点曾是逐行镜像，真实差异仅三处：workspace 侧先做工作区存在性
+# 预检（404）；加载/保存调用带 workspace_id；日志与报错文案按作用域不同。
+# 以下 impl 函数用 scope/workspace_id 参数化这些差异，端点只保留路由声明。
+# ---------------------------------------------------------------------------
 
 
-@global_experts_router.put(
-    "/policy",
-    response_model=GlobalCollaborationPolicyResponse,
-)
-async def update_global_expert_policy(
+def _ensure_expert_workspace_exists(user_id: str, workspace_id: str | None) -> None:
+    """workspace 作用域端点的工作区存在性预检；global 作用域为空操作。"""
+    if workspace_id is None:
+        return
+    service = get_workspace_registry_service()
+    try:
+        service.get_workspace(user_id, workspace_id, include_conversations=False)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Operation failed") from exc
+
+
+def _expert_noun(scope: str) -> str:
+    """报错/日志中的作用域名词，保持两侧原文案不变。"""
+    return "我的默认协作专家" if scope == "global" else "工作区专家"
+
+
+async def _get_expert_policy_impl(scope: str, workspace_id: str | None, user_id: str):
+    _ensure_expert_workspace_exists(user_id, workspace_id)
+    if scope == "global":
+        return get_global_collaboration_policy(user_id=user_id)
+    return get_workspace_collaboration_policy(user_id=user_id, workspace_id=workspace_id)
+
+
+async def _update_expert_policy_impl(
+    scope: str,
+    workspace_id: str | None,
     request: UpdateWorkspaceCollaborationPolicyRequest,
-    current_user: UserInfo = Depends(require_auth()),
+    user_id: str,
 ):
     from app.api.routes.sessions_helpers import (
         _normalize_requested_expert_role_ids,
@@ -101,9 +122,18 @@ async def update_global_expert_policy(
         enable_builtin_subagent_to_scope,
         is_system_subagent_name,
         save_global_collaboration_policy,
+        save_workspace_collaboration_policy,
     )
 
-    current_policy = get_global_collaboration_policy(user_id=current_user.user_id)
+    _ensure_expert_workspace_exists(user_id, workspace_id)
+
+    if scope == "global":
+        current_policy = get_global_collaboration_policy(user_id=user_id)
+    else:
+        current_policy = get_workspace_collaboration_policy(
+            user_id=user_id,
+            workspace_id=workspace_id,
+        )
     selectable_roles = [role for role in current_policy.available_roles if role.host_selectable]
     available_role_ids = [role.role_id for role in selectable_roles]
     available_role_tool_ids = {role.role_id: list(role.tool_ids) for role in selectable_roles}
@@ -119,34 +149,46 @@ async def update_global_expert_policy(
         for role_id in normalized_role_ids:
             if is_system_subagent_name(role_id):
                 enable_builtin_subagent_to_scope(
-                    user_id=current_user.user_id,
+                    user_id=user_id,
                     name=role_id,
-                    scope="global",
+                    scope=scope,
+                    workspace_id=workspace_id,
                 )
 
-    save_global_collaboration_policy(
-        user_id=current_user.user_id,
+    runtime_policy = (
+        request.collaboration_policy.model_dump(mode="json")
+        if request.collaboration_policy is not None
+        else None
+    )
+    if scope == "global":
+        save_global_collaboration_policy(
+            user_id=user_id,
+            enabled_role_ids=normalized_role_ids,
+            available_role_ids=available_role_ids,
+            reset_enabled=request.enabled_role_ids is None,
+            role_tool_ids=normalized_role_tool_ids,
+            runtime_policy=runtime_policy,
+        )
+        return get_global_collaboration_policy(user_id=user_id)
+    save_workspace_collaboration_policy(
+        user_id=user_id,
+        workspace_id=workspace_id,
         enabled_role_ids=normalized_role_ids,
         available_role_ids=available_role_ids,
         reset_enabled=request.enabled_role_ids is None,
         role_tool_ids=normalized_role_tool_ids,
-        runtime_policy=(
-            request.collaboration_policy.model_dump(mode="json")
-            if request.collaboration_policy is not None
-            else None
-        ),
+        runtime_policy=runtime_policy,
     )
+    return get_workspace_collaboration_policy(user_id=user_id, workspace_id=workspace_id)
 
-    return get_global_collaboration_policy(user_id=current_user.user_id)
 
-
-@global_experts_router.post("/{name}/enable", response_model=ExpertDetailResponse)
-async def enable_global_builtin_expert(
+async def _enable_builtin_expert_impl(
+    scope: str,
+    workspace_id: str | None,
     name: str,
-    request: EnableBuiltinExpertRequest | None = None,
-    current_user: UserInfo = Depends(require_auth()),
-):
-    """将系统提供的协作专家安装到我的默认。"""
+    request: EnableBuiltinExpertRequest | None,
+    user_id: str,
+) -> ExpertDetailResponse:
     from app.services.agent.subagent_catalog import (
         enable_builtin_subagent_to_scope,
         load_subagent,
@@ -156,20 +198,24 @@ async def enable_global_builtin_expert(
     if role_id != name:
         raise HTTPException(status_code=400, detail="role_id 与路径参数不一致")
 
+    _ensure_expert_workspace_exists(user_id, workspace_id)
+
     try:
         enable_builtin_subagent_to_scope(
-            user_id=current_user.user_id,
+            user_id=user_id,
             name=name,
-            scope="global",
+            scope=scope,
+            workspace_id=workspace_id,
         )
         manifest = load_subagent(
-            user_id=current_user.user_id,
+            user_id=user_id,
             name=name,
+            workspace_id=workspace_id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
-        logger.error("安装我的默认协作专家失败: %s", exc)
+        logger.error("安装%s协作专家失败: %s", "我的默认" if scope == "global" else "工作区", exc)
         raise HTTPException(status_code=500, detail="Failed to install expert") from exc
 
     if manifest is None:
@@ -181,39 +227,44 @@ async def enable_global_builtin_expert(
         system_prompt=manifest.get("system_prompt", ""),
         model=manifest.get("model"),
         tools=manifest.get("tools"),
-        scope="global",
+        scope=scope,
         source=str(manifest.get("_source") or manifest.get("source") or "builtin"),
     )
 
 
-@global_experts_router.post("", response_model=ExpertDetailResponse)
-async def create_global_expert(
+async def _create_expert_impl(
+    scope: str,
+    workspace_id: str | None,
     request: CreateExpertRequest,
-    current_user: UserInfo = Depends(require_auth()),
-):
-    """在用户默认层创建自定义协作专家。"""
+    user_id: str,
+) -> ExpertDetailResponse:
     from app.services.agent.subagent_catalog import (
         is_system_subagent_name,
         is_valid_subagent_name,
         save_subagent,
     )
 
+    _ensure_expert_workspace_exists(user_id, workspace_id)
+
     name = request.name.strip()
     if not is_valid_subagent_name(name):
+        noun = "协作专家" if scope == "global" else "专家"
         raise HTTPException(
             status_code=400,
-            detail="协作专家名称格式无效。要求：英文字母开头，仅包含字母、数字、下划线、连字符，长度不超过64。",
+            detail=f"{noun}名称格式无效。要求：英文字母开头，仅包含字母、数字、下划线、连字符，长度不超过64。",
         )
     if is_system_subagent_name(name):
         raise HTTPException(
             status_code=400,
             detail="Expert name conflicts with system preset roles",
         )
-    if request.scope != "global":
-        raise HTTPException(
-            status_code=400,
-            detail="我的默认创建接口只支持 global 作用域。",
+    if request.scope != scope:
+        detail = (
+            "我的默认创建接口只支持 global 作用域。"
+            if scope == "global"
+            else "当前工作区创建接口只支持 workspace 作用域。"
         )
+        raise HTTPException(status_code=400, detail=detail)
 
     manifest: dict[str, Any] = {
         "name": name,
@@ -225,6 +276,7 @@ async def create_global_expert(
     if request.tools:
         manifest["tools"] = [item.strip() for item in request.tools if item]
 
+    # 保存原始值用于响应（save_subagent 会 pop system_prompt）
     response_description = manifest["description"]
     response_system_prompt = manifest["system_prompt"]
     response_model = manifest.get("model")
@@ -232,13 +284,14 @@ async def create_global_expert(
 
     try:
         save_subagent(
-            user_id=current_user.user_id,
+            user_id=user_id,
             name=name,
             manifest=manifest,
-            scope="global",
+            scope=scope,
+            workspace_id=workspace_id,
         )
     except Exception as exc:
-        logger.error("创建我的默认协作专家失败: %s", exc)
+        logger.error("创建%s失败: %s", _expert_noun(scope), exc)
         raise HTTPException(status_code=500, detail="Failed to save expert config") from exc
 
     return ExpertDetailResponse(
@@ -247,36 +300,46 @@ async def create_global_expert(
         system_prompt=response_system_prompt,
         model=response_model,
         tools=response_tools,
-        scope="global",
+        scope=scope,
         source="custom",
     )
 
 
-@global_experts_router.get("/{name}", response_model=ExpertDetailResponse)
-async def get_global_expert_detail(
+async def _get_expert_detail_impl(
+    scope: str,
+    workspace_id: str | None,
     name: str,
-    current_user: UserInfo = Depends(require_auth()),
-):
-    from app.services.agent.subagent_catalog import (
-        _get_global_dir,
-        _load_global_subagent_from_code,
-        _load_subagent_from_db,
-        _parse_subagent_file,
-    )
+    user_id: str,
+) -> ExpertDetailResponse:
+    _ensure_expert_workspace_exists(user_id, workspace_id)
 
-    manifest = _load_subagent_from_db(
-        user_id=current_user.user_id,
-        name=name,
-        scope="global",
-    )
-    if manifest is None:
-        toml_path = _get_global_dir(current_user.user_id) / f"{name}.toml"
-        if toml_path.exists():
-            manifest = _parse_subagent_file(toml_path)
-    if manifest is None:
-        manifest = _load_global_subagent_from_code(name)
+    if scope == "global":
+        from app.services.agent.subagent_catalog import (
+            _get_global_dir,
+            _load_global_subagent_from_code,
+            _load_subagent_from_db,
+            _parse_subagent_file,
+        )
+
+        manifest = _load_subagent_from_db(user_id=user_id, name=name, scope="global")
+        if manifest is None:
+            toml_path = _get_global_dir(user_id) / f"{name}.toml"
+            if toml_path.exists():
+                manifest = _parse_subagent_file(toml_path)
+        if manifest is None:
+            manifest = _load_global_subagent_from_code(name)
+    else:
+        from app.services.agent.subagent_catalog import load_subagent
+
+        manifest = load_subagent(user_id=user_id, name=name, workspace_id=workspace_id)
+
     if manifest is None:
         raise HTTPException(status_code=404, detail="Expert not found")
+
+    if scope == "global":
+        source = str(manifest.get("_source") or manifest.get("source") or "custom")
+    else:
+        source = "custom"
 
     return ExpertDetailResponse(
         name=name,
@@ -284,54 +347,58 @@ async def get_global_expert_detail(
         system_prompt=manifest.get("system_prompt", ""),
         model=manifest.get("model"),
         tools=manifest.get("tools"),
-        scope="global",
-        source=str(manifest.get("_source") or manifest.get("source") or "custom"),
+        scope=scope,
+        source=source,
     )
 
 
-@global_experts_router.put(
-    "/{name}/visibility",
-    response_model=SubAgentVisibilityPolicyResponse,
-)
-async def update_global_expert_visibility(
+async def _update_expert_visibility_impl(
+    scope: str,
+    workspace_id: str | None,
     name: str,
     request: UpdateSubAgentVisibilityRequest,
-    current_user: UserInfo = Depends(require_auth()),
-):
-    """更新用户默认层协作专家可见性策略。"""
+    user_id: str,
+) -> SubAgentVisibilityPolicyResponse:
     from app.services.agent.subagent_catalog import (
         resolve_subagent_visibility_policy,
         save_subagent_visibility_policy,
     )
 
-    catalog = get_global_expert_catalog(user_id=current_user.user_id)
+    _ensure_expert_workspace_exists(user_id, workspace_id)
+
+    if scope == "global":
+        catalog = get_global_expert_catalog(user_id=user_id)
+    else:
+        catalog = get_workspace_expert_catalog(user_id=user_id, workspace_id=workspace_id)
     if name not in {role.role_id for role in catalog.roles}:
         raise HTTPException(status_code=404, detail="Expert not found")
 
     try:
         save_subagent_visibility_policy(
-            user_id=current_user.user_id,
+            user_id=user_id,
             role_id=name,
-            scope="global",
+            scope=scope,
+            workspace_id=workspace_id,
             catalog_visible=request.catalog_visible,
             host_selectable=request.host_selectable,
             default_enabled=request.default_enabled,
             lock_reason=request.lock_reason,
         )
         effective_policy = resolve_subagent_visibility_policy(
-            user_id=current_user.user_id,
+            user_id=user_id,
             role_id=name,
+            workspace_id=workspace_id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
-        logger.error("更新我的默认协作专家可见性失败: %s", exc)
+        logger.error("更新%s可见性失败: %s", _expert_noun(scope), exc)
         raise HTTPException(status_code=500, detail="Failed to save expert visibility") from exc
 
     return SubAgentVisibilityPolicyResponse(
         role_id=name,
-        scope="global",
-        workspace_id=None,
+        scope=scope,
+        workspace_id=workspace_id,
         catalog_visible=effective_policy.catalog_visible,
         host_selectable=effective_policy.host_selectable,
         default_enabled=effective_policy.default_enabled,
@@ -341,36 +408,45 @@ async def update_global_expert_visibility(
     )
 
 
-@global_experts_router.put("/{name}", response_model=ExpertDetailResponse)
-async def update_global_expert(
+async def _update_expert_impl(
+    scope: str,
+    workspace_id: str | None,
     name: str,
     request: UpdateExpertRequest,
-    current_user: UserInfo = Depends(require_auth()),
-):
-    """更新用户默认层自定义协作专家。"""
+    user_id: str,
+) -> ExpertDetailResponse:
     from app.services.agent.subagent_catalog import (
-        _get_global_dir,
-        _load_subagent_from_db,
-        _parse_subagent_file,
         is_system_subagent_name,
         save_subagent,
     )
 
+    _ensure_expert_workspace_exists(user_id, workspace_id)
+
     if is_system_subagent_name(name):
         raise HTTPException(status_code=403, detail="系统预设角色不允许修改")
 
-    existing = _load_subagent_from_db(
-        user_id=current_user.user_id,
-        name=name,
-        scope="global",
-    )
-    if existing is None:
-        toml_path = _get_global_dir(current_user.user_id) / f"{name}.toml"
-        if toml_path.exists():
-            existing = _parse_subagent_file(toml_path)
+    if scope == "global":
+        from app.services.agent.subagent_catalog import (
+            _get_global_dir,
+            _load_subagent_from_db,
+            _parse_subagent_file,
+        )
+
+        existing = _load_subagent_from_db(user_id=user_id, name=name, scope="global")
+        if existing is None:
+            toml_path = _get_global_dir(user_id) / f"{name}.toml"
+            if toml_path.exists():
+                existing = _parse_subagent_file(toml_path)
+    else:
+        from app.services.agent.subagent_catalog import load_subagent
+
+        existing = load_subagent(user_id=user_id, name=name, workspace_id=workspace_id)
+
     if existing is None:
         raise HTTPException(status_code=404, detail="Expert not found")
-    if existing.get("_source") == "system" or existing.get("source") == "system":
+    if scope == "global" and (
+        existing.get("_source") == "system" or existing.get("source") == "system"
+    ):
         raise HTTPException(status_code=403, detail="系统预设角色不允许修改")
 
     manifest: dict[str, Any] = {
@@ -398,6 +474,7 @@ async def update_global_expert(
         else:
             manifest.pop("tools", None)
 
+    # 保存原始值用于响应（save_subagent 会 pop system_prompt）
     response_description = manifest["description"]
     response_system_prompt = manifest["system_prompt"]
     response_model = manifest.get("model")
@@ -405,13 +482,14 @@ async def update_global_expert(
 
     try:
         save_subagent(
-            user_id=current_user.user_id,
+            user_id=user_id,
             name=name,
             manifest=manifest,
-            scope="global",
+            scope=scope,
+            workspace_id=workspace_id,
         )
     except Exception as exc:
-        logger.error("更新我的默认协作专家失败: %s", exc)
+        logger.error("更新%s失败: %s", _expert_noun(scope), exc)
         raise HTTPException(status_code=500, detail="Failed to save expert config") from exc
 
     return ExpertDetailResponse(
@@ -420,9 +498,102 @@ async def update_global_expert(
         system_prompt=response_system_prompt,
         model=response_model,
         tools=response_tools,
-        scope="global",
+        scope=scope,
         source="custom",
     )
+
+
+async def _delete_expert_impl(
+    scope: str,
+    workspace_id: str | None,
+    name: str,
+    user_id: str,
+) -> dict[str, Any]:
+    from app.services.agent.subagent_catalog import delete_subagent
+
+    _ensure_expert_workspace_exists(user_id, workspace_id)
+
+    deleted = delete_subagent(
+        user_id=user_id,
+        name=name,
+        scope=scope,
+        workspace_id=workspace_id,
+    )
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Expert not found")
+
+    return {"success": True, "name": name}
+
+
+@global_experts_router.get(
+    "/policy",
+    response_model=GlobalCollaborationPolicyResponse,
+)
+async def get_global_expert_policy(
+    current_user: UserInfo = Depends(require_auth()),
+):
+    return await _get_expert_policy_impl("global", None, current_user.user_id)
+
+
+@global_experts_router.put(
+    "/policy",
+    response_model=GlobalCollaborationPolicyResponse,
+)
+async def update_global_expert_policy(
+    request: UpdateWorkspaceCollaborationPolicyRequest,
+    current_user: UserInfo = Depends(require_auth()),
+):
+    return await _update_expert_policy_impl("global", None, request, current_user.user_id)
+
+
+@global_experts_router.post("/{name}/enable", response_model=ExpertDetailResponse)
+async def enable_global_builtin_expert(
+    name: str,
+    request: EnableBuiltinExpertRequest | None = None,
+    current_user: UserInfo = Depends(require_auth()),
+):
+    """将系统提供的协作专家安装到我的默认。"""
+    return await _enable_builtin_expert_impl("global", None, name, request, current_user.user_id)
+
+
+@global_experts_router.post("", response_model=ExpertDetailResponse)
+async def create_global_expert(
+    request: CreateExpertRequest,
+    current_user: UserInfo = Depends(require_auth()),
+):
+    """在用户默认层创建自定义协作专家。"""
+    return await _create_expert_impl("global", None, request, current_user.user_id)
+
+
+@global_experts_router.get("/{name}", response_model=ExpertDetailResponse)
+async def get_global_expert_detail(
+    name: str,
+    current_user: UserInfo = Depends(require_auth()),
+):
+    return await _get_expert_detail_impl("global", None, name, current_user.user_id)
+
+
+@global_experts_router.put(
+    "/{name}/visibility",
+    response_model=SubAgentVisibilityPolicyResponse,
+)
+async def update_global_expert_visibility(
+    name: str,
+    request: UpdateSubAgentVisibilityRequest,
+    current_user: UserInfo = Depends(require_auth()),
+):
+    """更新用户默认层协作专家可见性策略。"""
+    return await _update_expert_visibility_impl("global", None, name, request, current_user.user_id)
+
+
+@global_experts_router.put("/{name}", response_model=ExpertDetailResponse)
+async def update_global_expert(
+    name: str,
+    request: UpdateExpertRequest,
+    current_user: UserInfo = Depends(require_auth()),
+):
+    """更新用户默认层自定义协作专家。"""
+    return await _update_expert_impl("global", None, name, request, current_user.user_id)
 
 
 @global_experts_router.delete("/{name}")
@@ -431,19 +602,7 @@ async def delete_global_expert(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """删除用户默认层协作专家副本。系统内置源目录不会被删除。"""
-    from app.services.agent.subagent_catalog import (
-        delete_subagent,
-    )
-
-    deleted = delete_subagent(
-        user_id=current_user.user_id,
-        name=name,
-        scope="global",
-    )
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Expert not found")
-
-    return {"success": True, "name": name}
+    return await _delete_expert_impl("global", None, name, current_user.user_id)
 
 
 @router.get("", response_model=WorkspaceListResponse)
@@ -812,20 +971,7 @@ async def get_workspace_expert_policy(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """获取工作区级协作专家启用策略。"""
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(
-            current_user.user_id,
-            workspace_id,
-            include_conversations=False,
-        )
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    return get_workspace_collaboration_policy(
-        user_id=current_user.user_id,
-        workspace_id=workspace_id,
-    )
+    return await _get_expert_policy_impl("workspace", workspace_id, current_user.user_id)
 
 
 @router.put(
@@ -838,68 +984,8 @@ async def update_workspace_expert_policy(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """更新工作区级协作专家启用策略。"""
-    from app.api.routes.sessions_helpers import (
-        _normalize_requested_expert_role_ids,
-        _normalize_requested_expert_role_tool_ids,
-    )
-    from app.services.agent.subagent_catalog import (
-        enable_builtin_subagent_to_scope,
-        is_system_subagent_name,
-        save_workspace_collaboration_policy,
-    )
-
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(
-            current_user.user_id,
-            workspace_id,
-            include_conversations=False,
-        )
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    current_policy = get_workspace_collaboration_policy(
-        user_id=current_user.user_id,
-        workspace_id=workspace_id,
-    )
-    selectable_roles = [role for role in current_policy.available_roles if role.host_selectable]
-    available_role_ids = [role.role_id for role in selectable_roles]
-    available_role_tool_ids = {role.role_id: list(role.tool_ids) for role in selectable_roles}
-    normalized_role_ids = _normalize_requested_expert_role_ids(
-        request.enabled_role_ids,
-        available_role_ids,
-    )
-    normalized_role_tool_ids = _normalize_requested_expert_role_tool_ids(
-        request.role_tool_ids,
-        available_role_tool_ids,
-    )
-    if normalized_role_ids is not None:
-        for role_id in normalized_role_ids:
-            if is_system_subagent_name(role_id):
-                enable_builtin_subagent_to_scope(
-                    user_id=current_user.user_id,
-                    name=role_id,
-                    scope="workspace",
-                    workspace_id=workspace_id,
-                )
-
-    save_workspace_collaboration_policy(
-        user_id=current_user.user_id,
-        workspace_id=workspace_id,
-        enabled_role_ids=normalized_role_ids,
-        available_role_ids=available_role_ids,
-        reset_enabled=request.enabled_role_ids is None,
-        role_tool_ids=normalized_role_tool_ids,
-        runtime_policy=(
-            request.collaboration_policy.model_dump(mode="json")
-            if request.collaboration_policy is not None
-            else None
-        ),
-    )
-
-    return get_workspace_collaboration_policy(
-        user_id=current_user.user_id,
-        workspace_id=workspace_id,
+    return await _update_expert_policy_impl(
+        "workspace", workspace_id, request, current_user.user_id
     )
 
 
@@ -914,54 +1000,8 @@ async def enable_workspace_builtin_expert(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """将系统提供的协作专家安装到当前工作区。"""
-    from app.services.agent.subagent_catalog import (
-        enable_builtin_subagent_to_scope,
-        load_subagent,
-    )
-
-    role_id = (request.role_id if request is not None else name).strip()
-    if role_id != name:
-        raise HTTPException(status_code=400, detail="role_id 与路径参数不一致")
-
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(
-            current_user.user_id,
-            workspace_id,
-            include_conversations=False,
-        )
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    try:
-        enable_builtin_subagent_to_scope(
-            user_id=current_user.user_id,
-            name=name,
-            scope="workspace",
-            workspace_id=workspace_id,
-        )
-        manifest = load_subagent(
-            user_id=current_user.user_id,
-            name=name,
-            workspace_id=workspace_id,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except Exception as exc:
-        logger.error("安装工作区协作专家失败: %s", exc)
-        raise HTTPException(status_code=500, detail="Failed to install expert") from exc
-
-    if manifest is None:
-        raise HTTPException(status_code=404, detail="Expert not found")
-
-    return ExpertDetailResponse(
-        name=name,
-        description=manifest.get("description", ""),
-        system_prompt=manifest.get("system_prompt", ""),
-        model=manifest.get("model"),
-        tools=manifest.get("tools"),
-        scope="workspace",
-        source=str(manifest.get("_source") or manifest.get("source") or "builtin"),
+    return await _enable_builtin_expert_impl(
+        "workspace", workspace_id, name, request, current_user.user_id
     )
 
 
@@ -972,72 +1012,7 @@ async def create_workspace_expert(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """在工作区下创建自定义协作专家（子 Agent）。"""
-    from app.services.agent.subagent_catalog import (
-        is_system_subagent_name,
-        is_valid_subagent_name,
-        save_subagent,
-    )
-
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(current_user.user_id, workspace_id, include_conversations=False)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    name = request.name.strip()
-    if not is_valid_subagent_name(name):
-        raise HTTPException(
-            status_code=400,
-            detail="专家名称格式无效。要求：英文字母开头，仅包含字母、数字、下划线、连字符，长度不超过64。",
-        )
-    if is_system_subagent_name(name):
-        raise HTTPException(
-            status_code=400,
-            detail="Expert name conflicts with system preset roles",
-        )
-    if request.scope != "workspace":
-        raise HTTPException(
-            status_code=400,
-            detail="当前工作区创建接口只支持 workspace 作用域。",
-        )
-
-    manifest: dict[str, Any] = {
-        "name": name,
-        "description": request.description.strip(),
-        "system_prompt": request.system_prompt.strip(),
-    }
-    if request.model:
-        manifest["model"] = request.model.strip()
-    if request.tools:
-        manifest["tools"] = [t.strip() for t in request.tools if t]
-
-    # 保存原始值用于响应（save_subagent 会 pop system_prompt）
-    response_description = manifest["description"]
-    response_system_prompt = manifest["system_prompt"]
-    response_model = manifest.get("model")
-    response_tools = manifest.get("tools")
-
-    try:
-        save_subagent(
-            user_id=current_user.user_id,
-            name=name,
-            manifest=manifest,
-            scope="workspace",
-            workspace_id=workspace_id,
-        )
-    except Exception as exc:
-        logger.error("创建工作区专家失败: %s", exc)
-        raise HTTPException(status_code=500, detail="Failed to save expert config") from exc
-
-    return ExpertDetailResponse(
-        name=name,
-        description=response_description,
-        system_prompt=response_system_prompt,
-        model=response_model,
-        tools=response_tools,
-        scope="workspace",
-        source="custom",
-    )
+    return await _create_expert_impl("workspace", workspace_id, request, current_user.user_id)
 
 
 @router.get("/{workspace_id}/experts/{name}", response_model=ExpertDetailResponse)
@@ -1047,31 +1022,7 @@ async def get_workspace_expert_detail(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """获取工作区下自定义专家的完整详情（含 system_prompt）。"""
-    from app.services.agent.subagent_catalog import load_subagent
-
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(current_user.user_id, workspace_id, include_conversations=False)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    manifest = load_subagent(
-        user_id=current_user.user_id,
-        name=name,
-        workspace_id=workspace_id,
-    )
-    if manifest is None:
-        raise HTTPException(status_code=404, detail="Expert not found")
-
-    return ExpertDetailResponse(
-        name=name,
-        description=manifest.get("description", ""),
-        system_prompt=manifest.get("system_prompt", ""),
-        model=manifest.get("model"),
-        tools=manifest.get("tools"),
-        scope="workspace",
-        source="custom",
-    )
+    return await _get_expert_detail_impl("workspace", workspace_id, name, current_user.user_id)
 
 
 @router.put(
@@ -1085,60 +1036,8 @@ async def update_workspace_expert_visibility(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """更新工作区级子 Agent 可见性策略。"""
-    from app.services.agent.subagent_catalog import (
-        resolve_subagent_visibility_policy,
-        save_subagent_visibility_policy,
-    )
-
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(
-            current_user.user_id,
-            workspace_id,
-            include_conversations=False,
-        )
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    catalog = get_workspace_expert_catalog(
-        user_id=current_user.user_id,
-        workspace_id=workspace_id,
-    )
-    if name not in {role.role_id for role in catalog.roles}:
-        raise HTTPException(status_code=404, detail="Expert not found")
-
-    try:
-        save_subagent_visibility_policy(
-            user_id=current_user.user_id,
-            role_id=name,
-            scope="workspace",
-            workspace_id=workspace_id,
-            catalog_visible=request.catalog_visible,
-            host_selectable=request.host_selectable,
-            default_enabled=request.default_enabled,
-            lock_reason=request.lock_reason,
-        )
-        effective_policy = resolve_subagent_visibility_policy(
-            user_id=current_user.user_id,
-            role_id=name,
-            workspace_id=workspace_id,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except Exception as exc:
-        logger.error("更新工作区专家可见性失败: %s", exc)
-        raise HTTPException(status_code=500, detail="Failed to save expert visibility") from exc
-
-    return SubAgentVisibilityPolicyResponse(
-        role_id=name,
-        scope="workspace",
-        workspace_id=workspace_id,
-        catalog_visible=effective_policy.catalog_visible,
-        host_selectable=effective_policy.host_selectable,
-        default_enabled=effective_policy.default_enabled,
-        visibility_source=effective_policy.visibility_source,
-        lock_reason=effective_policy.lock_reason,
-        policy=effective_policy,
+    return await _update_expert_visibility_impl(
+        "workspace", workspace_id, name, request, current_user.user_id
     )
 
 
@@ -1150,83 +1049,7 @@ async def update_workspace_expert(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """更新工作区下自定义专家配置。"""
-    from app.services.agent.subagent_catalog import (
-        is_system_subagent_name,
-        load_subagent,
-        save_subagent,
-    )
-
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(current_user.user_id, workspace_id, include_conversations=False)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    # 系统预设不允许通过 REST 修改
-    if is_system_subagent_name(name):
-        raise HTTPException(status_code=403, detail="系统预设角色不允许修改")
-
-    existing = load_subagent(
-        user_id=current_user.user_id,
-        name=name,
-        workspace_id=workspace_id,
-    )
-    if existing is None:
-        raise HTTPException(status_code=404, detail="Expert not found")
-
-    # 合并更新字段
-    manifest: dict[str, Any] = {
-        "name": name,
-        "description": existing.get("description", ""),
-        "system_prompt": existing.get("system_prompt", ""),
-    }
-    if existing.get("model"):
-        manifest["model"] = existing["model"]
-    if existing.get("tools"):
-        manifest["tools"] = list(existing["tools"])
-
-    if request.description is not None:
-        manifest["description"] = request.description.strip()
-    if request.system_prompt is not None:
-        manifest["system_prompt"] = request.system_prompt.strip()
-    if request.model is not None:
-        if request.model.strip():
-            manifest["model"] = request.model.strip()
-        else:
-            manifest.pop("model", None)
-    if request.tools is not None:
-        if request.tools:
-            manifest["tools"] = [t.strip() for t in request.tools if t]
-        else:
-            manifest.pop("tools", None)
-
-    # 保存原始值用于响应（save_subagent 会 pop system_prompt）
-    response_description = manifest["description"]
-    response_system_prompt = manifest["system_prompt"]
-    response_model = manifest.get("model")
-    response_tools = manifest.get("tools")
-
-    try:
-        save_subagent(
-            user_id=current_user.user_id,
-            name=name,
-            manifest=manifest,
-            scope="workspace",
-            workspace_id=workspace_id,
-        )
-    except Exception as exc:
-        logger.error("更新工作区专家失败: %s", exc)
-        raise HTTPException(status_code=500, detail="Failed to save expert config") from exc
-
-    return ExpertDetailResponse(
-        name=name,
-        description=response_description,
-        system_prompt=response_system_prompt,
-        model=response_model,
-        tools=response_tools,
-        scope="workspace",
-        source="custom",
-    )
+    return await _update_expert_impl("workspace", workspace_id, name, request, current_user.user_id)
 
 
 @router.delete("/{workspace_id}/experts/{name}")
@@ -1236,26 +1059,7 @@ async def delete_workspace_expert(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """删除工作区下协作专家副本。系统内置源目录不会被删除。"""
-    from app.services.agent.subagent_catalog import (
-        delete_subagent,
-    )
-
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(current_user.user_id, workspace_id, include_conversations=False)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    deleted = delete_subagent(
-        user_id=current_user.user_id,
-        name=name,
-        scope="workspace",
-        workspace_id=workspace_id,
-    )
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Expert not found")
-
-    return {"success": True, "name": name}
+    return await _delete_expert_impl("workspace", workspace_id, name, current_user.user_id)
 
 
 @router.patch("/{workspace_id}", response_model=WorkspaceDetailResponse)
@@ -1417,11 +1221,16 @@ async def delete_workspace(
 )
 async def list_workspace_conversations(
     workspace_id: str,
+    include_archived: bool = Query(False, description="是否包含已归档对话"),
     current_user: UserInfo = Depends(require_auth()),
 ):
     service = get_workspace_registry_service()
     try:
-        conversations = service.list_conversations(current_user.user_id, workspace_id)
+        conversations = service.list_conversations(
+            current_user.user_id,
+            workspace_id,
+            include_hidden_conversations=include_archived,
+        )
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail="Operation failed") from exc
     return ConversationListResponse(
@@ -1476,6 +1285,36 @@ async def create_workspace_conversation(
         raise HTTPException(status_code=404, detail="Operation failed") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail="Operation failed") from exc
+
+
+@router.patch(
+    "/{workspace_id}/conversations/{conversation_id}/archive",
+    response_model=WorkspaceConversationSummary,
+)
+async def archive_workspace_conversation(
+    workspace_id: str,
+    conversation_id: str,
+    request: ArchiveConversationRequest,
+    current_user: UserInfo = Depends(require_auth()),
+):
+    """归档/取消归档对话。归档只从默认列表隐藏，数据保留，可恢复。"""
+    service = get_workspace_registry_service()
+    try:
+        ok = service.set_conversation_archived(
+            user_id=current_user.user_id,
+            workspace_id=workspace_id,
+            conversation_id=conversation_id,
+            archived=request.archived,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Operation failed") from exc
+    if not ok:
+        raise HTTPException(status_code=404, detail="对话不存在")
+    return service.get_conversation(
+        user_id=current_user.user_id,
+        workspace_id=workspace_id,
+        conversation_id=conversation_id,
+    )
 
 
 @router.get(

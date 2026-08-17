@@ -261,14 +261,14 @@ export function WorkspaceDatabaseConnectionsPanel({
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           </div>
         ) : error ? (
-          <div className="px-2 py-4 text-center text-[11px] text-destructive">
+          <div className="px-2 py-4 text-center text-micro text-destructive">
             {error}
           </div>
         ) : handles.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-2 py-8 text-center text-muted-foreground">
             <Database className="mb-2 h-6 w-6 opacity-40" />
-            <p className="text-[12px]">暂无外部数据库连接</p>
-            <p className="mt-1 text-[11px] opacity-60">
+            <p className="text-caption">暂无外部数据库连接</p>
+            <p className="mt-1 text-micro opacity-60">
               添加后可在此选择连接开始查询
             </p>
             {handleAdd ? (
@@ -291,7 +291,7 @@ export function WorkspaceDatabaseConnectionsPanel({
                 <div
                   key={handle.handle}
                   className={cn(
-                    "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[12px] transition-colors",
+                    "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-caption transition-colors",
                     isSelected
                       ? "bg-primary/10 text-primary"
                       : "text-foreground hover:bg-muted"
@@ -318,7 +318,7 @@ export function WorkspaceDatabaseConnectionsPanel({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium">{handle.name}</div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                      <div className="flex items-center gap-1.5 text-nano text-muted-foreground">
                         <span>{getRuntimeDatabaseTypeLabel(handle.db_type)}</span>
                         {statusInfo?.status === "offline" && (
                           <span className="text-red-500">连接失败</span>

@@ -85,8 +85,8 @@ export function CreateDialog({
 }: CreateDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="flex flex-col h-[90vh] overflow-hidden p-0 sm:max-w-[620px]"
+      <DialogContent size="md" tall
+        className="overflow-hidden"
         data-testid="knowledge-base-create-dialog"
       >
         <DialogHeader className="shrink-0 px-6 pt-6">
@@ -263,8 +263,8 @@ export function UploadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="flex flex-col h-[90vh] overflow-hidden p-0 sm:max-w-[720px]"
+      <DialogContent size="md" tall
+        className="overflow-hidden"
         data-testid="knowledge-base-upload-dialog"
       >
         <DialogHeader className="shrink-0 px-6 pt-6">
@@ -400,12 +400,12 @@ export function UploadDialog({
                       {uploadProgress[file.name] !== undefined ? (
                         <div className="mt-1 flex items-center gap-2">
                           <Progress value={uploadProgress[file.name]} className="h-1 flex-1" />
-                          <span className="text-[10px]">{Math.round(uploadProgress[file.name])}%</span>
+                          <span className="text-nano">{Math.round(uploadProgress[file.name])}%</span>
                         </div>
                       ) : null}
                     </div>
                     {!isUploading ? (
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemoveFile(file.name)}>
+                      <Button variant="ghost" size="icon-xs" onClick={() => onRemoveFile(file.name)}>
                         <X className="h-4 w-4" />
                       </Button>
                     ) : null}
@@ -488,7 +488,7 @@ export function QueryDialog({
 }: QueryDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col h-[85vh] overflow-hidden p-0 sm:max-w-[600px]">
+      <DialogContent size="md" tall className="overflow-hidden">
         <DialogHeader className="shrink-0 px-6 pt-6">
           <DialogTitle>检索知识库</DialogTitle>
           <DialogDescription>输入问题，检索相关知识片段</DialogDescription>

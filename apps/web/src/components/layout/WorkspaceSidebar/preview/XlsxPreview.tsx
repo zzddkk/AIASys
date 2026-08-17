@@ -320,7 +320,7 @@ export const XlsxPreview: React.FC<XlsxPreviewProps> = ({
                   cellIndex === 5 && showColHeadTail ? (
                     <td
                       key={`cell-omit-${cellIndex}`}
-                      className="px-3 py-1.5 text-muted-foreground/30 border-b border-border/50 text-center text-[10px]"
+                      className="px-3 py-1.5 text-muted-foreground/30 border-b border-border/50 text-center text-nano"
                     >
                       ...
                     </td>
@@ -351,7 +351,7 @@ export const XlsxPreview: React.FC<XlsxPreviewProps> = ({
             {fileName}
           </span>
           {currentSheet && (
-            <span className="text-[10px] bg-success-container text-success px-1.5 py-0.5 rounded-full font-mono">
+            <span className="text-nano bg-success-container text-success px-1.5 py-0.5 rounded-full font-mono">
               {currentSheet.rows.length} 行 × {currentSheet.headers.length} 列
             </span>
           )}
@@ -365,7 +365,7 @@ export const XlsxPreview: React.FC<XlsxPreviewProps> = ({
                     hasChanges ? "bg-yellow-500" : "bg-green-500"
                   }`}
                 />
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-micro text-muted-foreground">
                   {hasChanges ? "未保存" : "已保存"}
                 </span>
               </div>
@@ -375,7 +375,7 @@ export const XlsxPreview: React.FC<XlsxPreviewProps> = ({
                   setIsEditing((prev) => !prev);
                   setEditingCell(null);
                 }}
-                className="flex items-center gap-1 px-2.5 py-0.5 text-[11px] bg-secondary hover:bg-secondary/80 rounded text-secondary-foreground transition-colors"
+                className="flex items-center gap-1 px-2.5 py-0.5 text-micro bg-secondary hover:bg-secondary/80 rounded text-secondary-foreground transition-colors"
               >
                 {isEditing ? "预览" : "编辑"}
               </button>
@@ -384,7 +384,7 @@ export const XlsxPreview: React.FC<XlsxPreviewProps> = ({
                   type="button"
                   onClick={handleSave}
                   disabled={isSaving || !hasChanges}
-                  className="flex items-center gap-1 px-2.5 py-0.5 text-[11px] bg-primary hover:bg-primary/90 disabled:bg-muted disabled:opacity-50 disabled:cursor-not-allowed rounded text-primary-foreground transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-0.5 text-micro bg-primary hover:bg-primary/90 disabled:bg-muted disabled:opacity-50 disabled:cursor-not-allowed rounded text-primary-foreground transition-colors"
                 >
                   {isSaving ? (
                     <>

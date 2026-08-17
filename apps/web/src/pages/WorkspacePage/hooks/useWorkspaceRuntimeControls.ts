@@ -487,6 +487,10 @@ export function useWorkspaceRuntimeControls({
         }
       }
     },
+    // 误报说明：navigateToAnalysisSession 是模块级导入的纯函数，规则把它当
+    // 「外层作用域值」；回调内 312/434 行真实调用它，从依赖移除反而触发真 error。
+    // disable-next-line 只对紧邻的下一行生效，所以它必须是注释块的最后一行。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       activatePreparedSession,
       prepareNewSession,

@@ -100,7 +100,7 @@ export function TokenUsagePanel({ embedded }: TokenUsagePanelProps) {
               value={model ?? "__all__"}
               onValueChange={(value) => setModel(value === "__all__" ? null : value)}
             >
-              <SelectTrigger className="w-[180px] h-8 text-xs">
+              <SelectTrigger size="sm" className="w-[180px] text-xs">
                 <SelectValue placeholder="全部模型" />
               </SelectTrigger>
               <SelectContent>

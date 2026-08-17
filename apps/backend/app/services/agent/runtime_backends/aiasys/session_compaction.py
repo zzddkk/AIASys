@@ -149,7 +149,7 @@ class SessionCompactionMixin:
                             compaction_client = self._client
 
         # 通知前端压缩开始
-        yield AgentRuntimeEvent(kind="compaction", phase="begin")
+        yield AgentRuntimeEvent(display_hint="visible", kind="compaction", phase="begin")
 
         result: CompactionResult | None = None
         try:
@@ -310,6 +310,18 @@ class SessionCompactionMixin:
                 "summary_tokens": summary_tokens,
                 "elapsed_ms": elapsed_ms,
             }
+            # 把压缩统计挂到摘要消息上，随 history.json 持久化，
+            # 前端的压缩标记（CompactionSummaryContent）据此显示
+            # 「before → after，节省 N」。从尾部找：本次压缩产生的摘要是最新的那条。
+            for msg in reversed(self.messages):
+                if msg.get("origin") == "compaction_summary":
+                    msg["compaction_stats"] = {
+                        "tokens_before": before_tokens,
+                        "tokens_after": after_tokens,
+                        "saved_tokens": max(0, before_tokens - after_tokens),
+                        "compacted_count": result.compacted_count,
+                    }
+                    break
             self._persist_compaction_summary(
                 summary=result.summary,
                 compacted_count=result.compacted_count,
@@ -327,6 +339,7 @@ class SessionCompactionMixin:
 
             # 通知前端压缩完成
             yield AgentRuntimeEvent(
+                display_hint="visible",
                 kind="compaction",
                 phase="done",
                 tokens_before=before_tokens,
@@ -359,6 +372,7 @@ class SessionCompactionMixin:
 
             # 即使没有实际压缩，也通知前端结束 loading
             yield AgentRuntimeEvent(
+                display_hint="visible",
                 kind="compaction",
                 phase="done",
                 tokens_before=before_tokens,

@@ -2,8 +2,7 @@ import { memo, useMemo, lazy, Suspense, type ReactNode } from "react";
 import type { Components } from "react-markdown";
 
 import type { PreviewFile } from "@/components/layout/WorkspaceSidebar/preview";
-import { MarkdownRenderer } from "./MarkdownRenderer";
-import { MathMarkdownRenderer } from "./MathMarkdownRenderer";
+import { IncrementalMarkdown } from "./IncrementalMarkdown";
 import { SyntaxCodeBlock } from "@/components/layout/WorkspaceSidebar/preview/SyntaxCodeBlock";
 
 const LazyWorkspaceArtifactRenderer = lazy(() =>
@@ -173,16 +172,6 @@ function splitMarkdownSegments(content: string): MarkdownSegment[] {
   });
 }
 
-function containsMathSyntax(content: string): boolean {
-  return (
-    content.includes("$$") ||
-    content.includes("\\(") ||
-    content.includes("\\[") ||
-    content.includes("\\begin{") ||
-    /(^|[^\\])\$(?!\s)([\s\S]*?)(?<!\s)\$/.test(content)
-  );
-}
-
 export const ChartAwareMarkdown = memo(function ChartAwareMarkdown({
   content,
   token,
@@ -266,12 +255,9 @@ export const ChartAwareMarkdown = memo(function ChartAwareMarkdown({
         }
 
         const markdownContent = segment.content ?? "";
-        const Renderer = containsMathSyntax(markdownContent)
-          ? MathMarkdownRenderer
-          : MarkdownRenderer;
 
         return (
-          <Renderer
+          <IncrementalMarkdown
             key={`markdown-${index}`}
             content={markdownContent}
             components={markdownComponents}

@@ -47,21 +47,21 @@ function TestStatusBadge({ result }: { result?: ProviderTestResult }) {
 
   if (result.status === "success") {
     return (
-      <Badge variant="default" className="bg-success text-white text-[10px]">
+      <Badge variant="default" className="bg-success text-white text-nano">
         <CheckCircle2 className="w-3 h-3 mr-1" />
         {result.latency_ms}ms
       </Badge>
     );
   } else if (result.status === "timeout") {
     return (
-      <Badge variant="outline" className="text-warning border-warning text-[10px]">
+      <Badge variant="outline" className="text-warning border-warning text-nano">
         <AlertCircle className="w-3 h-3 mr-1" />
         超时
       </Badge>
     );
   } else {
     return (
-      <Badge variant="default" className="bg-error text-white text-[10px]">
+      <Badge variant="default" className="bg-error text-white text-nano">
         <XCircle className="w-3 h-3 mr-1" />
         失败
       </Badge>
@@ -103,17 +103,17 @@ export function ProviderCard({
             <div className="flex items-center flex-wrap gap-1.5">
               <h3 className="text-sm font-semibold text-foreground">{provider.name}</h3>
               {provider.is_default && (
-                <Badge variant="default" className="text-[10px] px-1.5 py-0">默认</Badge>
+                <Badge variant="default" className="text-nano px-1.5 py-0">默认</Badge>
               )}
               {provider.enabled ? (
-                <Badge variant="outline" className="text-success text-[10px] px-1.5 py-0">已启用</Badge>
+                <Badge variant="outline" className="text-success text-nano px-1.5 py-0">已启用</Badge>
               ) : (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">已禁用</Badge>
+                <Badge variant="secondary" className="text-nano px-1.5 py-0">已禁用</Badge>
               )}
               <TestStatusBadge result={testResult} />
             </div>
             {/* 元信息 */}
-            <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-2 text-micro text-muted-foreground">
               <span className="font-mono">{provider.id}</span>
               <span className="opacity-40">·</span>
               <span>{provider.type}</span>
@@ -121,7 +121,7 @@ export function ProviderCard({
               <span className="truncate">{provider.base_url}</span>
             </div>
             {provider.description ? (
-              <p className="text-[11px] text-muted-foreground line-clamp-1">
+              <p className="text-micro text-muted-foreground line-clamp-1">
                 {provider.description}
               </p>
             ) : null}
@@ -168,7 +168,7 @@ export function ProviderCard({
           <div className="flex items-center gap-2">
             <Cpu className="w-3.5 h-3.5 text-muted-foreground" />
             <span className="text-xs font-medium text-foreground">模型</span>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-micro text-muted-foreground">
               {providerModels.length > 0 ? `${providerModels.length} 个` : "未配置"}
             </span>
             {providerModels.length > 0 && (
@@ -179,7 +179,7 @@ export function ProviderCard({
                   onCheckedChange={() => onToggleProviderSelection(provider.id)}
                   className="w-3.5 h-3.5"
                 />
-                <label htmlFor={`select-all-${provider.id}`} className="text-[11px] text-muted-foreground cursor-pointer">
+                <label htmlFor={`select-all-${provider.id}`} className="text-micro text-muted-foreground cursor-pointer">
                   全选
                 </label>
               </div>
@@ -189,8 +189,8 @@ export function ProviderCard({
             {selectedCount > 0 && (
               <Button
                 variant="ghost"
-                size="sm"
-                className="h-7 text-[11px] bg-destructive/10 text-destructive hover:text-destructive hover:bg-destructive/20 font-medium"
+                size="xs"
+                className="text-micro bg-destructive/10 text-destructive hover:text-destructive hover:bg-destructive/20 font-medium"
                 onClick={onBatchDelete}
                 disabled={batchDeleting}
               >
@@ -201,8 +201,8 @@ export function ProviderCard({
             )}
             <Button
               variant="ghost"
-              size="sm"
-              className="h-7 text-[11px]"
+              size="xs"
+              className="text-micro"
               onClick={() => onAddModel(provider.id)}
             >
               <Plus className="w-3 h-3 mr-1" />
@@ -210,8 +210,8 @@ export function ProviderCard({
             </Button>
             <Button
               variant="ghost"
-              size="sm"
-              className="h-7 text-[11px]"
+              size="xs"
+              className="text-micro"
               onClick={() => onFetchModels(provider.id)}
             >
               <Plus className="w-3 h-3 mr-1" />
@@ -235,14 +235,14 @@ export function ProviderCard({
           ))}
           {providerModels.length === 0 && (
             <div className="text-center py-5 rounded-xl border border-dashed border-border bg-muted/20">
-              <p className="text-[12px] text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 暂无模型配置
               </p>
               <div className="mt-1.5 flex items-center gap-2 justify-center">
                 <button
                   type="button"
                   onClick={() => onAddModel(provider.id)}
-                  className="text-[11px] text-foreground underline-offset-4 hover:underline"
+                  className="text-micro text-foreground underline-offset-4 hover:underline"
                 >
                   手动添加模型
                 </button>
@@ -250,7 +250,7 @@ export function ProviderCard({
                 <button
                   type="button"
                   onClick={() => onFetchModels(provider.id)}
-                  className="text-[11px] text-foreground underline-offset-4 hover:underline"
+                  className="text-micro text-foreground underline-offset-4 hover:underline"
                 >
                   获取远程模型列表
                 </button>
@@ -297,27 +297,27 @@ function ModelRow({
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="text-[13px] font-medium truncate">{model.name}</span>
+          <span className="text-body font-medium truncate">{model.name}</span>
           {model.model_type === "embedding" ? (
-            <Badge variant="outline" className="text-[10px] px-1 py-0 text-info border-info/20">
+            <Badge variant="outline" className="text-nano px-1 py-0 text-info border-info/20">
               Embedding{model.dimension ? ` · ${model.dimension}d` : ""}
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-[10px] px-1 py-0 text-tertiary border-info/20">
+            <Badge variant="outline" className="text-nano px-1 py-0 text-tertiary border-info/20">
               对话
             </Badge>
           )}
           {isDefaultChat && (
-            <Badge variant="default" className="text-[10px] px-1 py-0">聊天默认</Badge>
+            <Badge variant="default" className="text-nano px-1 py-0">聊天默认</Badge>
           )}
           {isDefaultEmbedding && (
-            <Badge variant="default" className="text-[10px] px-1 py-0">Embedding 默认</Badge>
+            <Badge variant="default" className="text-nano px-1 py-0">Embedding 默认</Badge>
           )}
           {!model.enabled && (
-            <Badge variant="secondary" className="text-[10px] px-1 py-0">已禁用</Badge>
+            <Badge variant="secondary" className="text-nano px-1 py-0">已禁用</Badge>
           )}
         </div>
-        <div className="text-[11px] text-muted-foreground truncate mt-0.5">
+        <div className="text-micro text-muted-foreground truncate mt-0.5">
           {model.model}
           <span className="mx-1 opacity-40">·</span>
           {model.max_context_size?.toLocaleString()} tokens

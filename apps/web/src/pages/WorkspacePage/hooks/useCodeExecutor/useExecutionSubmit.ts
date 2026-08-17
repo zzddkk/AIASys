@@ -145,7 +145,6 @@ export function useExecutionSubmit(props: UseExecutionSubmitProps) {
     getSessionSlot,
     updateChatItems,
     addStreamEventsForSession,
-    isSessionRunning,
     onAskUserRequest,
     onSubAgentEvent,
     onCompactionEvent,

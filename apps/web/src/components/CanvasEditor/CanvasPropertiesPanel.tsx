@@ -124,7 +124,7 @@ export const CanvasPropertiesPanel: React.FC<CanvasPropertiesPanelProps> = ({
                     "节点"
                 : selectedEdge?.label || "连线"}
             </div>
-            <div className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+            <div className="mt-0.5 text-micro text-slate-500 dark:text-slate-400">
               {selectedNode ? "节点属性" : "连线属性"}
             </div>
           </div>
@@ -132,8 +132,7 @@ export const CanvasPropertiesPanel: React.FC<CanvasPropertiesPanelProps> = ({
         <Button
           type="button"
           variant="ghost"
-          size="icon"
-          className="h-7 w-7"
+          size="icon-xs"
           aria-label="关闭属性面板"
           onClick={onClose}
         >
@@ -252,7 +251,7 @@ export const CanvasPropertiesPanel: React.FC<CanvasPropertiesPanelProps> = ({
                   })
                 }
               >
-                <SelectTrigger className="h-9" aria-label="连线箭头">
+                <SelectTrigger aria-label="连线箭头">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -46,7 +46,7 @@ export function MCPMarketDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl h-[86vh] overflow-hidden p-0 gap-0 flex flex-col bg-background">
+      <DialogContent size="xl" tall className="overflow-hidden bg-background">
         <DialogHeader className="px-6 pt-5 pb-0">
           <DialogTitle>连接器管理</DialogTitle>
           <DialogDescription>

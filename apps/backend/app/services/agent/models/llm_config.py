@@ -12,6 +12,14 @@ class LoopControl(BaseModel):
 
     max_steps_per_turn: int = 500
     max_retries_per_step: int = 3
+    max_auto_continues: int = Field(
+        default=3,
+        description=(
+            "输出被 max_tokens 截断后自动续写的次数上限。0 表示关闭自动续写。"
+            "达到上限或被续写守卫拦下时停止并向用户说明原因。"
+        ),
+        ge=0,
+    )
     reserved_context_size: int = 50000
     compaction_trigger_ratio: float = 0.85
     max_preserved_messages: int = Field(
@@ -73,6 +81,13 @@ class LlmProviderConfig(BaseModel):
     region: str | None = None
     reasoning_key: str | None = None
     reasoning_format: str | None = None
+    reasoning_in_content_tag: str | None = Field(
+        default=None,
+        description="推理内容直接写在 content 里时的包裹标签名（如 'think'）。"
+        "部分开源模型在 vLLM / SGLang 部署下不使用独立 reasoning 字段，"
+        "而是把推理放在 <think>…</think> 中。默认 None 即不剥离——"
+        "不做全局猜测，因为用户正文里可能出现合法的 <think> 字样。",
+    )
 
     @model_validator(mode="after")
     def _infer_protocol_from_type(self) -> "LlmProviderConfig":
@@ -101,6 +116,12 @@ class LlmModelConfig(BaseModel):
         default=None,
         description="模型级别的 reasoning 字段名，覆盖 provider 级别的同名配置。"
         "用于兼容不同厂商在 delta/message 中对 reasoning 内容的不同字段命名。",
+    )
+    reasoning_in_content_tag: str | None = Field(
+        default=None,
+        description="模型级别的推理包裹标签名，覆盖 provider 级别的同名配置。"
+        "同一 provider 下往往只有部分模型走标签形态（如自建 vLLM 上同时挂了"
+        "普通模型与 R1 系），所以必须能按模型单独开。",
     )
 
 

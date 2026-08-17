@@ -8,6 +8,7 @@ from app.agents.tools.local_ipython_box import LocalIPythonBox
 from app.api.routes import workspaces_runtime as workspace_route
 from app.models.user import UserInfo
 from app.services.runtime import session_runtime_state as runtime_state_module
+from app.services.runtime_environment import RuntimeEnvironmentService
 from app.services.session import SessionManager
 from app.services.workspace_registry import WorkspaceRegistryService
 

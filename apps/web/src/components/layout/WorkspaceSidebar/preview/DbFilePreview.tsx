@@ -261,7 +261,7 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
                       <span className="text-xs font-semibold text-foreground">
                         {table.name}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-nano text-muted-foreground">
                         {table.columns.length} 列
                       </span>
                     </div>
@@ -270,7 +270,7 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
                         e.stopPropagation();
                         handlePreviewTable(table.name);
                       }}
-                      className="flex items-center gap-1 px-2 py-0.5 text-[10px] bg-secondary hover:bg-secondary/80 rounded text-secondary-foreground transition-colors cursor-pointer"
+                      className="flex items-center gap-1 px-2 py-0.5 text-nano bg-secondary hover:bg-secondary/80 rounded text-secondary-foreground transition-colors cursor-pointer"
                     >
                       <Play className="w-3 h-3" />
                       预览数据
@@ -278,7 +278,7 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
                   </button>
                   {expandedTable === table.name && (
                     <div className="px-3 py-2 bg-background">
-                      <table className="w-full text-[11px] border-collapse">
+                      <table className="w-full text-micro border-collapse">
                         <thead>
                           <tr className="border-b border-border">
                             <th className="px-2 py-1 text-left font-medium text-muted-foreground">
@@ -322,7 +322,7 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
                     onValueChange={setSql}
                     highlight={highlightSql}
                     padding={12}
-                    className="font-mono text-[12px] leading-5"
+                    className="font-mono text-caption leading-5"
                     textareaClassName="focus:outline-none bg-transparent"
                     preClassName="language-sql m-0 p-0 bg-transparent min-h-[100px]"
                     placeholder="输入 SQL 查询..."
@@ -347,10 +347,10 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
                   执行
                 </button>
               </div>
-              <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+              <div className="mt-1 flex items-center justify-between text-nano text-muted-foreground">
                 <span>Cmd/Ctrl + Enter 执行查询</span>
                 {currentTable && (
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-nano text-muted-foreground">
                     当前表: {currentTable}
                   </span>
                 )}
@@ -366,7 +366,7 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
 
               {queryResult && (
                 <div className="p-3">
-                  <div className="mb-2 text-[11px] text-muted-foreground">
+                  <div className="mb-2 text-micro text-muted-foreground">
                     共 {queryResult.row_count} 条记录
                     {currentTable && ` · 第 ${currentPage} 页`}
                   </div>
@@ -425,7 +425,7 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
             {/* 分页控件 */}
             {queryResult && currentTable && (
               <div className="flex-shrink-0 border-t border-border px-3 py-2 flex items-center justify-between bg-muted/20">
-                <div className="text-[11px] text-muted-foreground">
+                <div className="text-micro text-muted-foreground">
                   第 {startRow}-{endRow} 条
                 </div>
                 <div className="flex items-center gap-1">
@@ -445,7 +445,7 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
                   </button>
-                  <span className="text-[11px] text-muted-foreground px-2">
+                  <span className="text-micro text-muted-foreground px-2">
                     {currentPage}
                   </span>
                   <button
@@ -458,7 +458,7 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
                   </button>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-[11px] text-muted-foreground">每页</span>
+                  <span className="text-micro text-muted-foreground">每页</span>
                   <select
                     value={pageSize}
                     onChange={(e) => {
@@ -471,7 +471,7 @@ export const DbFilePreview: React.FC<DbFilePreviewProps> = ({
                         void handleQuery(newSql);
                       }
                     }}
-                    className="h-6 text-[11px] rounded border border-border bg-background px-1"
+                    className="h-6 text-micro rounded border border-border bg-background px-1"
                   >
                     <option value={50}>50</option>
                     <option value={100}>100</option>

@@ -67,7 +67,7 @@ test.describe("Analysis workspace home", () => {
       waitUntil: "domcontentloaded",
     });
 
-    await expect(page).toHaveURL("/analysis");
+    await expect(page).toHaveURL("/workspace");
     await expect(page.getByText("工作区首页", { exact: true })).toBeVisible();
     await expect(page.getByText("最近工作区", { exact: true })).toBeVisible();
 

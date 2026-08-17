@@ -78,3 +78,18 @@ export async function importConversation(
   }
   return response.json();
 }
+
+export async function archiveConversation(
+  _userId: string,
+  workspaceId: string,
+  conversationId: string,
+  archived: boolean,
+): Promise<WorkspaceConversationSummary> {
+  return apiRequest<WorkspaceConversationSummary>(
+    `/api/workspaces/${encodeURIComponent(workspaceId)}/conversations/${encodeURIComponent(conversationId)}/archive`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ archived }),
+    },
+  );
+}

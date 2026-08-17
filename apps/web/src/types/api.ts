@@ -7,6 +7,8 @@
 
 export interface SSEEvent {
   type: string;
+  /** 显示提示：后端根据消息 origin 映射，前端据此决定渲染方式（visible / collapsed / hidden） */
+  display_hint?: "visible" | "collapsed" | "hidden";
 }
 
 /** 内容事件 (SDK 格式) - 对应 SDK 的 content 数组项 */

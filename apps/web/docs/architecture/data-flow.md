@@ -1,12 +1,12 @@
 # 数据流
 
-> 当前 `DataAnalysisPage` 从输入、会话编排、SSE 流式、历史恢复到右侧执行空间的主数据流。
+> 当前 `WorkspacePage` 从输入、会话编排、SSE 流式、历史恢复到右侧执行空间的主数据流。
 
 ## 当前主链
 
 ```text
 用户输入 / 新建任务 / 会话切换
-  -> DataAnalysisPage/index.tsx
+  -> WorkspacePage/index.tsx
   -> useCodeExecutor
        -> useSessionOrchestrator
        -> useExecutionSubmit
@@ -50,7 +50,7 @@
 
 - 主聊天区的消息对象。
 - 既承载最终内容，也承载流式分段和历史恢复信息。
-- 来源：`apps/web/src/pages/DataAnalysisPage/types.ts`
+- 来源：`apps/web/src/pages/WorkspacePage/types.ts`
 
 ### `ChatSegment`
 
@@ -103,8 +103,8 @@ taskList / selectedTask
 
 ## 当前阅读顺序
 
-1. `apps/web/src/pages/DataAnalysisPage/index.tsx`
-2. `apps/web/src/pages/DataAnalysisPage/hooks/useCodeExecutor/index.ts`
-3. `apps/web/src/pages/DataAnalysisPage/hooks/useCodeExecutor/useSessionOrchestrator.ts`
-4. `apps/web/src/pages/DataAnalysisPage/hooks/useCodeExecutor/useStreamEventHandler.ts`
+1. `apps/web/src/pages/WorkspacePage/index.tsx`
+2. `apps/web/src/pages/WorkspacePage/hooks/useCodeExecutor/index.ts`
+3. `apps/web/src/pages/WorkspacePage/hooks/useCodeExecutor/useSessionOrchestrator.ts`
+4. `apps/web/src/pages/WorkspacePage/hooks/useCodeExecutor/useStreamEventHandler.ts`
 5. `apps/web/src/components/layout/WorkspaceSidebar/SidebarProvider.tsx`

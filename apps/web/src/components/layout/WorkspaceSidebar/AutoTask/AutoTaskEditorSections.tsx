@@ -282,7 +282,7 @@ function TriggerTimeControl({
             </SelectContent>
           </Select>
         </div>
-        <div className="text-[12px] leading-5 text-muted-foreground">
+        <div className="text-caption leading-5 text-muted-foreground">
           秒级触发最短支持 {MIN_INTERVAL_SECONDS} 秒。
         </div>
       </div>
@@ -386,7 +386,7 @@ function TriggerTimeControl({
           }))
         }
       />
-      <div className="text-[12px] leading-5 text-muted-foreground">
+      <div className="text-caption leading-5 text-muted-foreground">
         默认使用当前时间，保存启用后会尽快运行；也可以指定未来时间。
       </div>
     </div>
@@ -561,7 +561,7 @@ function SessionSelectControl({
           ))}
         </SelectContent>
       </Select>
-      <div className="text-[12px] leading-5 text-muted-foreground">
+      <div className="text-caption leading-5 text-muted-foreground">
         {hasOptions
           ? selectedOption?.isCurrent || (!selectedSessionId && currentOption)
             ? "默认使用当前会话，后续会在同一条上下文里继续推进。"
@@ -673,7 +673,7 @@ export function ContinuousRunSection({
               }))
             }
           />
-          <div className="text-[12px] leading-5 text-muted-foreground">
+          <div className="text-caption leading-5 text-muted-foreground">
             -1 表示不限制轮次。
           </div>
         </div>
@@ -694,7 +694,7 @@ export function ContinuousRunSection({
               }))
             }
           />
-          <div className="text-[12px] leading-5 text-muted-foreground">
+          <div className="text-caption leading-5 text-muted-foreground">
             达到阈值后自动禁用任务。
           </div>
         </div>

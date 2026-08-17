@@ -7,6 +7,9 @@ on:
 jobs:
   check-pr-title:
     runs-on: ubuntu-latest
+    # 硬上限：没有它时挂起的 job 会跑到 GitHub 默认的 6 小时上限。
+    # 挂起比失败更糟——看不到结论、烧配额、还阻塞队列。只校验标题正则。
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       

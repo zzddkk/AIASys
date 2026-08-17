@@ -1,42 +1,15 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import {
-  getWorkspaceRoot,
+  getWorkspaceAbsolutePath,
   createWorkspace,
   deleteWorkspace,
+  openGlobalResourcesPanel,
+  openWorkspaceFilesPanel,
   registerLifecycleUser,
 } from "./support";
 
-async function openWorkspaceFilesPanel(page: Page) {
-  await expect(page.locator("textarea")).toBeVisible();
-  const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-  if (!(await panel.isVisible())) {
-    const fileTab = page.locator("button[aria-label='文件']");
-    if (await fileTab.isVisible()) {
-      await fileTab.click();
-    } else {
-      await page.getByRole("button", { name: "文件", exact: true }).click();
-    }
-  }
-  await expect(panel).toBeVisible();
-  await expect(
-    panel.getByTestId("workspace-artifacts-tree-surface"),
-  ).toBeVisible();
-  return panel;
-}
 
-async function openGlobalResourcesPanel(page: Page) {
-  const globalTab = page.locator("button[aria-label='全局资源']");
-  if (await globalTab.isVisible()) {
-    await globalTab.click();
-  } else {
-    await page.getByRole("button", { name: "全局资源", exact: true }).click();
-  }
-  const panel = page.locator('[data-testid="workspace-global-resources-panel"]');
-  await expect(panel).toBeVisible();
-  await expect(panel.getByText("全局工作区", { exact: true })).toBeVisible();
-  return panel;
-}
 
 test.describe("Workspace asset tree header and count", () => {
   test("workspace artifacts shows compact header with correct file and directory counts", async ({
@@ -179,7 +152,7 @@ test.describe("Workspace asset tree header and count", () => {
     page,
   }) => {
     const api = page.request;
-    const user = await registerLifecycleUser(api);
+    await registerLifecycleUser(api);
 
     const workspace = await createWorkspace(api, {
       title: `浏览器回归-新建文件夹-${Date.now()}`,
@@ -284,7 +257,7 @@ test.describe("Workspace asset tree header and count", () => {
     page,
   }) => {
     const api = page.request;
-    await registerLifecycleUser(api);
+    const user = await registerLifecycleUser(api);
 
     const workspace = await createWorkspace(api, {
       title: `浏览器回归-文件树空白菜单-${Date.now()}`,
@@ -307,9 +280,18 @@ test.describe("Workspace asset tree header and count", () => {
       );
 
       const panel = await openWorkspaceFilesPanel(page);
-      await panel
-        .getByTestId("workspace-artifacts-tree-surface")
-        .click({ button: "right", position: { x: 80, y: 220 } });
+      // 右键位置不能硬编码 y：文件树展开态会跨用例留在共享 e2e profile 里
+      // （browser-regression 目录展开后 y=220 命中的是文件行，弹出的是行菜单
+      // 而不是根菜单）。贴面板底部——本用例只 seed 两个条目，底部必然空白。
+      const surface = panel.getByTestId("workspace-artifacts-tree-surface");
+      const surfaceBox = await surface.boundingBox();
+      if (!surfaceBox) {
+        throw new Error("workspace-artifacts-tree-surface 不可见");
+      }
+      await surface.click({
+        button: "right",
+        position: { x: 80, y: Math.max(60, surfaceBox.height - 24) },
+      });
 
       const rootMenu = page.getByTestId("workspace-artifacts-root-menu");
       await expect(rootMenu).toBeVisible();
@@ -392,14 +374,14 @@ test.describe("Workspace asset tree header and count", () => {
       ).toBeVisible();
       await expect(
         folderMenu.getByText(
-          `${getWorkspaceRoot(user.userId, workspace.workspaceId)}/${folderPath}`,
+          getWorkspaceAbsolutePath(user.userId, workspace.workspaceId, folderPath),
           { exact: true },
         ),
       ).toBeVisible();
       await folderMenu.getByRole("menuitem", { name: "复制绝对路径" }).click();
       await expect
         .poll(() => page.evaluate(() => navigator.clipboard.readText()))
-        .toBe(`${getWorkspaceRoot(user.userId, workspace.workspaceId)}/${folderPath}`);
+        .toBe(getWorkspaceAbsolutePath(user.userId, workspace.workspaceId, folderPath));
 
       await panel.getByText(folderName, { exact: true }).click({ button: "right" });
       await page.getByRole("menu").getByRole("menuitem", { name: "复制资源路径" }).click();
@@ -415,7 +397,7 @@ test.describe("Workspace asset tree header and count", () => {
     page,
   }, testInfo) => {
     const api = page.request;
-    const user = await registerLifecycleUser(api);
+    await registerLifecycleUser(api);
 
     const workspace = await createWorkspace(api, {
       title: `浏览器回归-全局资源头部-${Date.now()}`,
@@ -433,7 +415,7 @@ test.describe("Workspace asset tree header and count", () => {
 
       // 验证紧凑头部可见
       await expect(
-        panel.getByText("全局工作区", { exact: true }),
+        panel.getByText("全局工作区", { exact: true }).first(),
       ).toBeVisible();
 
       // 计数徽标可见（即使为 0）
@@ -446,7 +428,7 @@ test.describe("Workspace asset tree header and count", () => {
 
       // 刷新后头部仍然稳定
       await expect(
-        panel.getByText("全局工作区", { exact: true }),
+        panel.getByText("全局工作区", { exact: true }).first(),
       ).toBeVisible();
 
       await page.screenshot({

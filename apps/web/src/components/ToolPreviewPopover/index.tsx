@@ -226,7 +226,7 @@ export function ToolPreviewPopover({
               {getToolDisplayLabel(toolName)}
             </h3>
             {taskId && taskId !== "host" && (
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-nano text-muted-foreground">
                 Task: {taskId.slice(0, 8)}...
               </p>
             )}
@@ -251,7 +251,7 @@ export function ToolPreviewPopover({
           </div>
           <div className="bg-muted rounded-lg border border-border overflow-hidden">
             {hasParams ? (
-              <div className="p-3 text-[11px] space-y-3">
+              <div className="p-3 text-micro space-y-3">
                 {Object.entries(toolParams).map(([key, value]) => {
                   let isCodeBlock = false;
                   let displayValue = "";
@@ -288,7 +288,7 @@ export function ToolPreviewPopover({
                 })}
               </div>
             ) : (
-              <div className="p-3 text-[11px] text-muted-foreground italic">
+              <div className="p-3 text-micro text-muted-foreground italic">
                 无参数
               </div>
             )}
@@ -303,11 +303,11 @@ export function ToolPreviewPopover({
           </div>
           <div className="bg-foreground rounded-lg overflow-hidden">
             {hasOutput ? (
-              <div className="p-3 text-[11px] text-muted-foreground font-mono whitespace-pre-wrap max-h-60 overflow-y-auto">
+              <div className="p-3 text-micro text-muted-foreground font-mono whitespace-pre-wrap max-h-60 overflow-y-auto">
                 {toolOutput}
               </div>
             ) : (
-              <div className="p-3 text-[11px] text-muted-foreground italic flex items-center gap-2">
+              <div className="p-3 text-micro text-muted-foreground italic flex items-center gap-2">
                 <Clock className="w-3 h-3 animate-spin" />
                 等待执行结果...
               </div>

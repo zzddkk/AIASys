@@ -255,13 +255,13 @@ export function ExportWorkspaceDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+      <DialogContent size="sm" className="flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Download className="h-5 w-5 text-muted-foreground" />
             导出工作区
           </DialogTitle>
-          <DialogDescription className="text-[11px] leading-5">
+          <DialogDescription className="text-micro leading-5">
             将当前工作区打包为 ZIP 文件，可迁移到其他设备。
           </DialogDescription>
         </DialogHeader>
@@ -282,8 +282,8 @@ export function ExportWorkspaceDialog({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
-                    className="h-7 gap-1 text-[11px]"
+                    size="xs"
+                    className="gap-1 text-micro"
                     disabled={isLoadingFiles || workspaceFiles.length === 0}
                   >
                     <Settings2 className="h-3 w-3" />
@@ -292,7 +292,7 @@ export function ExportWorkspaceDialog({
                 </PopoverTrigger>
                 <PopoverContent className="w-64 p-2" align="end">
                   <div className="space-y-1.5 max-h-[320px] overflow-y-auto">
-                    <p className="text-[10px] text-muted-foreground font-medium">
+                    <p className="text-nano text-muted-foreground font-medium">
                       排除规则（类 gitignore 语法）
                     </p>
                     {excludeRules.map((rule) => (
@@ -302,10 +302,10 @@ export function ExportWorkspaceDialog({
                           onCheckedChange={() => handleToggleRule(rule.id)}
                           className="h-3.5 w-3.5 shrink-0"
                         />
-                        <span className="text-[11px] flex-1 truncate">
+                        <span className="text-micro flex-1 truncate">
                           {rule.label || rule.pattern}
                         </span>
-                        <span className="text-[10px] text-muted-foreground font-mono shrink-0">
+                        <span className="text-nano text-muted-foreground font-mono shrink-0">
                           {rule.pattern}
                         </span>
                         {!rule.isDefault && (
@@ -321,15 +321,15 @@ export function ExportWorkspaceDialog({
                       </div>
                     ))}
                     <div className="border-t border-border pt-1.5 mt-1.5 space-y-1.5">
-                      <p className="text-[10px] text-muted-foreground font-medium">
+                      <p className="text-nano text-muted-foreground font-medium">
                         添加自定义规则
                       </p>
                       <div className="flex gap-1">
-                        <Input
+                        <Input size="xs"
                           value={customRuleInput}
                           onChange={(e) => setCustomRuleInput(e.target.value)}
                           placeholder="如 *.bak、temp/"
-                          className="h-7 text-[11px]"
+                          className="text-micro"
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault();
@@ -339,8 +339,8 @@ export function ExportWorkspaceDialog({
                         />
                         <Button
                           type="button"
-                          size="sm"
-                          className="h-7 px-2 text-[11px]"
+                          size="xs"
+                          className="px-2 text-micro"
                           onClick={handleAddCustomRule}
                         >
                           添加
@@ -357,7 +357,7 @@ export function ExportWorkspaceDialog({
                 {enabledRules.map((rule) => (
                   <span
                     key={rule.id}
-                    className="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary"
+                    className="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-nano text-primary"
                   >
                     {rule.label || rule.pattern}
                   </span>
@@ -387,8 +387,8 @@ export function ExportWorkspaceDialog({
           {/* 包含对话记录 */}
           <div className="flex items-center justify-between rounded-md border border-border bg-muted/20 px-3 py-2">
             <div className="space-y-0.5">
-              <Label className="text-[11px]">包含对话记录</Label>
-              <p className="text-[10px] text-muted-foreground">
+              <Label className="text-micro">包含对话记录</Label>
+              <p className="text-nano text-muted-foreground">
                 导出所有对话的完整消息内容
               </p>
             </div>

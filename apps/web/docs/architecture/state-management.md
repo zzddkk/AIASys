@@ -1,13 +1,13 @@
 # 状态管理
 
-> 当前前端主链的状态分层，重点覆盖 `DataAnalysisPage`、右侧执行空间和全局流式通信。
+> 当前前端主链的状态分层，重点覆盖 `WorkspacePage`、右侧执行空间和全局流式通信。
 
 ## 三层状态模型
 
 1. **全局能力 Hook**
    - 负责跨页面可复用的 API、流式通信和系统能力
 2. **页面编排 Hook**
-   - 负责 `DataAnalysisPage` 的会话生命周期、执行编排和 UI 主链
+   - 负责 `WorkspacePage` 的会话生命周期、执行编排和 UI 主链
 3. **组件内 Context**
    - 负责聊天区、右侧执行空间等局部渲染状态共享
 
@@ -47,7 +47,7 @@
 
 ### `useCodeExecutor`
 
-这是当前 `DataAnalysisPage` 的主编排入口，不只是“执行代码”。
+这是当前 `WorkspacePage` 的主编排入口，不只是“执行代码”。
 
 它当前主要负责：
 
@@ -139,8 +139,8 @@
 
 ## 当前推荐阅读顺序
 
-1. `apps/web/src/pages/DataAnalysisPage/hooks/useCodeExecutor/index.ts`
-2. `apps/web/src/pages/DataAnalysisPage/hooks/useCodeExecutor/useSessionOrchestrator.ts`
-3. `apps/web/src/pages/DataAnalysisPage/hooks/useCodeExecutor/useStreamEventHandler.ts`
+1. `apps/web/src/pages/WorkspacePage/hooks/useCodeExecutor/index.ts`
+2. `apps/web/src/pages/WorkspacePage/hooks/useCodeExecutor/useSessionOrchestrator.ts`
+3. `apps/web/src/pages/WorkspacePage/hooks/useCodeExecutor/useStreamEventHandler.ts`
 4. `apps/web/src/components/chat/AiMessageContent/context.tsx`
 5. `apps/web/src/components/layout/WorkspaceSidebar/context/types.ts`

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from app.api.routes import workspaces_resources_snapshots as snapshots_route
@@ -17,7 +19,9 @@ def _build_user() -> UserInfo:
     return UserInfo(user_id="local_default", role="admin", auth_provider="local")
 
 
-def _patch_roots(monkeypatch: pytest.MonkeyPatch, tmp_path, service: WorkspaceRegistryService) -> None:
+def _patch_roots(
+    monkeypatch: pytest.MonkeyPatch, tmp_path, service: WorkspaceRegistryService
+) -> None:
     monkeypatch.setattr(config_module, "WORKSPACE_DIR", tmp_path, raising=False)
     monkeypatch.setattr(
         workspace_registry_module,
@@ -359,7 +363,9 @@ def test_snapshot_apply_with_missing_history_entry_is_skipped(tmp_path) -> None:
 class TestWorkspaceSnapshotHTTPRoutes:
     """HTTP 路由层测试，验证前端请求格式。"""
 
-    def test_create_snapshot_with_json_body(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_create_snapshot_with_json_body(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """前端应发送 application/json，后端应正常接受并返回 200。"""
         service = WorkspaceRegistryService(
             tmp_path,
@@ -373,6 +379,7 @@ class TestWorkspaceSnapshotHTTPRoutes:
         _patch_roots(monkeypatch, tmp_path, service)
 
         from fastapi.testclient import TestClient
+
         from app.main import app
 
         client = TestClient(app)
@@ -386,7 +393,9 @@ class TestWorkspaceSnapshotHTTPRoutes:
         assert data["title"] == "HTTP 测试版本"
         assert data["source"] == "manual"
 
-    def test_apply_snapshot_with_json_body(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_apply_snapshot_with_json_body(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """应用快照接口也应接受 application/json。"""
         service = WorkspaceRegistryService(
             tmp_path,
@@ -400,6 +409,7 @@ class TestWorkspaceSnapshotHTTPRoutes:
         _patch_roots(monkeypatch, tmp_path, service)
 
         from fastapi.testclient import TestClient
+
         from app.main import app
 
         client = TestClient(app)

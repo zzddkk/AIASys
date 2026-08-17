@@ -134,7 +134,6 @@
 - 覆盖功能: 图谱构建、可视化、实体搜索、社区分析
 - 前端组件:
   - apps/web/src/components/KnowledgeGraphDialog/ (图谱对话框)
-  - apps/web/src/pages/Knowledge/GraphPage/ (图谱独立页面)
 - 后端路由:
   - apps/backend/app/api/routes/canvas.py (图可视化相关)
   - apps/backend/app/api/routes/file_database.py (图谱数据库文件)
@@ -147,7 +146,7 @@
   - apps/web/src/pages/WorkspacePage/components/InputArea.tsx (输入区)
   - apps/web/src/pages/WorkspacePage/components/ModelSelector.tsx (模型选择器)
   - apps/web/src/components/chat/TokenUsageBar.tsx (Token 占用)
-  - apps/web/src/components/AskUserDialog/ (确认弹窗)
+  - apps/web/src/components/AskUserInlineCard/ (内联确认卡片)
 - 后端路由:
   - apps/backend/app/api/routes/agent.py (Agent 执行)
   - apps/backend/app/api/routes/sessions.py (会话管理)

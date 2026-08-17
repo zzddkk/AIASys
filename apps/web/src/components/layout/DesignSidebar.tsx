@@ -5,6 +5,7 @@ import { DesignSidebarExpanded } from "./design-sidebar/DesignSidebarExpanded";
 import { ProfileEditDialog } from "./design-sidebar/ProfileEditDialog";
 import type { SidebarProps } from "./design-sidebar/types";
 import { useMemo, useState } from "react";
+import { matchesWorkspace } from "@/utils/listSearch";
 
 // 默认头像颜色
 const DEFAULT_AVATAR_COLOR = "bg-primary";
@@ -69,10 +70,9 @@ export function DesignSidebar({
     if (!searchQuery.trim()) {
       return displayWorkspaces;
     }
-    const query = searchQuery.toLowerCase();
-    return displayWorkspaces.filter((workspace) =>
-      (workspace.title || "未命名工作区").toLowerCase().includes(query),
-    );
+    const query = searchQuery;
+    // 标题 + 描述双字段匹配：用户记不清标题时通常记得内容描述
+    return displayWorkspaces.filter((workspace) => matchesWorkspace(workspace, query));
   }, [searchQuery, displayWorkspaces]);
 
   return (

@@ -106,7 +106,7 @@ test.describe("Conversation create flow browser regression", () => {
     page,
   }) => {
     const api = page.request;
-    const { userId } = await registerLifecycleUser(api);
+    await registerLifecycleUser(api);
     const { workspaceId, currentSessionId } = await createWorkspace(api, {
       title: `浏览器回归-空白不新建-${Date.now()}`,
     });

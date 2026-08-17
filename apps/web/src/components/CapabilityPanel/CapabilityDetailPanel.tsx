@@ -380,7 +380,7 @@ export function CapabilityDetailPanel({
                 {cap.display_name || cap.capability_id}
               </h3>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="outline" className="text-nano">
                   {KIND_LABEL[cap.kind] ?? cap.kind}
                 </Badge>
                 {(cap as CapabilityItem).version && (
@@ -495,7 +495,7 @@ export function CapabilityDetailPanel({
             </div>
             <div className="flex flex-wrap gap-1">
               {(cap as CapabilityItem).tool_names.map((t) => (
-                <Badge key={t} variant="secondary" className="text-[10px]">
+                <Badge key={t} variant="secondary" className="text-nano">
                   {t.split(":").pop()}
                 </Badge>
               ))}
@@ -543,11 +543,11 @@ export function CapabilityDetailPanel({
                     </div>
                   ) : sourceFileContent !== null ? (
                     selectedSourceFile === "README.md" ? (
-                      <div className="prose prose-sm max-w-none dark:prose-invert p-3 text-[11px] leading-5 text-foreground">
+                      <div className="prose prose-sm max-w-none dark:prose-invert p-3 text-micro leading-5 text-foreground">
                         <MarkdownRenderer content={sourceFileContent} />
                       </div>
                     ) : (
-                      <pre className="p-3 text-[11px] leading-5 text-foreground whitespace-pre-wrap break-words">
+                      <pre className="p-3 text-micro leading-5 text-foreground whitespace-pre-wrap break-words">
                         {sourceFileContent}
                       </pre>
                     )
@@ -566,7 +566,7 @@ export function CapabilityDetailPanel({
         {cap.kind === "mcp_server" && (cap as CapabilityItem).config_schema && (
           <div className="space-y-2">
             <div className="text-xs font-medium text-muted-foreground">配置说明</div>
-            <pre className="overflow-auto rounded-md border border-border bg-muted/40 p-3 text-[11px] leading-5 text-foreground">
+            <pre className="overflow-auto rounded-md border border-border bg-muted/40 p-3 text-micro leading-5 text-foreground">
               {JSON.stringify((cap as CapabilityItem).config_schema, null, 2)}
             </pre>
           </div>
@@ -575,7 +575,7 @@ export function CapabilityDetailPanel({
 
       {/* MCP Config Dialog */}
       <Dialog open={mcpConfigOpen} onOpenChange={setMcpConfigOpen}>
-        <DialogContent className="max-h-[90vh] max-w-lg overflow-hidden flex flex-col bg-background">
+        <DialogContent size="sm" className="overflow-hidden flex flex-col bg-background">
           <DialogHeader className="shrink-0">
             <DialogTitle>配置并安装</DialogTitle>
             <DialogDescription>
@@ -586,7 +586,7 @@ export function CapabilityDetailPanel({
             {!isWorkspaceCap(cap) && cap.config_schema && (
               <div className="space-y-1">
                 <div className="text-xs font-medium text-muted-foreground">配置说明</div>
-                <pre className="overflow-auto rounded-md border border-border bg-muted/40 p-2 text-[11px] leading-4 text-foreground">
+                <pre className="overflow-auto rounded-md border border-border bg-muted/40 p-2 text-micro leading-4 text-foreground">
                   {JSON.stringify(cap.config_schema, null, 2)}
                 </pre>
               </div>
@@ -610,7 +610,7 @@ export function CapabilityDetailPanel({
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 text-xs"
+              className="text-xs"
               onClick={() => setMcpConfigOpen(false)}
             >
               取消
@@ -618,7 +618,7 @@ export function CapabilityDetailPanel({
             <Button
               type="button"
               size="sm"
-              className="h-8 text-xs"
+              className="text-xs"
               onClick={() => void handleMcpConfigInstall()}
             >
               安装

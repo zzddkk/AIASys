@@ -71,4 +71,4 @@ default_model = "step-3.7-flash"
 pdf_password = ""
 
 [canvas]
-auto_save_debounce_ms = 800
+auto_save_debounce_ms = 300

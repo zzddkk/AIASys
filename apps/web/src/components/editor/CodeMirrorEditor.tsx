@@ -157,7 +157,7 @@ export function CodeMirrorEditor({
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 flex-col overflow-hidden text-[13px]",
+        "flex h-full min-h-0 flex-col overflow-hidden text-body",
         "[&_.cm-editor]:h-full [&_.cm-scroller]:overflow-auto",
         "[&>div]:flex [&>div]:h-full [&>div]:min-h-0 [&>div]:flex-col",
         className,

@@ -259,7 +259,7 @@ export function SnapshotsPanel({ workspaceId }: SnapshotsPanelProps) {
           <div className="p-2">
             {manualSnapshots.length > 0 && (
               <div className="mb-3">
-                <div className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground">
+                <div className="px-2 py-1.5 text-micro font-medium text-muted-foreground">
                   手动版本
                 </div>
                 {manualSnapshots.map((snapshot) => (
@@ -275,7 +275,7 @@ export function SnapshotsPanel({ workspaceId }: SnapshotsPanelProps) {
             )}
             {autoSnapshots.length > 0 && (
               <div>
-                <div className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground">
+                <div className="px-2 py-1.5 text-micro font-medium text-muted-foreground">
                   自动版本
                 </div>
                 {autoSnapshots.map((snapshot) => (
@@ -295,7 +295,7 @@ export function SnapshotsPanel({ workspaceId }: SnapshotsPanelProps) {
 
       {/* Create dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent size="sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Save className="h-4 w-4" />
@@ -389,7 +389,7 @@ export function SnapshotsPanel({ workspaceId }: SnapshotsPanelProps) {
             if (!open) setApplyResult(null);
           }}
         >
-          <DialogContent className="sm:max-w-md">
+          <DialogContent size="sm">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-base">
                 <Package className="h-4 w-4" />
@@ -470,7 +470,7 @@ function SnapshotListItem({
       )}
     >
       <span className="truncate text-xs font-medium">{snapshot.title}</span>
-      <span className="text-[11px] text-muted-foreground">
+      <span className="text-micro text-muted-foreground">
         {formatTime(snapshot.created_at)} · {snapshot.file_count} 文件
       </span>
       <DropdownMenu>

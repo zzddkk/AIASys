@@ -17,6 +17,9 @@ permissions:
 jobs:
   merge-check:
     runs-on: ubuntu-latest
+    # 硬上限：没有它时挂起的 job 会跑到 GitHub 默认的 6 小时上限。
+    # 挂起比失败更糟——看不到结论、烧配额、还阻塞队列。只查 PR mergeable_state 并发评论。
+    timeout-minutes: 10
     steps:
       - name: Check mergeable state
         uses: actions/github-script@v8
@@ -38,35 +41,39 @@ jobs:
             let body = '';
 
             if (mergeableState === 'dirty') {
-              body = `## ⚠️ 合并冲突检测
-
-该 PR 当前存在合并冲突（\`mergeable_state: dirty\`），无法直接合并。
-
-### 建议修复步骤
-
-1. 在本地同步上游最新基础分支并解决冲突：
-\`\`\`bash
-git remote add upstream https://github.com/AIAsys/AIASys.git
-git fetch upstream
-git rebase upstream/${{ github.base_ref }}
-# 解决冲突后
-git push --force-with-lease
-\`\`\`
-
-2. 或者，如果使用的是 GitHub 网页端，可以尝试点击 **Update branch** 按钮（仅适用于部分场景，且可能无法解决所有冲突）。
-
-3. 解决冲突后，请确保重新推送，CI 会自动重新检测。
-
-> 如果 rebase 遇到困难，可以联系维护者协助处理。`;
+              body = [
+                '## ⚠️ 合并冲突检测',
+                '',
+                '该 PR 当前存在合并冲突（`mergeable_state: dirty`），无法直接合并。',
+                '',
+                '### 建议修复步骤',
+                '',
+                '1. 在本地同步上游最新基础分支并解决冲突：',
+                '```bash',
+                'git remote add upstream https://github.com/AIAsys/AIASys.git',
+                'git fetch upstream',
+                'git rebase upstream/${{ github.base_ref }}',
+                '# 解决冲突后',
+                'git push --force-with-lease',
+                '```',
+                '',
+                '2. 或者，如果使用的是 GitHub 网页端，可以尝试点击 **Update branch** 按钮（仅适用于部分场景，且可能无法解决所有冲突）。',
+                '',
+                '3. 解决冲突后，请确保重新推送，CI 会自动重新检测。',
+                '',
+                '> 如果 rebase 遇到困难，可以联系维护者协助处理。',
+              ].join('\n');
             } else if (mergeableState === 'blocked') {
-              body = `## ⚠️ 合并被阻止
-
-该 PR 当前被阻止合并（\`mergeable_state: blocked\`），可能原因：
-- 分支保护规则要求至少一个 review
-- CI 检查未通过
-- 其他合并限制条件
-
-请检查上述条件后重试。`;
+              body = [
+                '## ⚠️ 合并被阻止',
+                '',
+                '该 PR 当前被阻止合并（`mergeable_state: blocked`），可能原因：',
+                '- 分支保护规则要求至少一个 review',
+                '- CI 检查未通过',
+                '- 其他合并限制条件',
+                '',
+                '请检查上述条件后重试。',
+              ].join('\n');
             } else if (mergeableState === 'unknown') {
               // GitHub is still calculating mergeable state, skip comment
               return;

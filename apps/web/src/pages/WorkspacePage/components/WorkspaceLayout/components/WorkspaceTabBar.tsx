@@ -344,7 +344,12 @@ export function WorkspaceTabBar({
   };
 
   return (
-    <div className="relative flex h-11 min-h-11 items-center gap-1 border-b border-border bg-muted/40 px-1.5">
+    // e2e 需要从某个 tab 反查所在 pane 的 tab bar（拿该 pane 的拆分按钮），
+    // 用 class 串定位会随样式调整腐烂，testid 是稳定锚点。每个 pane 各有一条。
+    <div
+      data-testid="workspace-tab-bar"
+      className="relative flex h-11 min-h-11 items-center gap-1 border-b border-border bg-muted/40 px-1.5"
+    >
       {showTerminalNewTabButton ? (
         <button
           type="button"
@@ -514,7 +519,7 @@ export function WorkspaceTabBar({
                 {closedTerminals && closedTerminals.length > 0 && onReopenTerminal ? (
                   <>
                     <div className="my-1 h-px bg-border" />
-                    <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground">
+                    <div className="px-2 py-1 text-nano font-medium text-muted-foreground">
                       恢复终端
                     </div>
                     {closedTerminals.map((terminalId) => (
@@ -529,7 +534,7 @@ export function WorkspaceTabBar({
                         }}
                       >
                         <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="font-mono text-[11px]">
+                        <span className="font-mono text-micro">
                           {terminalId.length > 16 ? terminalId.slice(-12) : terminalId}
                         </span>
                       </button>

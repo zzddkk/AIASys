@@ -92,7 +92,7 @@ export function SubAgentTreeOverview({
           ))}
         </div>
       ) : executionTree.host.status === "running" ? (
-        <div className="text-center py-4 text-[11px] text-muted-foreground">
+        <div className="text-center py-4 text-micro text-muted-foreground">
           当前会话正在处理；如有协作节点，会显示在这里。
         </div>
       ) : null}

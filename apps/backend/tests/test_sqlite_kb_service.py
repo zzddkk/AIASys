@@ -307,7 +307,7 @@ def test_empty_knowledge_base_update_embedding_moves_to_ready(
 ) -> None:
     monkeypatch.setattr("app.core.config.WORKSPACE_DIR", tmp_path)
 
-    db_path = _create_kb("kb-draft", embedding_model=None)
+    _ = _create_kb("kb-draft", embedding_model=None)
 
     response = SQLiteKBService().update_knowledge_base(
         "local_default",

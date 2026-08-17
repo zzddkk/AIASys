@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import {
   createWorkspace,
   deleteWorkspace,
+  openWorkspaceFilesPanel,
   registerLifecycleUser,
   seedWorkspaceFile,
 } from "./support";
@@ -190,16 +191,7 @@ test.describe("Workspace file drag to preview split", () => {
       );
       await expect(page.locator("textarea")).toBeVisible();
 
-      // Open artifacts panel
-      const fileTab = page.locator("button[aria-label='文件']");
-      if (await fileTab.isVisible()) {
-        await fileTab.click();
-      } else {
-        await page.getByRole("button", { name: "资产", exact: true }).click();
-      }
-
-      const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-      await expect(panel).toBeVisible();
+      const panel = await openWorkspaceFilesPanel(page);
 
       // Verify both files are visible in the file tree
       await expect(panel.getByText(file1Name, { exact: true })).toBeVisible();

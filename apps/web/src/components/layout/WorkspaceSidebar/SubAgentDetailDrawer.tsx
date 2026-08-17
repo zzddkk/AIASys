@@ -1,15 +1,15 @@
 /**
  * SubAgentDetailDrawer - Sub Agent 详情抽屉
- * 
+ *
  * 显示单个 Sub Agent 的完整执行时间线和输出文件
  * 单层视图：只有执行时间线，没有细分 Tab
  */
 
 import { useState, useMemo } from "react";
-import { 
-  Play, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Play,
+  CheckCircle2,
+  XCircle,
   Pause,
   Square,
   Clock,
@@ -393,7 +393,7 @@ export function SubAgentDetailDrawer({
     taskId?: string;
     triggerRect?: DOMRect;
   } | null>(null);
-  
+
   // 处理工具详情查看
   const handleViewToolDetails = (toolCallId: string, taskId: string | undefined, triggerRect: DOMRect) => {
     if (!subagent) return;
@@ -411,7 +411,7 @@ export function SubAgentDetailDrawer({
     });
     setToolPreviewOpen(true);
   };
-  
+
   const status = subagent?.status || "idle";
   const statusConfigItem = statusConfigMap[status] || statusConfigMap.idle;
   const StatusIcon = statusConfigItem.icon;
@@ -420,7 +420,7 @@ export function SubAgentDetailDrawer({
   const parentToolCallId = subagent?.parent_tool_call_id || subagent?.ownership?.parent_tool_call_id;
   const createdAtLabel = subagent?.created_at
     || ((subagent?.meta as Record<string, unknown>)?.created_at ? new Date(((subagent?.meta as Record<string, unknown>).created_at as number) * 1000).toISOString() : null);
-  
+
   const handleStop = async () => {
     if (!onStop) return;
     setIsStopping(true);
@@ -448,7 +448,7 @@ export function SubAgentDetailDrawer({
       setIsRetrying(false);
     }
   };
-  
+
   // 计算进度
   const events = useMemo(() => subagent?.events ?? [], [subagent?.events]);
   const progress = useMemo(() => summarizeStepProgress(events), [events]);
@@ -494,7 +494,7 @@ export function SubAgentDetailDrawer({
                     "bg-primary/10"
                   )}>
                     <StatusIcon className={cn(
-                      "w-5 h-5", 
+                      "w-5 h-5",
                       statusConfigItem.color,
                       statusConfigItem.animate && "animate-pulse"
                     )} />
@@ -514,7 +514,7 @@ export function SubAgentDetailDrawer({
                     </div>
                   </div>
                 </div>
-                
+
                 {/* 操作按钮 */}
                 {allowStopActions || allowRetryActions ? (
                   <div className="flex items-center gap-1">
@@ -522,7 +522,7 @@ export function SubAgentDetailDrawer({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 text-xs"
+                        className="text-xs"
                         onClick={handleStop}
                         disabled={isStopping}
                       >
@@ -538,7 +538,7 @@ export function SubAgentDetailDrawer({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 text-xs"
+                        className="text-xs"
                         onClick={handleRetry}
                         disabled={isRetrying}
                       >
@@ -553,20 +553,20 @@ export function SubAgentDetailDrawer({
                   </div>
                 ) : null}
               </div>
-              
+
               {/* 状态栏 */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
                 <Badge
                   variant={status === "running" ? "default" : "outline"}
-                  className="text-[10px] shrink-0"
+                  className="text-nano shrink-0"
                 >
                   {statusConfigItem.label}
                 </Badge>
-                <Badge variant="outline" className="text-[10px] shrink-0">
+                <Badge variant="outline" className="text-nano shrink-0">
                   {nodeRoleLabel}
                 </Badge>
                 {expertRoleLabel ? (
-                  <Badge variant="secondary" className="text-[10px] shrink-0">
+                  <Badge variant="secondary" className="text-nano shrink-0">
                     {expertRoleLabel}
                   </Badge>
                 ) : null}
@@ -586,7 +586,7 @@ export function SubAgentDetailDrawer({
                   </span>
                 </div>
               </div>
-              
+
               {/* 描述 */}
               {subagent.description && (
                 <p className="text-xs text-muted-foreground">
@@ -594,7 +594,7 @@ export function SubAgentDetailDrawer({
                 </p>
               )}
 
-              <div className="rounded-lg border border-border bg-muted/10 px-3 py-2 text-[11px] leading-5 text-muted-foreground">
+              <div className="rounded-lg border border-border bg-muted/10 px-3 py-2 text-micro leading-5 text-muted-foreground">
                 任务进度和节点配置请到工作区"专家协作节点"视图查看。
               </div>
             </div>
@@ -605,7 +605,7 @@ export function SubAgentDetailDrawer({
                   <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
                   协作节点会话流
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 text-nano text-muted-foreground">
                   <span>{timelineItemCount} 段</span>
                   <span>·</span>
                   <span>{events.length} 事件</span>
@@ -631,10 +631,10 @@ export function SubAgentDetailDrawer({
                             <User className="h-3.5 w-3.5" />
                           </div>
                           <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
-                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <div className="flex items-center gap-2 text-nano text-muted-foreground">
                               <span className="font-medium text-foreground/80">主控调用 Task 派发</span>
                               {parentToolCallId ? (
-                                <code className="rounded bg-muted px-1 py-0.5 text-[10px]">
+                                <code className="rounded bg-muted px-1 py-0.5 text-nano">
                                   {formatShortId(parentToolCallId)}
                                 </code>
                               ) : null}
@@ -666,15 +666,15 @@ export function SubAgentDetailDrawer({
                               <Bot className="h-3.5 w-3.5" />
                             </div>
                             <div className="min-w-0 flex-1 space-y-1.5">
-                              <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                              <div className="flex flex-wrap items-center gap-2 text-nano text-muted-foreground">
                                 <span className="font-medium text-foreground/80">协作节点</span>
                                 {block.step != null ? (
-                                  <Badge variant="outline" className="h-5 text-[10px]">
+                                  <Badge variant="outline" className="h-5 text-nano">
                                     Step {block.step}
                                   </Badge>
                                 ) : null}
                                 {toolCount > 0 ? (
-                                  <Badge variant="outline" className="h-5 text-[10px]">
+                                  <Badge variant="outline" className="h-5 text-nano">
                                     {toolCount} 个节点内工具
                                   </Badge>
                                 ) : null}
@@ -702,7 +702,7 @@ export function SubAgentDetailDrawer({
                                 <Bot className="h-3.5 w-3.5" />
                               </div>
                               <div className="min-w-0 flex-1 space-y-1.5">
-                                <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                                <div className="flex flex-wrap items-center gap-2 text-nano text-muted-foreground">
                                   <span className="font-medium text-foreground/80">协作节点</span>
                                   {formatIsoTime(message.timestamp) ? (
                                     <span>{formatIsoTime(message.timestamp)}</span>
@@ -725,11 +725,11 @@ export function SubAgentDetailDrawer({
                               key={message.id}
                               className="ml-10 rounded-lg border border-border/60 bg-muted/20 px-3 py-2"
                             >
-                              <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                              <div className="flex items-center gap-1.5 text-nano font-medium text-muted-foreground">
                                 <Hammer className="h-3 w-3" />
                                 <span>工具结果</span>
                                 {message.toolCallId ? (
-                                  <code className="rounded bg-muted px-1 py-0.5 text-[10px]">
+                                  <code className="rounded bg-muted px-1 py-0.5 text-nano">
                                     {formatShortId(message.toolCallId)}
                                   </code>
                                 ) : null}
@@ -751,7 +751,7 @@ export function SubAgentDetailDrawer({
                             key={message.id}
                             className="ml-10 rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2"
                           >
-                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                            <div className="flex items-center gap-1.5 text-nano font-medium text-muted-foreground">
                               <Settings2 className="h-3 w-3" />
                               <span>系统提示</span>
                               {formatIsoTime(message.timestamp) ? (
@@ -772,7 +772,7 @@ export function SubAgentDetailDrawer({
                 </div>
               </ScrollArea>
             </div>
-            
+
             {/* 工具详情悬浮窗 - 复用 Host Agent 的 ToolPreviewPopover */}
             <ToolPreviewPopover
               isOpen={toolPreviewOpen}
@@ -818,7 +818,7 @@ export function SubAgentDetailDrawer({
                     "bg-primary/10"
                   )}>
                     <StatusIcon className={cn(
-                      "w-5 h-5", 
+                      "w-5 h-5",
                       statusConfigItem.color,
                       statusConfigItem.animate && "animate-pulse"
                     )} />
@@ -838,7 +838,7 @@ export function SubAgentDetailDrawer({
                     </div>
                   </div>
                 </div>
-                
+
                 {/* 操作按钮 */}
                 {allowStopActions || allowRetryActions ? (
                   <div className="flex items-center gap-1">
@@ -846,7 +846,7 @@ export function SubAgentDetailDrawer({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 text-xs"
+                        className="text-xs"
                         onClick={handleStop}
                         disabled={isStopping}
                       >
@@ -862,7 +862,7 @@ export function SubAgentDetailDrawer({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 text-xs"
+                        className="text-xs"
                         onClick={handleRetry}
                         disabled={isRetrying}
                       >
@@ -877,20 +877,20 @@ export function SubAgentDetailDrawer({
                   </div>
                 ) : null}
               </div>
-              
+
               {/* 状态栏 */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
                 <Badge
                   variant={status === "running" ? "default" : "outline"}
-                  className="text-[10px] shrink-0"
+                  className="text-nano shrink-0"
                 >
                   {statusConfigItem.label}
                 </Badge>
-                <Badge variant="outline" className="text-[10px] shrink-0">
+                <Badge variant="outline" className="text-nano shrink-0">
                   {nodeRoleLabel}
                 </Badge>
                 {expertRoleLabel ? (
-                  <Badge variant="secondary" className="text-[10px] shrink-0">
+                  <Badge variant="secondary" className="text-nano shrink-0">
                     {expertRoleLabel}
                   </Badge>
                 ) : null}
@@ -910,7 +910,7 @@ export function SubAgentDetailDrawer({
                   </span>
                 </div>
               </div>
-              
+
               {/* 描述 */}
               {subagent.description && (
                 <p className="text-xs text-muted-foreground">
@@ -918,17 +918,17 @@ export function SubAgentDetailDrawer({
                 </p>
               )}
 
-              <div className="rounded-lg border border-border bg-muted/10 px-3 py-2 text-[11px] leading-5 text-muted-foreground">
+              <div className="rounded-lg border border-border bg-muted/10 px-3 py-2 text-micro leading-5 text-muted-foreground">
                 这是一次主控派发出来的协作实例，只展示本次执行记录。任务进度和会话关系请到工作区视图查看。
               </div>
 
               {subagent.role_summary ? (
-                <div className="rounded-lg border border-border bg-muted/10 px-3 py-2 text-[11px]">
+                <div className="rounded-lg border border-border bg-muted/10 px-3 py-2 text-micro">
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="font-medium text-foreground">
                       {subagent.role_summary.display_name}
                     </div>
-                    <Badge variant="outline" className="text-[10px]">
+                    <Badge variant="outline" className="text-nano">
                       {subagent.role_summary.role_id}
                     </Badge>
                     {subagent.role_summary.tool_policy ? (
@@ -938,7 +938,7 @@ export function SubAgentDetailDrawer({
                             ? "outline"
                             : "secondary"
                         }
-                        className="text-[10px]"
+                        className="text-nano"
                       >
                         {subagent.role_summary.tool_policy === "inherit"
                           ? "继承模式"
@@ -946,7 +946,7 @@ export function SubAgentDetailDrawer({
                       </Badge>
                     ) : null}
                     {subagent.role_summary.supports_background ? (
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge variant="outline" className="text-nano">
                         可后台
                       </Badge>
                     ) : null}
@@ -961,7 +961,7 @@ export function SubAgentDetailDrawer({
                   ) : null}
                   <div className="mt-2 flex flex-wrap gap-2">
                     {subagent.role_summary.capabilities.map((capability) => (
-                      <Badge key={capability} variant="outline" className="text-[10px]">
+                      <Badge key={capability} variant="outline" className="text-nano">
                         {capability}
                       </Badge>
                     ))}
@@ -969,7 +969,7 @@ export function SubAgentDetailDrawer({
                       <Badge
                         key={permission}
                         variant="secondary"
-                        className="text-[10px]"
+                        className="text-nano"
                       >
                         {permission}
                       </Badge>
@@ -978,45 +978,45 @@ export function SubAgentDetailDrawer({
                 </div>
               ) : null}
 
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="grid grid-cols-2 gap-2 text-micro">
                 <div className="rounded-lg border border-border bg-muted/20 px-2.5 py-2">
-                  <div className="text-[10px] text-muted-foreground">主控会话</div>
+                  <div className="text-nano text-muted-foreground">主控会话</div>
                   <div className="mt-1 font-medium text-foreground">
                     {formatShortId(subagent.host_session_id || subagent.ownership?.host_session_id)}
                   </div>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/20 px-2.5 py-2">
-                  <div className="text-[10px] text-muted-foreground">实例 ID</div>
+                  <div className="text-nano text-muted-foreground">实例 ID</div>
                   <div className="mt-1 font-medium text-foreground">
                     {formatShortId(subagent.agent_id || subagent.id)}
                   </div>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/20 px-2.5 py-2">
-                  <div className="text-[10px] text-muted-foreground">父派发调用</div>
+                  <div className="text-nano text-muted-foreground">父派发调用</div>
                   <div className="mt-1 font-medium text-foreground">
                     {formatShortId(parentToolCallId)}
                   </div>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/20 px-2.5 py-2">
-                  <div className="text-[10px] text-muted-foreground">节点角色</div>
+                  <div className="text-nano text-muted-foreground">节点角色</div>
                   <div className="mt-1 font-medium text-foreground">
                     {nodeRoleLabel}
                   </div>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/20 px-2.5 py-2">
-                  <div className="text-[10px] text-muted-foreground">协作专家</div>
+                  <div className="text-nano text-muted-foreground">协作专家</div>
                   <div className="mt-1 font-medium text-foreground">
                     {expertRoleLabel || "内联创建（无模板）"}
                   </div>
                   {subagent.role_summary?.role_id ? (
-                    <div className="mt-1 text-[10px] text-muted-foreground">
+                    <div className="mt-1 text-nano text-muted-foreground">
                       {subagent.role_summary.role_id}
                     </div>
                   ) : null}
                 </div>
                 {subagent.bound_host_session_id ? (
                   <div className="col-span-2 rounded-lg border border-border bg-muted/20 px-2.5 py-2">
-                    <div className="text-[10px] text-muted-foreground">绑定主控</div>
+                    <div className="text-nano text-muted-foreground">绑定主控</div>
                     <div className="mt-1 font-medium text-foreground">
                       {formatShortId(subagent.bound_host_session_id)}
                     </div>
@@ -1031,7 +1031,7 @@ export function SubAgentDetailDrawer({
                   <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
                   协作节点会话流
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 text-nano text-muted-foreground">
                   <span>{timelineItemCount} 段</span>
                   <span>·</span>
                   <span>{events.length} 事件</span>
@@ -1057,10 +1057,10 @@ export function SubAgentDetailDrawer({
                             <User className="h-3.5 w-3.5" />
                           </div>
                           <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
-                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <div className="flex items-center gap-2 text-nano text-muted-foreground">
                               <span className="font-medium text-foreground/80">主控调用 Task 派发</span>
                               {parentToolCallId ? (
-                                <code className="rounded bg-muted px-1 py-0.5 text-[10px]">
+                                <code className="rounded bg-muted px-1 py-0.5 text-nano">
                                   {formatShortId(parentToolCallId)}
                                 </code>
                               ) : null}
@@ -1092,15 +1092,15 @@ export function SubAgentDetailDrawer({
                               <Bot className="h-3.5 w-3.5" />
                             </div>
                             <div className="min-w-0 flex-1 space-y-1.5">
-                              <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                              <div className="flex flex-wrap items-center gap-2 text-nano text-muted-foreground">
                                 <span className="font-medium text-foreground/80">协作节点</span>
                                 {block.step != null ? (
-                                  <Badge variant="outline" className="h-5 text-[10px]">
+                                  <Badge variant="outline" className="h-5 text-nano">
                                     Step {block.step}
                                   </Badge>
                                 ) : null}
                                 {toolCount > 0 ? (
-                                  <Badge variant="outline" className="h-5 text-[10px]">
+                                  <Badge variant="outline" className="h-5 text-nano">
                                     {toolCount} 个节点内工具
                                   </Badge>
                                 ) : null}
@@ -1128,7 +1128,7 @@ export function SubAgentDetailDrawer({
                                 <Bot className="h-3.5 w-3.5" />
                               </div>
                               <div className="min-w-0 flex-1 space-y-1.5">
-                                <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                                <div className="flex flex-wrap items-center gap-2 text-nano text-muted-foreground">
                                   <span className="font-medium text-foreground/80">协作节点</span>
                                   {formatIsoTime(message.timestamp) ? (
                                     <span>{formatIsoTime(message.timestamp)}</span>
@@ -1151,11 +1151,11 @@ export function SubAgentDetailDrawer({
                               key={message.id}
                               className="ml-10 rounded-lg border border-border/60 bg-muted/20 px-3 py-2"
                             >
-                              <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                              <div className="flex items-center gap-1.5 text-nano font-medium text-muted-foreground">
                                 <Hammer className="h-3 w-3" />
                                 <span>工具结果</span>
                                 {message.toolCallId ? (
-                                  <code className="rounded bg-muted px-1 py-0.5 text-[10px]">
+                                  <code className="rounded bg-muted px-1 py-0.5 text-nano">
                                     {formatShortId(message.toolCallId)}
                                   </code>
                                 ) : null}
@@ -1177,7 +1177,7 @@ export function SubAgentDetailDrawer({
                             key={message.id}
                             className="ml-10 rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2"
                           >
-                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                            <div className="flex items-center gap-1.5 text-nano font-medium text-muted-foreground">
                               <Settings2 className="h-3 w-3" />
                               <span>系统提示</span>
                               {formatIsoTime(message.timestamp) ? (
@@ -1198,7 +1198,7 @@ export function SubAgentDetailDrawer({
                 </div>
               </ScrollArea>
             </div>
-            
+
             {/* 工具详情悬浮窗 - 复用 Host Agent 的 ToolPreviewPopover */}
             <ToolPreviewPopover
               isOpen={toolPreviewOpen}

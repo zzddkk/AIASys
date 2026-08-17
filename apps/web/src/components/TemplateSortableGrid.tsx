@@ -125,7 +125,7 @@ function SortableTemplateCard({
         <div className="min-w-0">
           <div className="text-xs font-medium">{template.name}</div>
           {template.env_kind && template.env_kind !== "none" && (
-            <div className="mt-0.5 text-[10px] text-muted-foreground">
+            <div className="mt-0.5 text-nano text-muted-foreground">
               {ENV_LABEL_MAP[template.env_kind] ?? template.env_kind}
             </div>
           )}

@@ -27,6 +27,12 @@ globalThis.localStorage = {
 const sourceUrl = new URL("../workspaceFiles.ts", import.meta.url);
 const sourcePath = fileURLToPath(sourceUrl);
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "aiasys-workspace-files-test-"));
+
+// 临时目录必须自带 package.json 声明 ESM。node 判定 .ts/.js 的模块类型时只看最近的
+// package.json，系统 temp 目录下没有，于是被测源码被当成 CJS，import 语句直接报
+// "Cannot use import statement outside a module"。项目目录内不会暴露这个问题——
+// apps/web/package.json 的 "type":"module" 兜住了，一旦把文件搬到 temp 就露出来。
+fs.writeFileSync(path.join(tmpDir, "package.json"), JSON.stringify({ type: "module" }));
 const tmpPath = path.join(tmpDir, "workspaceFiles.ts");
 const apiStubPath = path.join(tmpDir, "api.ts");
 const httpClientStubPath = path.join(tmpDir, "httpClient.ts");

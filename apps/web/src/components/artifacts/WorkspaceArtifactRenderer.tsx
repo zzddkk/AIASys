@@ -65,7 +65,7 @@ function ArtifactActionBar({
         <button
           type="button"
           onClick={() => onOpenInMainCanvas(previewFile)}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-micro font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
         >
           <Maximize2 className="h-3.5 w-3.5" />
           {openLabel}
@@ -74,7 +74,7 @@ function ArtifactActionBar({
       <a
         href={previewFile.downloadUrl || previewFile.url}
         download={previewFile.name}
-        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
+        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-micro font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
       >
         <Download className="h-3.5 w-3.5" />
         下载
@@ -135,7 +135,7 @@ function PdfArtifactCard({
           <button
             type="button"
             onClick={() => setShowInlinePreview(false)}
-            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-micro font-medium transition-colors ${
               !showInlinePreview
                 ? "border-primary/30 bg-primary/10 text-primary"
                 : "border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
@@ -147,7 +147,7 @@ function PdfArtifactCard({
           <button
             type="button"
             onClick={() => setShowInlinePreview(true)}
-            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-micro font-medium transition-colors ${
               showInlinePreview
                 ? "border-primary/30 bg-primary/10 text-primary"
                 : "border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
@@ -271,7 +271,7 @@ function UnsupportedArtifact({
           <button
             type="button"
             onClick={() => onOpenInMainCanvas(previewFile)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-micro font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
           >
             <Maximize2 className="h-3.5 w-3.5" />
             查看详情
@@ -281,7 +281,7 @@ function UnsupportedArtifact({
           <button
             type="button"
             onClick={() => onOpenInBrowserTab(normalizedPath)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:border-accent/40 hover:bg-accent/10 hover:text-accent"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-micro font-medium text-foreground transition-colors hover:border-accent/40 hover:bg-accent/10 hover:text-accent"
           >
             <Eye className="h-3.5 w-3.5" />
             在浏览器打开
@@ -291,7 +291,7 @@ function UnsupportedArtifact({
           <a
             href={previewFile.downloadUrl || previewFile.url}
             download
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-micro font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
           >
             <Download className="h-3.5 w-3.5" />
             下载原文件

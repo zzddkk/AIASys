@@ -222,7 +222,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
             <Terminal className="h-4 w-4 text-foreground" />
             <span className="text-sm font-semibold text-foreground">监控任务</span>
             {monitors.length > 0 && (
-              <Badge variant="outline" className="border-border bg-background text-muted-foreground text-[10px]">
+              <Badge variant="outline" className="border-border bg-background text-muted-foreground text-nano">
                 {monitors.length}
               </Badge>
             )}
@@ -239,9 +239,9 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                 <TooltipTrigger asChild>
                   <Button
                     type="button"
-                    size="sm"
+                    size="icon-sm"
                     variant="ghost"
-                    className="h-8 w-8 p-0 text-muted-foreground hover:text-error"
+                    className="p-0 text-muted-foreground hover:text-error"
                     onClick={handleClearAll}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -254,9 +254,9 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
               <TooltipTrigger asChild>
                 <Button
                   type="button"
-                  size="sm"
+                  size="icon-sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0"
+                  className="p-0"
                   onClick={() => refresh()}
                   disabled={loading}
                 >
@@ -276,7 +276,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
             <Button
               variant="ghost"
               size="sm"
-              className="w-full h-8 gap-1.5 text-[11px] text-muted-foreground rounded-none"
+              className="w-full gap-1.5 text-micro text-muted-foreground rounded-none"
             >
               <Plus className="h-3.5 w-3.5" />
               {spawnOpen ? "收起命令面板" : "新建监控任务"}
@@ -299,8 +299,8 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
               />
               <Button
                 type="button"
-                size="sm"
-                className="h-9 shrink-0 gap-1 rounded-xl px-3 text-[12px]"
+                size="default"
+                className="shrink-0 gap-1 rounded-xl px-3 text-caption"
                 onClick={() => void handleSpawn()}
                 disabled={spawning || !commandInput.trim()}
               >
@@ -310,12 +310,12 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
             </div>
             <div className="mt-2.5 flex items-center gap-4">
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] text-muted-foreground">模式</span>
+                <span className="text-micro text-muted-foreground">模式</span>
                 <div className="flex rounded-lg border border-border/60 bg-background p-0.5">
                   <button
                     type="button"
                     className={cn(
-                      "rounded-md px-2.5 py-1 text-[11px] transition-colors",
+                      "rounded-md px-2.5 py-1 text-micro transition-colors",
                       spawnMode === "notify"
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground",
@@ -327,7 +327,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                   <button
                     type="button"
                     className={cn(
-                      "rounded-md px-2.5 py-1 text-[11px] transition-colors",
+                      "rounded-md px-2.5 py-1 text-micro transition-colors",
                       spawnMode === "silent"
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground",
@@ -339,16 +339,16 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] text-muted-foreground">限时</span>
-                <Input
+                <span className="text-micro text-muted-foreground">限时</span>
+                <Input size="xs"
                   type="number"
                   min={1}
                   value={spawnTimeout}
                   onChange={(e) => setSpawnTimeout(e.target.value)}
                   placeholder="秒"
-                  className="h-7 w-20 rounded-md text-[11px]"
+                  className="w-20 rounded-md text-micro"
                 />
-                <span className="text-[11px] text-muted-foreground">秒</span>
+                <span className="text-micro text-muted-foreground">秒</span>
               </div>
             </div>
           </div>
@@ -359,7 +359,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
       <ScrollArea className="min-h-0 flex-1">
         <div className="px-5 py-4">
           {error && (
-            <div className="mb-3 rounded-lg border border-error/20 bg-error-container px-3 py-2 text-[11px] text-on-error-container">
+            <div className="mb-3 rounded-lg border border-error/20 bg-error-container px-3 py-2 text-micro text-on-error-container">
               {error}
             </div>
           )}
@@ -406,12 +406,12 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                         )}
                       />
                     )}
-                    <span className="min-w-0 flex-1 truncate font-mono text-[12px] font-medium text-foreground">
+                    <span className="min-w-0 flex-1 truncate font-mono text-caption font-medium text-foreground">
                       {m.info.command}
                     </span>
                     <Badge
                       variant="outline"
-                      className={cn("shrink-0 text-[10px]", STATUS_BADGE_CLASS[m.info.status])}
+                      className={cn("shrink-0 text-nano", STATUS_BADGE_CLASS[m.info.status])}
                     >
                       {STATUS_LABELS[m.info.status] || m.info.status}
                     </Badge>
@@ -435,9 +435,9 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                     {m.info.status === "running" ? (
                       <Button
                         type="button"
-                        size="sm"
+                        size="icon-xs"
                         variant="ghost"
-                        className="h-7 w-7 p-0 text-error hover:bg-error/10 hover:text-error"
+                        className="p-0 text-error hover:bg-error/10 hover:text-error"
                         onClick={() => handleKill(m.info.id)}
                         disabled={killingId === m.info.id}
                         title="终止"
@@ -452,9 +452,9 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                       <>
                         <Button
                           type="button"
-                          size="sm"
+                          size="icon-xs"
                           variant="ghost"
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                          className="p-0 text-muted-foreground hover:text-foreground"
                           onClick={() => handleRestart(m.info.id, m.info.command)}
                           disabled={restartingId === m.info.id}
                           title="重启"
@@ -467,9 +467,9 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                         </Button>
                         <Button
                           type="button"
-                          size="sm"
+                          size="icon-xs"
                           variant="ghost"
-                          className="h-7 w-7 p-0 text-muted-foreground hover:bg-error/10 hover:text-error"
+                          className="p-0 text-muted-foreground hover:bg-error/10 hover:text-error"
                           onClick={() => handleDelete(m.info.id)}
                           disabled={deletingId === m.info.id}
                           title="删除"
@@ -485,9 +485,9 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                     {m.segments.length > 0 && (
                       <Button
                         type="button"
-                        size="sm"
+                        size="icon-xs"
                         variant="ghost"
-                        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                        className="p-0 text-muted-foreground hover:text-foreground"
                         onClick={() => {
                           const text = m.segments.map((s) => s.content).join("\n");
                           void handleCopyOutput(text);
@@ -500,8 +500,8 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                   </div>
 
                   {/* Metadata row */}
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                    <span className="font-mono text-[10px]">{m.info.id.slice(0, 8)}</span>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-micro text-muted-foreground">
+                    <span className="font-mono text-nano">{m.info.id.slice(0, 8)}</span>
                     <span>
                       时长: {formatDuration(m.info.created_at, m.info.completed_at)}
                     </span>
@@ -523,7 +523,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                         }
                       }}
                       className={cn(
-                        "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] transition-colors disabled:opacity-50",
+                        "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-nano transition-colors disabled:opacity-50",
                         m.info.mode === "silent"
                           ? "bg-muted text-muted-foreground hover:text-foreground"
                           : "bg-info/10 text-info hover:bg-info/20",
@@ -548,7 +548,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                   {m.info.mode === "notify" && m.info.status !== "running" && (
                     <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-info/20 bg-info/5 px-2.5 py-1.5">
                       <Sparkles className="h-3 w-3 text-info" />
-                      <span className="text-[11px] text-info">
+                      <span className="text-micro text-info">
                         任务已完成，Agent 会在下一轮主动关注结果
                       </span>
                     </div>
@@ -561,7 +561,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                       className="mt-2 w-full rounded-lg bg-muted/50 px-3 py-2 text-left transition-colors hover:bg-muted"
                       onClick={() => toggleExpand(m.info.id)}
                     >
-                      <div className="font-mono text-[11px] leading-4 text-muted-foreground">
+                      <div className="font-mono text-micro leading-4 text-muted-foreground">
                         {m.segments.slice(-5).map((s, i) => (
                           <div key={`${s.index}-${i}`} className="truncate">
                             {s.is_stderr ? (
@@ -572,7 +572,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                           </div>
                         ))}
                         {m.segments.length > 5 && (
-                          <div className="mt-1 text-[10px] text-muted-foreground/60">
+                          <div className="mt-1 text-nano text-muted-foreground/60">
                             ... 共 {m.segments.length} 行，点击展开查看全部
                           </div>
                         )}
@@ -584,7 +584,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                   {m.isExpanded && (
                     <div className="mt-2 overflow-hidden rounded-lg border border-border/40 bg-[#0d1117]">
                       <div className="flex items-center justify-between border-b border-border/20 px-3 py-1.5">
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-nano text-muted-foreground">
                           输出 ({m.segments.length} 行)
                         </span>
                         <div className="flex items-center gap-1">
@@ -604,7 +604,7 @@ export function WorkspaceMonitorPanel({ userId, sessionId }: WorkspaceMonitorPan
                         </div>
                       </div>
                       <ScrollArea className="max-h-[320px]">
-                        <div className="px-3 py-2 font-mono text-[11px] leading-5">
+                        <div className="px-3 py-2 font-mono text-micro leading-5">
                           {m.segments.length === 0 ? (
                             <span className="text-muted-foreground/40">（暂无输出）</span>
                           ) : (

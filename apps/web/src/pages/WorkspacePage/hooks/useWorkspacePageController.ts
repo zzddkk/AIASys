@@ -87,7 +87,7 @@ export function useWorkspacePageController({
     thinkingEffort,
     setThinkingEnabled,
     setThinkingEffort,
-    selectedModelSupportsThinking,
+    selectedModelSupportsImageInput,
   } = useModelSelection();
 
   const handleAskUserRequestRef = useRef<((request: AskUserRequest, requestSessionId: string) => void) | undefined>(undefined);
@@ -364,7 +364,7 @@ export function useWorkspacePageController({
     thinkingEffort,
     setThinkingEnabled,
     setThinkingEffort,
-    selectedModelSupportsThinking,
+    selectedModelSupportsImageInput,
     hasMessagesForMcp:
       (sessionLifecycle.effectiveSessionStatus?.message_count ?? 0) > 0 ||
       chatItems.length > 0,

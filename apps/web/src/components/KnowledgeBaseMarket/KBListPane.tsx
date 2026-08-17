@@ -122,7 +122,7 @@ export function KBListPane({
                             {kb.document_count || 0} 个文档
                           </div>
                           <div
-                            className={`mt-2 inline-flex rounded-full border px-2 py-0.5 text-[11px] ${getStatusBadge(kb).className}`}
+                            className={`mt-2 inline-flex rounded-full border px-2 py-0.5 text-micro ${getStatusBadge(kb).className}`}
                           >
                             {getStatusBadge(kb).label}
                           </div>
@@ -141,9 +141,8 @@ export function KBListPane({
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon-sm"
                           className={cn(
-                            "h-8 w-8",
                             isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100",
                           )}
                           onClick={(event) => event.stopPropagation()}

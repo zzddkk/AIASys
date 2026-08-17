@@ -109,6 +109,21 @@ from hermes_constants import get_hermes_home
 
 logger = logging.getLogger(__name__)
 
+
+def _log_task_exception(task: asyncio.Task) -> None:
+    """用于 fire-and-forget 任务的 done callback：记录未捕获异常。
+
+    不加 callback 时，任务异常只在 GC 时打一条 "Task exception was never retrieved"，
+    实际部署里经常被吞掉——消息批量 flush 静默失败正是这种路径
+    （从 app/services/claw/adapters/feishu.py 的补丁移植，2026-08-13）。
+    """
+    if task.cancelled():
+        return
+    exc = task.exception()
+    if exc is not None:
+        logger.exception("[fire-and-forget task failed] %s", exc)
+
+
 # ---------------------------------------------------------------------------
 # Regex patterns
 # ---------------------------------------------------------------------------
@@ -2759,7 +2774,9 @@ class FeishuAdapter(BasePlatformAdapter):
         prior_task = task_map.get(key)
         if prior_task and not prior_task.done():
             prior_task.cancel()
-        task_map[key] = asyncio.create_task(flush_fn(key))
+        task = asyncio.create_task(flush_fn(key))
+        task.add_done_callback(_log_task_exception)
+        task_map[key] = task
 
     async def _flush_text_batch(self, key: str) -> None:
         """Flush a pending text batch after the quiet period.

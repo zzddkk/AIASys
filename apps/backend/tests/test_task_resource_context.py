@@ -498,12 +498,8 @@ async def test_graph_entity_search_tool_uses_all_mounted_graphs(
         return [{"name": "Beta", "entity_type": "concept", "description": "from graph-b"}]
 
     services = {
-        "graph-a": SimpleNamespace(
-            search=_search_a
-        ),
-        "graph-b": SimpleNamespace(
-            search=_search_b
-        ),
+        "graph-a": SimpleNamespace(search=_search_a),
+        "graph-b": SimpleNamespace(search=_search_b),
     }
     monkeypatch.setattr(
         graphrag_tool,

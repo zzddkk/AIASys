@@ -33,8 +33,6 @@ interface UseStreamEventHandlerProps {
     events: TaskEvent[],
     sourceAgent: string,
   ) => void;
-  /** 当前活跃 session ID（用于判断 agentState.isRunning） */
-  isSessionRunning: (sessionId: string) => boolean;
   onAskUserRequest?: (request: AskUserRequest, sessionId: string) => void;
   /** 当收到 Sub Agent 事件时调用（用于刷新执行树） */
   onSubAgentEvent?: (event: unknown) => void;
@@ -54,7 +52,6 @@ export function useStreamEventHandler({
   getSessionSlot,
   updateChatItems,
   addStreamEventsForSession,
-  isSessionRunning,
   onAskUserRequest,
   onSubAgentEvent,
   onCompactionEvent,
@@ -65,20 +62,17 @@ export function useStreamEventHandler({
   const onSubAgentEventRef = useRef(onSubAgentEvent);
   const onCompactionEventRef = useRef(onCompactionEvent);
   const onTokenUsageShouldRefreshRef = useRef(onTokenUsageShouldRefresh);
-  const isSessionRunningRef = useRef(isSessionRunning);
 
   useEffect(() => {
     onAskUserRequestRef.current = onAskUserRequest;
     onSubAgentEventRef.current = onSubAgentEvent;
     onCompactionEventRef.current = onCompactionEvent;
     onTokenUsageShouldRefreshRef.current = onTokenUsageShouldRefresh;
-    isSessionRunningRef.current = isSessionRunning;
   }, [
     onAskUserRequest,
     onSubAgentEvent,
     onCompactionEvent,
     onTokenUsageShouldRefresh,
-    isSessionRunning,
   ]);
 
   // 流式过程中不排序，保持后端到达的原始时序
@@ -220,6 +214,7 @@ export function useStreamEventHandler({
         type: "turn",
         content: `Turn ${event.turn_n}`,
         turnN: event.turn_n,
+        display_hint: (event as { display_hint?: "visible" | "collapsed" | "hidden" }).display_hint ?? "visible",
       });
       scheduleFlush(sessionId);
     }
@@ -235,18 +230,30 @@ export function useStreamEventHandler({
             content: lastSeg.content + event.text,
           };
         } else {
-          segments.push({ type: "text", content: event.text });
+          segments.push({
+            type: "text",
+            content: event.text,
+            display_hint: (event as { display_hint?: "visible" | "collapsed" | "hidden" }).display_hint ?? "visible",
+          });
         }
         scheduleFlush(sessionId);
       } else if (event.content_type === "think" && event.think) {
         const lastSeg = segments[segments.length - 1];
-        const isStreaming = isSessionRunningRef.current(sessionId);
-        if (
-          lastSeg &&
-          lastSeg.type === "think" &&
-          !lastSeg.isComplete &&
-          isStreaming
-        ) {
+        // 合并判据只看「上一段是未收尾的 think」，与 text 分支保持一致。
+        //
+        // 这里原先还带一个 `&& isSessionRunning(sessionId)`：只有该 session 处于
+        // 运行中才允许把增量并进上一段，否则每个增量都会另起一段。实测（见
+        // __tests__/useStreamEventHandler.test.tsx）三个 think 增量在非运行状态下
+        // 会产出三个 segment，UI 上就是一串碎片化的思考块；同样条件下 text 分支
+        // 却正常合并——这个不对称没有依据，条件是在一次大规模路由重构里带进来的，
+        // 不是为修某个具体问题加的。
+        //
+        // 触发窗口是真实存在的：isSessionRunning 读的是
+        // sessionsRef.current.get(id)?.state.isRunning ?? false，流末尾与用户点
+        // 中断之后 isRunning 已置 false，而缓冲里的 content 事件仍会继续到达。
+        // 段落边界本来由 closePendingThink 负责（tool_call / text / turn 等四个
+        // 事件到达时收尾），不需要再用会话运行状态兜一遍。
+        if (lastSeg && lastSeg.type === "think" && !lastSeg.isComplete) {
           segments[segments.length - 1] = {
             ...lastSeg,
             content: lastSeg.content + event.think,
@@ -256,6 +263,7 @@ export function useStreamEventHandler({
             type: "think",
             content: event.think,
             isComplete: false,
+            display_hint: (event as { display_hint?: "visible" | "collapsed" | "hidden" }).display_hint ?? "visible",
           });
         }
         scheduleFlush(sessionId);
@@ -271,6 +279,7 @@ export function useStreamEventHandler({
         toolName: event.tool_name,
         toolCallId: event.tool_call_id,
         toolParams: JSON.stringify(event.arguments || {}),
+        display_hint: (event as { display_hint?: "visible" | "collapsed" | "hidden" }).display_hint ?? "visible",
       });
       scheduleFlush(sessionId);
 
@@ -341,6 +350,7 @@ export function useStreamEventHandler({
         toolName: toolName,
         toolCallId: event.tool_call_id,
         isError: isError,
+        display_hint: (event as { display_hint?: "visible" | "collapsed" | "hidden" }).display_hint ?? "visible",
       });
       syncSegmentsToUI(sessionId);
 
@@ -603,6 +613,7 @@ export function useStreamEventHandler({
           monitorExitCode: exitCode,
           isComplete: status === "completed" || status === "error" || status === "killed",
           isError: status === "error" || status === "killed" || (exitCode !== null && exitCode !== 0),
+          display_hint: (event as { display_hint?: "visible" | "collapsed" | "hidden" }).display_hint ?? "visible",
         });
       }
       syncSegmentsToUI(sessionId);

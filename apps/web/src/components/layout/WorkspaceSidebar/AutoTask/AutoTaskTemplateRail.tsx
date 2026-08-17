@@ -41,7 +41,7 @@ export function AutoTaskTemplateRail({
           <div className="space-y-3">
             <div>
               <div className="text-sm font-semibold text-foreground">模板</div>
-              <div className="mt-1 text-[12px] leading-5 text-muted-foreground">
+              <div className="mt-1 text-caption leading-5 text-muted-foreground">
                 先选一个起点，再调整细节。
               </div>
             </div>
@@ -68,10 +68,10 @@ export function AutoTaskTemplateRail({
                         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                       ) : null}
                     </div>
-                    <div className="mt-2 inline-flex rounded-full border border-border bg-muted/20 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                    <div className="mt-2 inline-flex rounded-full border border-border bg-muted/20 px-2 py-0.5 text-micro font-medium text-muted-foreground">
                       {formatTemplateTrigger(template)}
                     </div>
-                    <div className="mt-2 text-[12px] leading-5 text-muted-foreground">
+                    <div className="mt-2 text-caption leading-5 text-muted-foreground">
                       {template.summary}
                     </div>
                   </button>
@@ -85,7 +85,7 @@ export function AutoTaskTemplateRail({
               <div className="text-sm font-semibold text-foreground">
                 当前配置
               </div>
-              <div className="mt-1 text-[12px] leading-5 text-muted-foreground">
+              <div className="mt-1 text-caption leading-5 text-muted-foreground">
                 {editingTaskId ? "正在编辑已有自动化任务。" : "正在新建自动化任务。"}
               </div>
             </div>
@@ -98,7 +98,7 @@ export function AutoTaskTemplateRail({
                 )}
                 {TASK_CATEGORY_LABEL[taskCategory]}
               </div>
-              <div className="mt-2 text-[12px] leading-5 text-muted-foreground">
+              <div className="mt-2 text-caption leading-5 text-muted-foreground">
                 {isScheduled
                   ? "按时间规则启动自动化任务。"
                   : "按停止条件连续推进目标。"}

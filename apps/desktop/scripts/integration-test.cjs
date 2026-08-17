@@ -135,8 +135,13 @@ function readListeningProcessWindows(port) {
         `Write-Output \"PID=$($conn.OwningProcess)\"; ` +
         `Write-Output \"PATH=$($proc.Path)\" } catch { }`,
     ],
-    { encoding: "utf-8", timeout: 2000, windowsHide: true },
+    { encoding: "utf-8", timeout: 8000, windowsHide: true },
   );
+
+  // 超时 8000ms 是实测决策：PowerShell + Get-NetTCPConnection 在杀软扫描/高负载下
+  // 冷启动可超 2 秒（2026-08-13 本机实测：2000ms 时 spawnSync status=null 假红，
+  // 8000ms 三连查全通）。生产侧 service-manager.cjs 用 5000ms——那里超时的后果只是
+  // 保守判 healthy_unknown 重启服务；测试侧超时是假红，代价不对称，给更宽。
 
   if (psResult.status !== 0 || psResult.error || !psResult.stdout) {
     return null;

@@ -20,9 +20,7 @@ for _key in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_prox
     os.environ.pop(_key, None)
 
 # 测试用 JWT secret：避免测试依赖仓库中的真实/占位密钥
-os.environ.setdefault(
-    "AIASYS_AUTH_JWT_SECRET", "test-jwt-secret-do-not-use-in-production"
-)
+os.environ.setdefault("AIASYS_AUTH_JWT_SECRET", "test-jwt-secret-do-not-use-in-production")
 
 
 def _is_safe_test_database_url(database_url: str) -> bool:

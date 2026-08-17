@@ -56,7 +56,7 @@ export function ConnectorCard({
             >
               {connector.name}
             </h3>
-            <span className="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+            <span className="rounded border border-border px-2 py-0.5 text-micro text-muted-foreground">
               {connector.db_type === "postgres" ? "PostgreSQL" : connector.db_type === "mysql" ? "MySQL" : "InfluxDB 3"}
             </span>
           </div>

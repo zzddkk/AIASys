@@ -57,7 +57,10 @@ class CanvasReadResponse(BaseModel):
     workspace_id: str
     relative_path: str
     canvas: CanvasFile
-    debounce_ms: int = Field(default=800, description="前端自动保存防抖间隔（毫秒）")
+    debounce_ms: int = Field(
+        default=300,
+        description="前端自动保存防抖间隔（毫秒），与 web 前端实际使用的值保持一致",
+    )
 
 
 class CanvasWriteRequest(BaseModel):

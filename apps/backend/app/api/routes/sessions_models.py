@@ -115,6 +115,15 @@ class UpdateTaskProfileRequest(BaseModel):
     )
 
 
+class UpdateAuthorizationModeRequest(BaseModel):
+    """更新会话授权模式请求"""
+
+    authorization_mode: Literal["manual", "smart", "auto", "full_auto"] = Field(
+        ...,
+        description="能力授权模式：manual 全部询问 / smart 智能 / auto 文件自动 / full_auto 全权",
+    )
+
+
 class SetSessionBudgetRequest(BaseModel):
     token_budget: Optional[int] = Field(
         default=None, ge=1, description="token 预算上限，null 表示不限制"

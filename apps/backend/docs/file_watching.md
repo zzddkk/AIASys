@@ -44,7 +44,7 @@ async def compare_files(before, after, workspace) -> List[dict]:
 
 ### 2. SSE 推送（后端）
 
-**实现位置**：`app/services/agent_service.py:352-359`
+**实现位置**：SSE 推送在 `app/api/routes/agent.py`，文件变更检测在 `app/services/session/files.py`
 
 ```python
 # 工具调用完成后检测文件变化
@@ -261,11 +261,11 @@ workspaces/{user_id}/{session_id}/
 ## 实现状态
 
 - [x] `app/utils/file_utils.py` - 文件扫描和对比工具
-- [x] `app/services/agent_service.py` - Agent 执行流中插入文件检测
+- [x] `app/services/session/files.py` - Agent 执行流中插入文件检测
 - [x] `app/api/routes/files.py` - 文件读取 API
 - [x] 前端 `FilePreviewPanel` - 文件预览面板（支持图片/CSV/Excel/Notebook/代码）
 - [x] 前端 `WorkspaceArtifacts` - 工作区文件树
-- [x] `app/services/session_manager.py` - 视图快照保存/查询
+- [x] `app/api/routes/sessions_messages.py` - 视图快照保存/查询
 - [x] `GET /api/sessions/{user_id}/{session_id}/file-snapshots` - 文件快照 API
 - [ ] 前端增量更新优化
 - [ ] 前端历史回顾时显示文件快照

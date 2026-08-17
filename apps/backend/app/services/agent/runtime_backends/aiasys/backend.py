@@ -524,6 +524,19 @@ class AiasysRuntimeBackend:
             except Exception:
                 logger.warning("注册会话 Task / Plan 工具失败", exc_info=True)
 
+            # 注册团队协作工具（仅主控调用的初始化/规划/收编/收尾，加上双向通信）
+            try:
+                from app.services.agent.runtime_backends.aiasys.team.tools import (
+                    register_all,
+                )
+
+                register_all(registry)
+                logger.debug("已注册团队协作工具")
+            except ValueError:
+                logger.debug("团队协作工具已注册，跳过重复注册")
+            except Exception:
+                logger.warning("注册团队协作工具失败", exc_info=True)
+
         # 注册 MCP 工具
         mcp_clients: list[Any] = []
         if spec.mcp_configs:

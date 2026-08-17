@@ -57,7 +57,7 @@ export function ToolBlock({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center gap-2 text-micro font-medium text-muted-foreground hover:text-foreground transition-colors"
       >
         <div className="flex items-center justify-center w-4 h-4 rounded bg-muted group-hover:bg-accent transition-colors">
           {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
@@ -66,7 +66,7 @@ export function ToolBlock({
       </button>
 
       {isOpen && (
-        <div className="mt-1.5 ml-2 min-w-0 break-words border-l-2 border-border/50 pl-3 text-[12px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
+        <div className="mt-1.5 ml-2 min-w-0 break-words border-l-2 border-border/50 pl-3 text-caption leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
           <div className="prose prose-sm max-w-none">
             <ChartAwareMarkdown
               content={safeContent}
@@ -81,7 +81,7 @@ export function ToolBlock({
             <button
               type="button"
               onClick={onOpenRuntimeTab}
-              className="mt-2 flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:bg-muted"
+              className="mt-2 flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-micro font-medium text-foreground transition-colors hover:bg-muted"
             >
               <Settings2 className="h-3 w-3" />
               配置运行环境
@@ -91,7 +91,7 @@ export function ToolBlock({
             <button
               type="button"
               onClick={() => void onRetryLastSubmit()}
-              className="mt-2 flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:bg-muted"
+              className="mt-2 flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-micro font-medium text-foreground transition-colors hover:bg-muted"
             >
               <RefreshCw className="h-3 w-3" />
               重试

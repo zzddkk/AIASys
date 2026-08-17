@@ -300,7 +300,7 @@ export function ChannelSessionPanel({
                 : "管理通信渠道频道资产，创建微信、飞书或钉钉频道。"}
             </div>
             {sessionId && binding ? (
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-micro">
                 <span className={`font-medium ${statusColor}`}>{statusLabel}</span>
                 {selectedChannel?.name ? (
                   <span className="text-muted-foreground">
@@ -319,8 +319,8 @@ export function ChannelSessionPanel({
             <Button
               type="button"
               variant="outline"
-              size="icon"
-              className="h-8 w-8 rounded-xl border-border bg-background text-muted-foreground shadow-sm"
+              size="icon-sm"
+              className="rounded-xl border-border bg-background text-muted-foreground shadow-sm"
               disabled={isLoading}
               onClick={() => void onReload()}
               title="刷新"
@@ -331,8 +331,8 @@ export function ChannelSessionPanel({
               <Button
                 type="button"
                 variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-xl border-border bg-background text-muted-foreground shadow-sm"
+                size="icon-sm"
+                className="rounded-xl border-border bg-background text-muted-foreground shadow-sm"
                 onClick={onClose}
                 title="关闭"
               >
@@ -445,7 +445,7 @@ function CompactSessionSelector({
         <GitBranch className="h-3.5 w-3.5" /> 绑定会话
       </div>
       <Select value={sessionId || ""} onValueChange={onSelectSession}>
-        <SelectTrigger className="border-0 rounded-none bg-transparent h-9 text-sm focus:ring-0">
+        <SelectTrigger className="border-0 rounded-none bg-transparent text-sm focus:ring-0">
           <div className="flex items-center gap-2 min-w-0">
             <FolderOpen className="h-4 w-4 text-warning shrink-0" />
             <span className="truncate">

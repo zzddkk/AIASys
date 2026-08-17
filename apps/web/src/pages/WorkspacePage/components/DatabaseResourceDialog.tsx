@@ -102,11 +102,9 @@ export function DatabaseResourceDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={
-          isCreateMode
-            ? "max-h-[90vh] max-w-2xl overflow-y-auto"
-            : "flex h-[88vh] max-w-[min(1320px,94vw)] flex-col overflow-hidden p-0"
-        }
+        size={isCreateMode ? "md" : "full"}
+        tall={!isCreateMode}
+        className={isCreateMode ? "overflow-y-auto" : "overflow-hidden"}
       >
         {!isCreateMode ? (
           <>

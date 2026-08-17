@@ -280,8 +280,8 @@ export function FileChangesPanel({
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
-                    className="h-7 text-xs text-error hover:bg-error/10 hover:text-error"
+                    size="xs"
+                    className="text-xs text-error hover:bg-error/10 hover:text-error"
                     onClick={() => void handleRestoreClick()}
                     disabled={isRestoring}
                   >
@@ -295,8 +295,8 @@ export function FileChangesPanel({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
+                    size="xs"
+                    className="text-xs"
                     onClick={() => handleOpenHistory(selectedEntry)}
                   >
                     <History className="mr-1 h-3.5 w-3.5" />

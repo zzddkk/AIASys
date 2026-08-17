@@ -479,17 +479,17 @@ const FileTreeRowComponent: React.FC<FileTreeRowProps> = ({
     const parentHeavyLabel = getHeavyDirectoryLabel(node);
     return (
       <div
-        className="flex items-center gap-2 py-1 pr-2 text-[11px] text-muted-foreground"
+        className="flex items-center gap-2 py-1 pr-2 text-micro text-muted-foreground"
         style={{ paddingLeft: `${indent}px` }}
       >
-        <span className="shrink-0 rounded-full border border-warning/20 bg-warning-container px-1.5 py-0.5 text-[10px] font-medium text-on-warning-container">
+        <span className="shrink-0 rounded-full border border-warning/20 bg-warning-container px-1.5 py-0.5 text-nano font-medium text-on-warning-container">
           {isLoadingChildren ? "加载中" : parentHeavyLabel}
         </span>
         <span>已加载预览，</span>
         {hasMoreHeavyChildren && onLoadMoreDirectoryChildren ? (
           <button
             type="button"
-            className="rounded-md border border-border bg-background px-2 py-0.5 text-[11px] font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md border border-border bg-background px-2 py-0.5 text-micro font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isLoadingChildren}
             onClick={(event) => {
               event.stopPropagation();
@@ -679,7 +679,7 @@ const FileTreeRowComponent: React.FC<FileTreeRowProps> = ({
       </span>
 
       {isHeavy ? (
-        <span className="ml-1 shrink-0 rounded-full border border-warning/20 bg-warning-container px-1.5 py-0.5 text-[10px] font-medium text-on-warning-container">
+        <span className="ml-1 shrink-0 rounded-full border border-warning/20 bg-warning-container px-1.5 py-0.5 text-nano font-medium text-on-warning-container">
           {isLoadingChildren ? "加载中" : getHeavyDirectoryLabel(node)}
         </span>
       ) : null}

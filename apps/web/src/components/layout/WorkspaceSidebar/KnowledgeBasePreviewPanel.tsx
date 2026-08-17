@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import knowledgeApi from "@/lib/api/knowledge";
 import { getModelDefaults, getModels, type LLMModelConfig } from "@/lib/api/llm";
-import { SqlQueryPanel } from "@/components/database/SqlQueryPanel";
+import { RawDataTab } from "./RawDataTab";
 import type {
   QueryResult,
   KnowledgeBaseTableInfo,
@@ -621,7 +621,7 @@ export function KnowledgeBasePreviewPanel({
             <div className="mt-1 text-xs leading-5 text-muted-foreground">
               {documentCount > 0 ? `${documentCount} 个文档` : "知识库资产"}
             </div>
-            <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+            <div className="mt-2 flex flex-wrap gap-2 text-micro text-muted-foreground">
               <span className={`rounded-full border px-2 py-0.5 ${statusBadge.className}`}>
                 {statusBadge.label}
               </span>
@@ -655,7 +655,7 @@ export function KnowledgeBasePreviewPanel({
                     ? "bg-muted font-semibold text-foreground shadow-sm"
                     : "bg-foreground font-semibold text-background shadow-sm"
                   : tab.muted
-                    ? "text-[11px] font-normal text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground"
+                    ? "text-micro font-normal text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground"
                     : "font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               }`}
             >
@@ -686,7 +686,7 @@ export function KnowledgeBasePreviewPanel({
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg border border-border bg-muted/20 px-3 py-3 text-center">
                 <div className="text-lg font-semibold text-foreground">{documentCount}</div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">文档数量</div>
+                <div className="text-micro text-muted-foreground mt-0.5">文档数量</div>
               </div>
               <div className="rounded-lg border border-border bg-muted/20 px-3 py-3 text-center">
                 <div className="text-lg font-semibold text-foreground">
@@ -696,7 +696,7 @@ export function KnowledgeBasePreviewPanel({
                     <span className="text-sm text-muted-foreground">未配置</span>
                   )}
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">语义检索</div>
+                <div className="text-micro text-muted-foreground mt-0.5">语义检索</div>
               </div>
             </div>
 
@@ -770,7 +770,7 @@ export function KnowledgeBasePreviewPanel({
                         <p className="truncate text-xs font-medium text-foreground">
                           {doc.filename}
                         </p>
-                        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <div className="mt-0.5 flex items-center gap-2 text-micro text-muted-foreground">
                           <span>{formatFileSize(doc.file_size)}</span>
                           <span>·</span>
                           <span>{doc.chunk_count} 片段</span>
@@ -784,7 +784,7 @@ export function KnowledgeBasePreviewPanel({
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                        className={`rounded px-1.5 py-0.5 text-nano font-medium ${
                           doc.status === "completed"
                             ? "bg-success/10 text-success"
                             : doc.status === "processing"
@@ -909,12 +909,11 @@ export function KnowledgeBasePreviewPanel({
                 }}
                 placeholder="输入关键词..."
                 disabled={!knowledgeBaseId || isQuerying || !canUseKnowledgeBase}
-                className="h-9"
               />
               <Button
                 type="button"
-                size="sm"
-                className="h-9 px-4 gap-1.5"
+                size="default"
+                className="px-4 gap-1.5"
                 onClick={() => void handleSearch()}
                 disabled={!knowledgeBaseId || !queryText.trim() || isQuerying || !canUseKnowledgeBase}
               >
@@ -927,7 +926,7 @@ export function KnowledgeBasePreviewPanel({
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-2 text-micro text-muted-foreground">
               <span>结果数量</span>
               <Select
                 value={String(topK)}
@@ -937,7 +936,7 @@ export function KnowledgeBasePreviewPanel({
                   try { localStorage.setItem("kb-top-k", String(next)); } catch { /* noop */ }
                 }}
               >
-                <SelectTrigger className="h-7 w-[72px] text-[11px]">
+                <SelectTrigger size="xs" className="w-[72px] text-micro">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -975,7 +974,7 @@ export function KnowledgeBasePreviewPanel({
                           style={{ width: `${Math.min(100, Math.max(0, result.score * 100))}%` }}
                         />
                       </div>
-                      <span className="text-[11px] font-medium text-muted-foreground tabular-nums">
+                      <span className="text-micro font-medium text-muted-foreground tabular-nums">
                         {(result.score * 100).toFixed(0)}%
                       </span>
                     </div>
@@ -1011,11 +1010,11 @@ export function KnowledgeBasePreviewPanel({
                 <Label htmlFor="kb-edit-name" className="text-xs text-muted-foreground">
                   知识库名称
                 </Label>
-                <Input
+                <Input size="sm"
                   id="kb-edit-name"
                   value={editName || node.name}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="h-8 text-xs"
+                  className="text-xs"
                   disabled={!knowledgeBaseId || isSaving}
                 />
               </div>
@@ -1023,11 +1022,11 @@ export function KnowledgeBasePreviewPanel({
                 <Label htmlFor="kb-edit-desc" className="text-xs text-muted-foreground">
                   说明
                 </Label>
-                <Input
+                <Input size="sm"
                   id="kb-edit-desc"
                   value={editDescription || (effectiveDescription ?? "")}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="h-8 text-xs"
+                  className="text-xs"
                   disabled={!knowledgeBaseId || isSaving}
                   placeholder="暂无说明"
                 />
@@ -1041,7 +1040,7 @@ export function KnowledgeBasePreviewPanel({
                   onValueChange={(value) => setEditEmbeddingModel(value === "__default__" ? "" : value)}
                   disabled={!knowledgeBaseId || isSaving || isLoadingModels || !canEditIndexConfig}
                 >
-                  <SelectTrigger id="kb-edit-embedding" className="h-8 text-xs">
+                  <SelectTrigger size="sm" id="kb-edit-embedding" className="text-xs">
                     <SelectValue placeholder="选择 embedding 模型" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1053,10 +1052,10 @@ export function KnowledgeBasePreviewPanel({
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-[11px] leading-5 text-muted-foreground">
+                <p className="text-micro leading-5 text-muted-foreground">
                   Embedding 模型将文档转换为向量，用于语义检索。不配置则只能使用全文搜索。
                 </p>
-                <p className="text-[11px] leading-5 text-muted-foreground/80">
+                <p className="text-micro leading-5 text-muted-foreground/80">
                   {isLoadingModels
                     ? "正在读取模型配置。"
                     : canEditIndexConfig
@@ -1073,7 +1072,7 @@ export function KnowledgeBasePreviewPanel({
                   onValueChange={(value) => setEditSearchMode(value as KnowledgeBaseSearchMode)}
                   disabled={!knowledgeBaseId || isSaving}
                 >
-                  <SelectTrigger id="kb-edit-search-mode" className="h-8 text-xs">
+                  <SelectTrigger size="sm" id="kb-edit-search-mode" className="text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1097,7 +1096,7 @@ export function KnowledgeBasePreviewPanel({
                   onValueChange={(value) => setEditExtractionMode(value as KnowledgeBaseExtractionMode)}
                   disabled={!knowledgeBaseId || isSaving}
                 >
-                  <SelectTrigger id="kb-edit-extraction-mode" className="h-8 text-xs">
+                  <SelectTrigger size="sm" id="kb-edit-extraction-mode" className="text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1131,7 +1130,7 @@ export function KnowledgeBasePreviewPanel({
                       }
                       disabled={!knowledgeBaseId || isSaving}
                     >
-                      <SelectTrigger className="h-8 flex-1 text-xs">
+                      <SelectTrigger size="sm" className="flex-1 text-xs">
                         <SelectValue placeholder="使用默认" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1158,7 +1157,7 @@ export function KnowledgeBasePreviewPanel({
                       }
                       disabled={!knowledgeBaseId || isSaving}
                     >
-                      <SelectTrigger className="h-8 flex-1 text-xs">
+                      <SelectTrigger size="sm" className="flex-1 text-xs">
                         <SelectValue placeholder="使用默认" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1172,7 +1171,7 @@ export function KnowledgeBasePreviewPanel({
                     </Select>
                   </div>
                 </div>
-                <p className="text-[11px] leading-5 text-muted-foreground">
+                <p className="text-micro leading-5 text-muted-foreground">
                   未配置映射的文件类型将使用上方默认解析模式。表格文件建议放到工作区处理。
                 </p>
               </div>
@@ -1181,14 +1180,14 @@ export function KnowledgeBasePreviewPanel({
                   <Label htmlFor="kb-edit-chunk-size" className="text-xs text-muted-foreground">
                     分块大小
                   </Label>
-                  <Input
+                  <Input size="sm"
                     id="kb-edit-chunk-size"
                     type="number"
                     min={64}
                     max={8192}
                     value={editChunkSize}
                     onChange={(e) => setEditChunkSize(e.target.value)}
-                    className="h-8 text-xs"
+                    className="text-xs"
                     disabled={!knowledgeBaseId || isSaving || !canEditIndexConfig}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -1199,14 +1198,14 @@ export function KnowledgeBasePreviewPanel({
                   <Label htmlFor="kb-edit-chunk-overlap" className="text-xs text-muted-foreground">
                     重叠
                   </Label>
-                  <Input
+                  <Input size="sm"
                     id="kb-edit-chunk-overlap"
                     type="number"
                     min={0}
                     max={4096}
                     value={editChunkOverlap}
                     onChange={(e) => setEditChunkOverlap(e.target.value)}
-                    className="h-8 text-xs"
+                    className="text-xs"
                     disabled={!knowledgeBaseId || isSaving || !canEditIndexConfig}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -1294,123 +1293,19 @@ export function KnowledgeBasePreviewPanel({
 
         {/* 原始数据 Tab */}
         {activeTab === "data" ? (
-          <div className="flex h-full min-h-0 flex-col gap-3">
-            {/* 表列表 */}
-            {loadingKbTables ? (
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                加载表结构...
-              </div>
-            ) : kbTables.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {kbTables.map((table) => (
-                  <button
-                    key={table.name}
-                    type="button"
-                    onClick={() =>
-                      setRawSql(
-                        `SELECT * FROM "${table.name.replace(/"/g, "\"\"")}" LIMIT 100;`
-                      )
-                    }
-                    className="rounded-md border border-border bg-muted/40 px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                    title={`${table.name} (${table.columns.map((c) => c.name).join(", ")})`}
-                  >
-                    {table.name}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-
-            {/* SQL 编辑器 */}
-            <div className="flex-shrink-0">
-              <SqlQueryPanel
-                sql={rawSql}
-                onSqlChange={setRawSql}
-                queryLimitInput={rawQueryLimit}
-                onLimitChange={setRawQueryLimit}
-                runningAction={rawRunning ? "query" : null}
-                canExecute={false}
-                disabled={!knowledgeBaseId || loadingKbTables}
-                error={rawError}
-                onRunQuery={handleRunRawQuery}
-                onRunExecute={() => {}}
-              />
-            </div>
-
-            {/* 结果表格 */}
-            <div className="min-h-0 flex-1 overflow-hidden flex flex-col">
-              {rawResult ? (
-                <>
-                  <div className="min-h-0 flex-1 overflow-auto">
-                    {rawResult.columns.length === 0 ? (
-                      <div className="px-4 py-6 text-center text-[11px] text-muted-foreground">
-                        查询已执行，但当前结果没有可展示的列。
-                      </div>
-                    ) : (
-                      <div className="overflow-auto">
-                        <table
-                          className="w-full text-left text-[11px]"
-                          style={{ tableLayout: "auto" }}
-                        >
-                          <thead className="sticky top-0 bg-muted/60">
-                            <tr>
-                              {rawResult.columns.map((column, colIdx) => (
-                                <th
-                                  key={`h-${colIdx}`}
-                                  className="border-b border-border px-2 py-1.5 font-medium text-muted-foreground whitespace-nowrap"
-                                >
-                                  {column}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {rawResult.rows.map((row, index) => (
-                              <tr
-                                key={`${index}`}
-                                className="border-b border-border/60 last:border-b-0"
-                              >
-                                {rawResult.columns.map((column, columnIndex) => {
-                                  const value = row[column];
-                                  const display =
-                                    value === null || value === undefined
-                                      ? "NULL"
-                                      : typeof value === "string"
-                                        ? value
-                                        : typeof value === "number" || typeof value === "boolean"
-                                          ? String(value)
-                                          : JSON.stringify(value);
-                                  return (
-                                    <td
-                                      key={`c${columnIndex}-r${index}`}
-                                      className="px-2 py-1.5 align-top font-mono text-[10px] text-foreground max-w-[240px] truncate"
-                                      title={display}
-                                    >
-                                      {display}
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-shrink-0 border-t border-border px-3 py-1.5 flex items-center gap-3 text-[11px] text-muted-foreground bg-muted/20">
-                    <span className="flex items-center gap-1">
-                      <span className="font-medium text-foreground">{rawResult.row_count}</span>
-                      <span>行</span>
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <div className="flex h-full items-center justify-center px-6 text-center text-[12px] text-muted-foreground">
-                  执行 SQL 后结果将显示在这里。
-                </div>
-              )}
-            </div>
-          </div>
+          <RawDataTab
+            loadingTables={loadingKbTables}
+            tables={kbTables}
+            resourceId={knowledgeBaseId}
+            sql={rawSql}
+            onSqlChange={setRawSql}
+            queryLimitInput={rawQueryLimit}
+            onLimitChange={setRawQueryLimit}
+            running={rawRunning}
+            error={rawError}
+            result={rawResult}
+            onRunQuery={handleRunRawQuery}
+          />
         ) : null}
       </div>
 

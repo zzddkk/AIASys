@@ -98,7 +98,7 @@ export function BrandLockup({
         {subtitle ? (
           <span
             className={cn(
-              "mt-1 text-[10px] font-medium uppercase leading-none tracking-[0.24em] text-muted-foreground",
+              "mt-1 text-nano font-medium uppercase leading-none tracking-[0.24em] text-muted-foreground",
               subtitleClassName,
             )}
           >

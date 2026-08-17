@@ -37,7 +37,7 @@ export function AutoTaskEditorPreview({
               <div className="text-sm font-semibold text-foreground">
                 发布前检查
               </div>
-              <div className="mt-1 text-[12px] leading-5 text-muted-foreground">
+              <div className="mt-1 text-caption leading-5 text-muted-foreground">
                 确认这条自动化任务会怎么运行。
               </div>
             </div>

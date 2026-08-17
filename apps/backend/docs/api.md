@@ -238,6 +238,5 @@ curl --cookie "access_token=<token>" \
 - `app/api/routes/sessions.py`
 - `app/api/routes/agent.py`
 - `app/api/routes/files.py`
-- `app/api/routes/runtime_env.py`
-- `app/api/routes/rag.py`
+- `app/api/routes/runtime_envs.py`
 - `app/graphrag/api/routes.py`

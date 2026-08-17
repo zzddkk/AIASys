@@ -45,6 +45,16 @@ class ProviderCapabilities:
     """支持的 effort 级别列表，如 ['low', 'medium', 'high']"""
     reasoning_key: str = "reasoning_content"
     """stream delta 中 reasoning 内容的字段名。不同 provider 可能用不同字段名。"""
+    reasoning_in_content_tag: str | None = None
+    """推理写在 content 正文里时的包裹标签名（如 "think"），None = 不启用剥离。
+
+    部分开源模型（GLM / DeepSeek-R1 / Qwen3 在 vLLM / SGLang 部署下）不把推理放进
+    独立字段，而是直接在 content 里用 `<think>…</think>` 包裹。声明本项后，client
+    会在流式解析时把它切出来归入 reasoning_content。
+
+    只对显式声明的 provider 生效，不做全局猜测——用户正文里可能出现合法的 `<think>`
+    字样，无条件剥离会吃掉用户内容。根因分析见
+    `AIASys-product-design/参考资料/thinking内容泄露正文的根因分析.md`。"""
     reasoning_format: str | None = None
     """厂商特有的 reasoning 格式控制参数值（透传到 extra_body）。"""
 

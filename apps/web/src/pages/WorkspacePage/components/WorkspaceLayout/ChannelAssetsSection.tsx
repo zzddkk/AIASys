@@ -431,16 +431,16 @@ export function ChannelAssetsSection({
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="text-sm font-medium text-foreground">{channel.name}</span>
                           {channel.enabled ? (
-                            <span className="rounded-full border border-success/20 bg-success-container px-1.5 py-0 text-[10px] text-success">
+                            <span className="rounded-full border border-success/20 bg-success-container px-1.5 py-0 text-nano text-success">
                               已启用
                             </span>
                           ) : (
-                            <span className="rounded-full border border-border bg-muted px-1.5 py-0 text-[10px] text-muted-foreground">
+                            <span className="rounded-full border border-border bg-muted px-1.5 py-0 text-nano text-muted-foreground">
                               已禁用
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] leading-4 text-muted-foreground">
+                        <div className="text-micro leading-4 text-muted-foreground">
                           {getPlatformName(channel.platform)} · {channel.account_id || channel.app_id || "未配置"}
                         </div>
                       </div>
@@ -450,8 +450,8 @@ export function ChannelAssetsSection({
                         <Button
                           type="button"
                           variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0"
+                          size="icon-xs"
+                          className="p-0"
                           disabled={isMutating}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -466,8 +466,8 @@ export function ChannelAssetsSection({
                         <Button
                           type="button"
                           variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0 text-error hover:text-error hover:bg-error-container"
+                          size="icon-xs"
+                          className="p-0 text-error hover:text-error hover:bg-error-container"
                           disabled={isMutating}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -484,7 +484,7 @@ export function ChannelAssetsSection({
                   {bindings.length > 0 ? (
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <Users className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-micro text-muted-foreground">
                         已绑定 {bindings.length} 个会话
                         {runningBindings.length > 0 ? `，${runningBindings.length} 个运行中` : ""}
                       </span>
@@ -492,7 +492,7 @@ export function ChannelAssetsSection({
                         <span
                           key={b.session_id}
                           className={cn(
-                            "max-w-[120px] truncate rounded-full border px-1.5 py-0 text-[10px]",
+                            "max-w-[120px] truncate rounded-full border px-1.5 py-0 text-nano",
                             b.link_status === "running"
                               ? "border-success/20 bg-success-container text-success"
                               : "border-border bg-muted text-muted-foreground",
@@ -503,7 +503,7 @@ export function ChannelAssetsSection({
                         </span>
                       ))}
                       {bindings.length > 3 ? (
-                        <span className="text-[10px] text-muted-foreground">+{bindings.length - 3}</span>
+                        <span className="text-nano text-muted-foreground">+{bindings.length - 3}</span>
                       ) : null}
                     </div>
                   ) : null}
@@ -531,11 +531,11 @@ export function ChannelAssetsSection({
                               : "border border-border bg-muted/20 text-muted-foreground";
                         return (
                           <div className="flex items-center gap-2 flex-wrap mb-2">
-                            <span className={cn("rounded-full px-1.5 py-0 text-[10px]", statusClass)}>
+                            <span className={cn("rounded-full px-1.5 py-0 text-nano", statusClass)}>
                               {statusLabel}
                             </span>
                             {binding?.chat_label ? (
-                              <span className="text-[11px] text-muted-foreground truncate max-w-[120px]">
+                              <span className="text-micro text-muted-foreground truncate max-w-[120px]">
                                 {binding.chat_label}
                               </span>
                             ) : null}
@@ -563,12 +563,12 @@ export function ChannelAssetsSection({
                         return (
                           <div className="grid gap-2 mb-2">
                             <div className="grid gap-1">
-                              <Label className="text-[11px]">目标聊天 ID</Label>
-                              <Input value={editChatId} onChange={(e) => setEditChatId(e.target.value)} placeholder="可选，留空会自动认领" className="h-8 text-xs" />
+                              <Label className="text-micro">目标聊天 ID</Label>
+                              <Input size="sm" value={editChatId} onChange={(e) => setEditChatId(e.target.value)} placeholder="可选，留空会自动认领" className="text-xs" />
                             </div>
                             <div className="grid gap-1">
-                              <Label className="text-[11px]">目标聊天备注</Label>
-                              <Input value={editChatLabel} onChange={(e) => setEditChatLabel(e.target.value)} placeholder="可选" className="h-8 text-xs" />
+                              <Label className="text-micro">目标聊天备注</Label>
+                              <Input size="sm" value={editChatLabel} onChange={(e) => setEditChatLabel(e.target.value)} placeholder="可选" className="text-xs" />
                             </div>
                             <div className="flex gap-2 justify-end">
                               <Button variant="ghost" size="sm" onClick={() => setEditingChannelId(null)}>取消</Button>
@@ -587,7 +587,7 @@ export function ChannelAssetsSection({
                       }
                       return (
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="rounded-full border border-border bg-muted px-1.5 py-0 text-[10px] text-muted-foreground">未绑定</span>
+                          <span className="rounded-full border border-border bg-muted px-1.5 py-0 text-nano text-muted-foreground">未绑定</span>
                           <Button variant="outline" size="sm" className="ml-auto" disabled={isMutating} onClick={() => {
                             setEditChatId("");
                             setEditChatLabel("");
@@ -600,11 +600,11 @@ export function ChannelAssetsSection({
                     {/* Full binding management */}
                     <Collapsible>
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-7 w-full justify-between px-2 text-xs text-muted-foreground hover:text-foreground">
+                        <Button variant="ghost" size="xs" className="w-full justify-between px-2 text-xs text-muted-foreground hover:text-foreground">
                           <span className="flex items-center gap-1.5">
                             <Link2 className="h-3 w-3" />
                             管理绑定
-                            {bindings.length > 0 ? <span className="text-[10px]">({bindings.length})</span> : null}
+                            {bindings.length > 0 ? <span className="text-nano">({bindings.length})</span> : null}
                           </span>
                           <ChevronDown className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 data-[state=open]:rotate-180" />
                         </Button>
@@ -615,7 +615,7 @@ export function ChannelAssetsSection({
                             {bindings.map((b) => (
                               <div key={b.session_id} className="flex items-center gap-2 rounded-md border border-border/50 px-2 py-1.5">
                                 <span className={cn(
-                                  "shrink-0 rounded-full px-1.5 py-0 text-[10px]",
+                                  "shrink-0 rounded-full px-1.5 py-0 text-nano",
                                   b.link_status === "running"
                                     ? "border border-success/20 bg-success-container text-success"
                                     : b.link_status === "error"
@@ -630,31 +630,31 @@ export function ChannelAssetsSection({
                                   const sessionTitle = session?.title || b.session_id.slice(0, 8);
                                   const display = group ? `${group.workspace_title} / ${sessionTitle}` : sessionTitle;
                                   return (
-                                    <span className="min-w-0 truncate text-[11px] text-foreground" title={display}>
+                                    <span className="min-w-0 truncate text-micro text-foreground" title={display}>
                                       {display}
                                     </span>
                                   );
                                 })()}
                                 {b.chat_label ? (
-                                  <span className="ml-auto shrink-0 truncate text-[10px] text-muted-foreground max-w-[80px]">{b.chat_label}</span>
+                                  <span className="ml-auto shrink-0 truncate text-nano text-muted-foreground max-w-[80px]">{b.chat_label}</span>
                                 ) : null}
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="mb-2 text-[11px] text-muted-foreground">暂无绑定</div>
+                          <div className="mb-2 text-micro text-muted-foreground">暂无绑定</div>
                         )}
 
                         {creatingForChannelId === channel.channel_id ? (
                           <div className="grid gap-2 rounded-md border border-border/50 p-2">
                             {bindingNotice ? (
-                              <div className="rounded-md border border-success/20 bg-success-container px-2 py-1 text-[11px] text-success">{bindingNotice}</div>
+                              <div className="rounded-md border border-success/20 bg-success-container px-2 py-1 text-micro text-success">{bindingNotice}</div>
                             ) : null}
                             {bindingError ? (
-                              <div className="rounded-md border border-error/20 bg-error-container px-2 py-1 text-[11px] text-error">{bindingError}</div>
+                              <div className="rounded-md border border-error/20 bg-error-container px-2 py-1 text-micro text-error">{bindingError}</div>
                             ) : null}
                             <div className="grid gap-1">
-                              <Label className="text-[11px]">选择会话</Label>
+                              <Label className="text-micro">选择会话</Label>
                               {createSessionId ? (
                                 <div className="flex items-center gap-2 text-xs">
                                   <span className="text-muted-foreground">已选择：</span>
@@ -685,7 +685,7 @@ export function ChannelAssetsSection({
                                             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-90" />
                                             <FolderOpen className="h-4 w-4 text-warning shrink-0" />
                                             <span className="truncate text-foreground text-xs">{group.workspace_title}</span>
-                                            <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+                                            <span className="ml-auto shrink-0 text-nano text-muted-foreground">
                                               {group.sessions.length} 个对话
                                             </span>
                                           </button>
@@ -718,12 +718,12 @@ export function ChannelAssetsSection({
                               </div>
                             </div>
                             <div className="grid gap-1">
-                              <Label className="text-[11px]">目标聊天 ID</Label>
-                              <Input value={createChatId} onChange={(e) => setCreateChatId(e.target.value)} placeholder="可选，留空会自动认领" className="h-8 text-xs" />
+                              <Label className="text-micro">目标聊天 ID</Label>
+                              <Input size="sm" value={createChatId} onChange={(e) => setCreateChatId(e.target.value)} placeholder="可选，留空会自动认领" className="text-xs" />
                             </div>
                             <div className="grid gap-1">
-                              <Label className="text-[11px]">目标聊天备注</Label>
-                              <Input value={createChatLabel} onChange={(e) => setCreateChatLabel(e.target.value)} placeholder="可选" className="h-8 text-xs" />
+                              <Label className="text-micro">目标聊天备注</Label>
+                              <Input size="sm" value={createChatLabel} onChange={(e) => setCreateChatLabel(e.target.value)} placeholder="可选" className="text-xs" />
                             </div>
                             <div className="flex gap-2 justify-end">
                               <Button variant="ghost" size="sm" disabled={isBindingSaving} onClick={() => {
@@ -761,7 +761,7 @@ export function ChannelAssetsSection({
                             </div>
                           </div>
                         ) : (
-                          <Button variant="ghost" size="sm" className="h-7 w-full text-xs" onClick={() => {
+                          <Button variant="ghost" size="xs" className="w-full text-xs" onClick={() => {
                             setCreateSessionId(sessionId || "");
                             setCreateChatId("");
                             setCreateChatLabel("");
@@ -837,17 +837,17 @@ export function ChannelAssetsSection({
                     <div className="flex flex-wrap items-center gap-2">
                       <div className="text-sm font-medium text-foreground">{platform.display_name}</div>
                       {hasEnabled ? (
-                        <span className="max-w-full rounded-full border border-success/20 bg-success-container px-2 py-0.5 text-[11px] text-success">
+                        <span className="max-w-full rounded-full border border-success/20 bg-success-container px-2 py-0.5 text-micro text-success">
                           已连接
                         </span>
                       ) : configuredCount > 0 ? (
-                        <span className="max-w-full rounded-full border border-warning/20 bg-warning-container px-2 py-0.5 text-[11px] text-warning">
+                        <span className="max-w-full rounded-full border border-warning/20 bg-warning-container px-2 py-0.5 text-micro text-warning">
                           已保存 {configuredCount} 个
                         </span>
                       ) : (
                         <span
                           className={cn(
-                            "max-w-full rounded-full border px-2 py-0.5 text-[11px]",
+                            "max-w-full rounded-full border px-2 py-0.5 text-micro",
                             getSupportStatusClass(platform),
                           )}
                         >
@@ -860,7 +860,7 @@ export function ChannelAssetsSection({
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                <div className="mt-3 flex flex-wrap gap-2 text-micro text-muted-foreground">
                   {platform.transport ? (
                     <span className="max-w-full break-words rounded-full border border-border bg-muted/20 px-2 py-0.5">
                       {platform.transport}
@@ -918,7 +918,7 @@ export function ChannelAssetsSection({
           if (!open) onClearQrLogin?.();
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent size="sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <QrCode className="h-5 w-5 text-primary" />
@@ -1001,13 +1001,13 @@ export function ChannelAssetsSection({
                   <div className={cn("text-xs font-medium", getQrJourneyTextClass(step.state))}>
                     {step.label}
                   </div>
-                  <div className="text-[11px] leading-5 text-muted-foreground">{step.detail}</div>
+                  <div className="text-micro leading-5 text-muted-foreground">{step.detail}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-2 text-[11px]">
+          <div className="flex flex-wrap gap-2 text-micro">
             <span className="rounded-full border border-border bg-background px-2 py-0.5 text-foreground">
               状态：{qrStatusText}
             </span>

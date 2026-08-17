@@ -68,7 +68,7 @@ function SubagentMetricBar({
   return (
     <div className="flex items-center gap-1 flex-wrap">
       {items.map((item, i) => (
-        <div key={item.label} className="flex items-center gap-1 text-[11px]">
+        <div key={item.label} className="flex items-center gap-1 text-micro">
           {i > 0 && <span className="text-muted-foreground/30 mx-1">|</span>}
           <span className="text-muted-foreground/60">{item.label}</span>
           <span className={cn("font-semibold tabular-nums", item.color || "text-foreground")}>{item.value}</span>
@@ -93,7 +93,7 @@ function SubagentSectionCard({
     <section className={cn("rounded-xl", compact ? "px-0 py-0" : "px-4 py-4")}>
       {!compact && (
         <div className="mb-3">
-          <div className="font-semibold tracking-tight text-foreground text-[18px]">
+          <div className="font-semibold tracking-tight text-foreground text-lg">
             {title}
           </div>
           {description && <p className="text-sm text-muted-foreground mt-2 leading-6">{description}</p>}
@@ -119,12 +119,12 @@ function SubagentInfoRow({
 }) {
   return (
     <div className={cn("border border-border bg-background px-3 py-3", compact ? "rounded-xl" : "rounded-2xl")}>
-      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-micro text-muted-foreground">
         {icon}
         {label}
       </div>
-      <div className="mt-2 text-[15px] font-semibold text-foreground">{value}</div>
-      <div className="mt-1 text-[11px] leading-5 text-muted-foreground">
+      <div className="mt-2 text-sm font-semibold text-foreground">{value}</div>
+      <div className="mt-1 text-micro leading-5 text-muted-foreground">
         {description}
       </div>
     </div>
@@ -192,7 +192,7 @@ export function WorkspaceSubagentPanel({
             {!compact && (
               <Badge
                 variant="outline"
-                className="shrink-0 rounded-full border-primary/20 bg-primary/10 px-3 py-1 text-[11px] text-primary"
+                className="shrink-0 rounded-full border-primary/20 bg-primary/10 px-3 py-1 text-micro text-primary"
               >
                 当前视图：专家协作节点
               </Badge>
@@ -212,7 +212,7 @@ export function WorkspaceSubagentPanel({
 
           {pinnedList.length > 0 && (
             <div className="mt-4 flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] font-medium text-muted-foreground mr-1">
+              <span className="text-nano font-medium text-muted-foreground mr-1">
                 已固定:
               </span>
               {pinnedList.map((sa) => (
@@ -220,7 +220,7 @@ export function WorkspaceSubagentPanel({
                   key={sa.id}
                   type="button"
                   className={cn(
-                    "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] transition-colors",
+                    "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-micro transition-colors",
                     selectedSubAgent?.id === sa.id
                       ? "border-tertiary/40 bg-tertiary/10 text-tertiary"
                       : "border-border bg-muted/40 text-muted-foreground hover:border-tertiary/20 hover:bg-tertiary/5",
@@ -260,7 +260,7 @@ export function WorkspaceSubagentPanel({
                   <div className={cn("font-medium text-foreground mt-2", compact ? "text-xs" : "text-sm")}>
                     暂无专家协作节点
                   </div>
-                  <div className={cn("mt-1 leading-5 text-muted-foreground", compact ? "text-[10px]" : "text-xs")}>
+                  <div className={cn("mt-1 leading-5 text-muted-foreground", compact ? "text-nano" : "text-xs")}>
                     主控派发任务后自动显示
                   </div>
                 </div>

@@ -142,7 +142,7 @@ function OverviewMetric({
   return (
     <div className="rounded-xl border border-border bg-background px-3 py-3">
       <div className="flex items-center justify-between gap-3">
-        <div className="text-[11px] font-semibold text-muted-foreground">
+        <div className="text-micro font-semibold text-muted-foreground">
           {label}
         </div>
         <Badge variant={variant} className="shrink-0 whitespace-nowrap">

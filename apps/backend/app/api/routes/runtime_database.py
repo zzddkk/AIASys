@@ -10,14 +10,19 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import (  # noqa: F401  （tests 经 route_module.HTTPException 取用）
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+)
 from pydantic import Field
 
+from app.api.routes._database_route_common import make_error_mappers
 from app.core.auth import require_auth
 from app.core.config import WORKSPACE_DIR
 from app.models.database_access import (
     RuntimeDatabaseDescribeTableResponse,
-    RuntimeDatabaseErrorDetail,
     RuntimeDatabaseExecuteRequest,
     RuntimeDatabaseExecuteResponse,
     RuntimeDatabaseHandlesResponse,
@@ -59,172 +64,12 @@ class SessionRuntimeDatabaseExecuteRequest(RuntimeDatabaseExecuteRequest):
     session_id: str = Field(..., min_length=1, description="目标会话 ID")
 
 
-def _runtime_database_http_error(
-    *,
-    status_code: int,
-    code: str,
-    category: str,
-    message: str,
-    retryable: bool = False,
-) -> HTTPException:
-    return HTTPException(
-        status_code=status_code,
-        detail=RuntimeDatabaseErrorDetail(
-            code=code,
-            category=category,
-            message=message,
-            retryable=retryable,
-        ).model_dump(include={"code", "category", "message", "retryable"}),
-    )
-
-
-def _map_value_error(exc: ValueError) -> HTTPException:
-    message = str(exc)
-    if message == "目标会话不存在":
-        return _runtime_database_http_error(
-            status_code=404,
-            code="session_not_found",
-            category="session",
-            message=message,
-        )
-    if message.startswith("不支持的数据库句柄"):
-        return _runtime_database_http_error(
-            status_code=400,
-            code="invalid_handle",
-            category="request",
-            message=message,
-        )
-    if message == "数据库连接器句柄缺少 connector_id":
-        return _runtime_database_http_error(
-            status_code=400,
-            code="invalid_handle",
-            category="request",
-            message=message,
-        )
-    if message == "非法表名":
-        return _runtime_database_http_error(
-            status_code=400,
-            code="invalid_table_name",
-            category="request",
-            message=message,
-        )
-    return _runtime_database_http_error(
-        status_code=400,
-        code="invalid_request",
-        category="request",
-        message=message,
-    )
-
-
-def _map_connector_access_error(exc: Exception) -> HTTPException:
-    message = str(exc)
-
-    if isinstance(exc, DatabaseConnectorAttachmentMissingError):
-        return _runtime_database_http_error(
-            status_code=403,
-            code="session_connector_not_attached",
-            category="session",
-            message=message,
-        )
-    if isinstance(exc, DatabaseConnectorNotFoundError):
-        return _runtime_database_http_error(
-            status_code=404,
-            code="connector_not_found",
-            category="session",
-            message=message,
-        )
-    if isinstance(exc, DatabaseConnectorCapabilityDeniedError):
-        return _runtime_database_http_error(
-            status_code=403,
-            code="capability_denied",
-            category="platform",
-            message=message,
-        )
-    if isinstance(exc, DatabaseConnectorGrantDeniedError):
-        return _runtime_database_http_error(
-            status_code=403,
-            code="platform_grant_denied",
-            category="platform",
-            message=message,
-        )
-    if isinstance(exc, DatabaseConnectorApprovalTimeoutError):
-        return _runtime_database_http_error(
-            status_code=409,
-            code="approval_timeout",
-            category="approval",
-            message=message,
-        )
-    if isinstance(exc, DatabaseConnectorApprovalRejectedError):
-        return _runtime_database_http_error(
-            status_code=403,
-            code="approval_rejected",
-            category="approval",
-            message=message,
-        )
-    if isinstance(exc, DatabaseConnectorApprovalRequiredError):
-        return _runtime_database_http_error(
-            status_code=403,
-            code="approval_required",
-            category="approval",
-            message=message,
-        )
-    if isinstance(exc, DatabaseConnectorRemotePermissionError):
-        return _runtime_database_http_error(
-            status_code=403,
-            code="remote_permission_denied",
-            category="remote",
-            message=message,
-        )
-    if isinstance(exc, DatabaseConnectorRemoteExecutionError):
-        return _runtime_database_http_error(
-            status_code=502,
-            code="remote_execution_error",
-            category="remote",
-            message=message,
-        )
-    if isinstance(exc, DatabaseConnectorPlatformRejectionError):
-        if message == "数据库连接器不存在":
-            return _runtime_database_http_error(
-                status_code=404,
-                code="connector_not_found",
-                category="session",
-                message=message,
-            )
-        if message == "会话未挂载该数据库连接器":
-            return _runtime_database_http_error(
-                status_code=403,
-                code="session_connector_not_attached",
-                category="session",
-                message=message,
-            )
-        if "未获授权执行动作" in message:
-            return _runtime_database_http_error(
-                status_code=403,
-                code="platform_grant_denied",
-                category="platform",
-                message=message,
-            )
-        if "能力上限不支持动作" in message:
-            return _runtime_database_http_error(
-                status_code=403,
-                code="capability_denied",
-                category="platform",
-                message=message,
-            )
-        return _runtime_database_http_error(
-            status_code=403,
-            code="platform_rejected",
-            category="platform",
-            message=message,
-        )
-
-    return _runtime_database_http_error(
-        status_code=502,
-        code="runtime_error",
-        category="runtime",
-        message=message,
-        retryable=True,
-    )
+# 三段错误映射收敛自本文件的重复实现，见 _database_route_common.py。
+(
+    _runtime_database_http_error,
+    _map_value_error,
+    _map_connector_access_error,
+) = make_error_mappers(include_retryable=True)
 
 
 async def _broker_query(

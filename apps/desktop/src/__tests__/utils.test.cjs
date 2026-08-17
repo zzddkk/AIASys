@@ -348,12 +348,18 @@ describe("resolveDesiredPort", () => {
 
 describe("validatePythonExecutable", () => {
   it("有效 Python 解释器返回 ok=true", () => {
-    // 使用仓库 backend venv 中的 Python，避免依赖系统 PATH 中的 python/python3
-    const pythonCmd = process.platform === "win32"
+    // 优先用仓库 backend venv 中的 Python，避免依赖系统 PATH；
+    // CI 的 desktop-check 不建 backend venv，此时回退到系统 python3/python
+    // （runner 必有）。两者都不存在时才视为环境缺失而失败。
+    const venvPython = process.platform === "win32"
       ? path.join(__dirname, "..", "..", "..", "backend", ".venv", "Scripts", "python.exe")
       : path.join(__dirname, "..", "..", "..", "backend", ".venv", "bin", "python3");
+    let pythonCmd = venvPython;
+    if (!fs.existsSync(venvPython)) {
+      pythonCmd = process.platform === "win32" ? "python" : "python3";
+    }
     const result = validatePythonExecutable(pythonCmd);
-    assert.strictEqual(result.ok, true);
+    assert.strictEqual(result.ok, true, `python=${pythonCmd} error=${result.error || ""}`);
     assert.ok(result.version.startsWith("Python "), `version should start with Python: ${result.version}`);
   });
 

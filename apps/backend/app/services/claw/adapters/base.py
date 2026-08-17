@@ -239,14 +239,15 @@ from dataclasses import dataclass, field  # noqa: E402
 from datetime import datetime  # noqa: E402
 from enum import Enum  # noqa: E402
 from pathlib import Path  # noqa: E402
-from pathlib import Path as _Path  # noqa: E402
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple  # noqa: E402
-
-sys.path.insert(0, str(_Path(__file__).resolve().parents[2]))
 
 from app.services.claw.adapters.constants import get_hermes_dir  # noqa: E402
 from app.services.claw.adapters.models import Platform, PlatformConfig  # noqa: E402
 from app.services.claw.adapters.session_shim import SessionSource, build_session_key  # noqa: E402
+
+# 上面的导入只依赖仓库根已在 sys.path（uvicorn 从 apps/backend 启动时天然满足），
+# 无需额外注入。这里曾有一行 sys.path.insert(parents[2])，插入的是 app/services/——
+# 只服务于「import claw」式短路径导入，全仓无此用法，2026-08-13 删除。
 
 GATEWAY_SECRET_CAPTURE_UNSUPPORTED_MESSAGE = (
     "Secure secret entry is not supported over messaging. "

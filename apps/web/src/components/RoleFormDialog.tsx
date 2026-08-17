@@ -184,7 +184,7 @@ export function RoleFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col bg-background">
+      <DialogContent size="sm" className="overflow-hidden flex flex-col bg-background">
         <form
           onSubmit={handleSubmit}
           className="flex flex-col h-full overflow-hidden"

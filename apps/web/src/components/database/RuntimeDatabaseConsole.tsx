@@ -259,7 +259,7 @@ export function RuntimeDatabaseConsole({
                 <Database className="h-4 w-4" />
                 可用连接
               </div>
-              <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+              <p className="mt-1 text-micro leading-5 text-muted-foreground">
                 这里显示当前会话已经挂载的数据库连接。
               </p>
               <div className="mt-3 space-y-2">
@@ -277,13 +277,13 @@ export function RuntimeDatabaseConsole({
                       )}
                     >
                       <div className="text-xs font-medium text-foreground">{handle.name}</div>
-                      <div className="mt-1 text-[11px] text-muted-foreground">
+                      <div className="mt-1 text-micro text-muted-foreground">
                         {getHandleSubtitle(handle)}
                       </div>
                     </button>
                   ))
                 ) : (
-                  <div className="rounded-lg border border-dashed border-border px-3 py-4 text-[11px] text-muted-foreground">
+                  <div className="rounded-lg border border-dashed border-border px-3 py-4 text-micro text-muted-foreground">
                     当前会话暂无数据库挂载。
                   </div>
                 )}
@@ -327,7 +327,7 @@ export function RuntimeDatabaseConsole({
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">{getHandleSubtitle(selectedHandleInfo)}</Badge>
                 </div>
-                <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
+                <p className="mt-2 text-micro leading-5 text-muted-foreground">
                   {canExecute
                     ? "这个句柄支持查询，也支持写入或 DDL（最终权限由目标数据库账号控制）。"
                     : "这个句柄当前只开放查询能力，不允许写入或变更结构。"}
@@ -341,7 +341,7 @@ export function RuntimeDatabaseConsole({
                 value={sql}
                 onChange={(event) => setSql(event.target.value)}
                 placeholder="例如：SELECT * FROM your_table LIMIT 20;"
-                className="min-h-44 font-mono text-[12px] leading-6"
+                className="min-h-44 font-mono text-caption leading-6"
               />
             </div>
 
@@ -400,7 +400,7 @@ export function RuntimeDatabaseConsole({
                   </div>
                   <p className="text-sm text-foreground">{result.data.message || "执行完成"}</p>
                   {result.data.audit_id ? (
-                    <p className="text-[11px] font-mono text-muted-foreground">
+                    <p className="text-micro font-mono text-muted-foreground">
                       audit_id: {result.data.audit_id}
                     </p>
                   ) : null}
@@ -448,7 +448,7 @@ export function RuntimeDatabaseConsole({
                                 {result.data.columns.map((column, columnIndex) => (
                                   <td
                                     key={`${column}-${index}`}
-                                    className="px-3 py-2 align-top font-mono text-[11px] text-foreground"
+                                    className="px-3 py-2 align-top font-mono text-micro text-foreground"
                                   >
                                     {formatCellValue(row[columnIndex])}
                                   </td>
@@ -462,7 +462,7 @@ export function RuntimeDatabaseConsole({
                   </div>
 
                   {result.data.audit_id ? (
-                    <p className="text-[11px] font-mono text-muted-foreground">
+                    <p className="text-micro font-mono text-muted-foreground">
                       audit_id: {result.data.audit_id}
                     </p>
                   ) : null}

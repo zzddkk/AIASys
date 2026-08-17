@@ -67,6 +67,13 @@ class LLMProviderConfig(BaseModel):
         default=None, description="厂商特有的 reasoning 格式控制。当前仅阶跃星辰(stepfun)支持。"
     )
 
+    reasoning_in_content_tag: Optional[str] = Field(
+        default=None,
+        description="推理内容直接写在 content 里时的包裹标签名（填 'think' 即剥离 "
+        "<think>…</think>）。适用于 GLM / DeepSeek-R1 / Qwen3 等在 vLLM、SGLang "
+        "下不返回独立 reasoning 字段的部署。默认 None 即不剥离。",
+    )
+
     # 用于前端显示的脱敏 API Key
     @computed_field
     @property
@@ -121,6 +128,8 @@ class LLMProviderConfig(BaseModel):
             config["reasoning_key"] = self.reasoning_key
         if self.reasoning_format is not None:
             config["reasoning_format"] = self.reasoning_format
+        if self.reasoning_in_content_tag is not None:
+            config["reasoning_in_content_tag"] = self.reasoning_in_content_tag
         return config
 
     def mask_api_key(self) -> str:
@@ -166,6 +175,12 @@ class LLMModelConfig(BaseModel):
         "用于兼容不同厂商对 reasoning 内容的不同字段命名。",
     )
 
+    reasoning_in_content_tag: Optional[str] = Field(
+        default=None,
+        description="模型级别的推理包裹标签名，覆盖服务商级别的同名配置。"
+        "同一自建服务上常同时挂着普通模型与 R1 系，需按模型单独开。",
+    )
+
     enabled: bool = Field(default=True, description="是否启用")
 
     is_default: bool = Field(default=False, description="是否为默认模型")
@@ -205,6 +220,8 @@ class LLMModelConfig(BaseModel):
             config["capabilities"] = list(self.capabilities)
         if self.reasoning_key is not None:
             config["reasoning_key"] = self.reasoning_key
+        if self.reasoning_in_content_tag is not None:
+            config["reasoning_in_content_tag"] = self.reasoning_in_content_tag
         return config
 
     def model_to_sdk_config(self) -> Dict[str, Any]:
@@ -392,3 +409,33 @@ PROVIDER_TEMPLATES = {
 def get_provider_templates() -> Dict[str, Any]:
     """获取服务商模板（仅作为前端默认值参考）"""
     return PROVIDER_TEMPLATES
+
+
+def is_force_thinking_model(base_url: Optional[str], model_name: Optional[str]) -> bool:
+    """模型是否强制思考（思考无法通过 API 参数关闭）。
+
+    依据 step-code（阶跃官方 Step-Realtime-CLI）2026-08-02 逐参数实测：
+    Step 的 effort 取值域为 low/medium/high，**没有 off/none 档**；非法值
+    被静默忽略（传 bogus 也返回 200），不传 effort 则服务端默认深度思考。
+    即 step 系列模型的思考开不掉。
+
+    这类模型必须声明 always_thinking，否则 UI 会显示一个可点的「关闭」
+    开关——用户点关，服务端照思考，形成假控件。
+    """
+    if base_url and "stepfun" in base_url.lower():
+        return True
+    return bool(model_name) and model_name.lower().startswith("step-")
+
+
+def normalize_force_thinking_capabilities(
+    capabilities: Any, base_url: Optional[str], model_name: Optional[str]
+) -> list:
+    """读取侧能力归一化：强制思考模型确保 always_thinking 在能力集中。
+
+    在读路径（而非注册路径）做归一化，存量配置无需迁移即可生效。
+    """
+    caps = list(capabilities) if isinstance(capabilities, (list, set, tuple)) else []
+    if is_force_thinking_model(base_url, model_name):
+        if "thinking" in caps and "always_thinking" not in caps:
+            caps.append("always_thinking")
+    return caps

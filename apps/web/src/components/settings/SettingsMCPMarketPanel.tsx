@@ -272,16 +272,16 @@ export function SettingsMCPMarketPanel({
                 {server.display_name || server.name}
               </div>
               {typeof toolCount === "number" && toolCount > 0 && (
-                <Badge variant="secondary" className="text-[10px] gap-0.5">
+                <Badge variant="secondary" className="text-nano gap-0.5">
                   <Wrench className="h-2.5 w-2.5" />
                   {toolCount}
                 </Badge>
               )}
             </div>
             <div className="mt-1 flex flex-wrap gap-1.5">
-              <Badge variant="outline" className="text-[10px]">{server.type}</Badge>
+              <Badge variant="outline" className="text-nano">{server.type}</Badge>
               {server.is_system_default && (
-                <Badge variant="outline" className="text-[10px]">系统</Badge>
+                <Badge variant="outline" className="text-nano">系统</Badge>
               )}
             </div>
           </div>
@@ -290,7 +290,7 @@ export function SettingsMCPMarketPanel({
             type="button"
             variant="outline"
             size="sm"
-            className="h-8 text-xs"
+            className="text-xs"
             onClick={() => void handleTest(server.name)}
             disabled={isTesting}
           >
@@ -304,7 +304,7 @@ export function SettingsMCPMarketPanel({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-8 text-xs"
+            className="text-xs"
             onClick={() => setDetailServer(server.name)}
           >
             详情
@@ -314,8 +314,8 @@ export function SettingsMCPMarketPanel({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              size="icon-sm"
+              className="p-0 text-muted-foreground hover:text-foreground"
               onClick={() => openEditDialog(server)}
               disabled={isProcessing}
               title="编辑"
@@ -328,8 +328,8 @@ export function SettingsMCPMarketPanel({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+              size="icon-sm"
+              className="p-0 text-muted-foreground hover:text-destructive"
               onClick={() => void handleRemove(server.name)}
               disabled={isProcessing}
               title="删除"
@@ -395,7 +395,7 @@ export function SettingsMCPMarketPanel({
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="搜索连接器..."
-                  className="pl-9 h-9"
+                  className="pl-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -413,8 +413,8 @@ export function SettingsMCPMarketPanel({
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                className="h-9 gap-1 text-xs"
+                size="default"
+                className="gap-1 text-xs"
                 onClick={() => openAddDialog()}
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -456,7 +456,7 @@ export function SettingsMCPMarketPanel({
                         系统默认
                       </div>
                       <div className="h-px flex-1 bg-border" />
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-micro text-muted-foreground">
                         {systemDefaultServers.length} 个
                       </span>
                     </div>
@@ -480,7 +480,7 @@ export function SettingsMCPMarketPanel({
                         用户添加
                       </div>
                       <div className="h-px flex-1 bg-border" />
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-micro text-muted-foreground">
                         {userServers.length} 个
                       </span>
                     </div>
@@ -544,7 +544,7 @@ export function SettingsMCPMarketPanel({
           }
         }}
       >
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-hidden flex flex-col bg-background">
+        <DialogContent size="md" className="overflow-hidden flex flex-col bg-background">
           {detailItem ? (
             <>
               <DialogHeader className="shrink-0">
@@ -556,14 +556,14 @@ export function SettingsMCPMarketPanel({
                 {/* Tags + Description */}
                 <div className="rounded-xl border border-border bg-muted/50 p-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="text-[10px]">
+                    <Badge variant="outline" className="text-nano">
                       {detailItem.is_system_default ? "系统默认" : "我的默认"}
                     </Badge>
-                    <Badge variant="outline" className="text-[10px]">
+                    <Badge variant="outline" className="text-nano">
                       {detailItem.type}
                     </Badge>
                     {detailItem.enabled_tools && detailItem.enabled_tools.length > 0 && (
-                      <Badge variant="secondary" className="text-[10px]">
+                      <Badge variant="secondary" className="text-nano">
                         {detailItem.enabled_tools.length} 个工具已启用
                       </Badge>
                     )}
@@ -581,21 +581,21 @@ export function SettingsMCPMarketPanel({
                   {detailItem.type === "stdio" ? (
                     <div className="rounded-lg border border-border bg-muted/50 p-3 space-y-2">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px]">{detailItem.name}</Badge>
-                        <Badge variant="secondary" className="text-[10px]">stdio</Badge>
+                        <Badge variant="outline" className="text-nano">{detailItem.name}</Badge>
+                        <Badge variant="secondary" className="text-nano">stdio</Badge>
                       </div>
                       <div className="font-mono text-xs text-muted-foreground break-all">
                         {detailItem.command || "未配置"} {detailItem.args?.join(" ") || ""}
                       </div>
                       {detailItem.env_fields && detailItem.env_fields.length > 0 && (
-                        <div className="text-[11px] text-muted-foreground">
+                        <div className="text-micro text-muted-foreground">
                           env: {detailItem.env_fields.map(f => f.name).join(", ")}
                         </div>
                       )}
                     </div>
                   ) : (
                     <div>
-                      <div className="text-[11px] text-muted-foreground">URL</div>
+                      <div className="text-micro text-muted-foreground">URL</div>
                       <div className="mt-0.5 font-mono text-xs break-all">
                         {detailItem.url || "未配置"}
                       </div>
@@ -603,7 +603,7 @@ export function SettingsMCPMarketPanel({
                   )}
                   {detailItem.headers && Object.keys(detailItem.headers).length > 0 && (
                     <div>
-                      <div className="text-[11px] text-muted-foreground">Headers</div>
+                      <div className="text-micro text-muted-foreground">Headers</div>
                       <div className="mt-1 space-y-1">
                         {Object.entries(detailItem.headers).map(([k, v]) => (
                           <div key={k} className="font-mono text-xs break-all text-muted-foreground">
@@ -627,8 +627,8 @@ export function SettingsMCPMarketPanel({
                         <Button
                           type="button"
                           variant="outline"
-                          size="sm"
-                          className="h-7 text-xs"
+                          size="xs"
+                          className="text-xs"
                           onClick={() => void handleSaveEnv(detailItem.name)}
                           disabled={detailEnvSaving}
                         >
@@ -656,21 +656,21 @@ export function SettingsMCPMarketPanel({
                             <div className="flex items-center gap-1.5">
                               <span className="font-mono text-xs text-foreground">{field.name}</span>
                               {field.required && (
-                                <Badge variant="error" className="text-[10px] h-4 px-1">必填</Badge>
+                                <Badge variant="error" className="text-nano h-4 px-1">必填</Badge>
                               )}
                             </div>
                             {field.description && (
-                              <div className="text-[11px] text-muted-foreground leading-4">
+                              <div className="text-micro text-muted-foreground leading-4">
                                 {field.description}
                               </div>
                             )}
-                            <Input
+                            <Input size="sm"
                               type="text"
                               value={detailEditingEnv[field.name] || ""}
                               onChange={(e) =>
                                 setDetailEditingEnv((prev) => ({ ...prev, [field.name]: e.target.value }))
                               }
-                              className="h-8 text-xs"
+                              className="text-xs"
                               placeholder={field.default_value || `填写 ${field.name}`}
                             />
                           </div>
@@ -681,20 +681,20 @@ export function SettingsMCPMarketPanel({
                           .map(([k, v]) => (
                             <div key={k} className="flex items-center gap-2">
                               <span className="font-mono text-xs text-foreground w-28 shrink-0 truncate">{k}</span>
-                              <Input
+                              <Input size="xs"
                                 type="text"
                                 value={v}
                                 onChange={(e) =>
                                   setDetailEditingEnv((prev) => ({ ...prev, [k]: e.target.value }))
                                 }
-                                className="h-7 text-xs flex-1"
+                                className="text-xs flex-1"
                                 placeholder="值"
                               />
                               <Button
                                 type="button"
                                 variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 shrink-0"
+                                size="icon-xs"
+                                className="p-0 shrink-0"
                                 onClick={() =>
                                   setDetailEditingEnv((prev) => {
                                     const next = { ...prev };
@@ -708,10 +708,10 @@ export function SettingsMCPMarketPanel({
                             </div>
                           ))}
                         <div className="flex items-center gap-2 pt-1">
-                          <Input
+                          <Input size="xs"
                             type="text"
                             id={`env-key-${detailItem.name}`}
-                            className="h-7 text-xs w-28 shrink-0"
+                            className="text-xs w-28 shrink-0"
                             placeholder="变量名"
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
@@ -729,10 +729,10 @@ export function SettingsMCPMarketPanel({
                               }
                             }}
                           />
-                          <Input
+                          <Input size="xs"
                             type="text"
                             id={`env-val-${detailItem.name}`}
-                            className="h-7 text-xs flex-1"
+                            className="text-xs flex-1"
                             placeholder="值"
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
@@ -753,8 +753,8 @@ export function SettingsMCPMarketPanel({
                           <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 shrink-0"
+                            size="icon-xs"
+                            className="p-0 shrink-0"
                             onClick={() => {
                               const keyInput = document.getElementById(`env-key-${detailItem.name}`) as HTMLInputElement;
                               const valInput = document.getElementById(`env-val-${detailItem.name}`) as HTMLInputElement;
@@ -777,20 +777,20 @@ export function SettingsMCPMarketPanel({
                         {Object.entries(detailEditingEnv).map(([k, v]) => (
                           <div key={k} className="flex items-center gap-2">
                             <span className="font-mono text-xs text-foreground w-28 shrink-0 truncate">{k}</span>
-                            <Input
+                            <Input size="xs"
                               type="text"
                               value={v}
                               onChange={(e) =>
                                 setDetailEditingEnv((prev) => ({ ...prev, [k]: e.target.value }))
                               }
-                              className="h-7 text-xs flex-1"
+                              className="text-xs flex-1"
                               placeholder="值"
                             />
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
-                              className="h-7 w-7 p-0 shrink-0"
+                              size="icon-xs"
+                              className="p-0 shrink-0"
                               onClick={() =>
                                 setDetailEditingEnv((prev) => {
                                   const next = { ...prev };
@@ -804,10 +804,10 @@ export function SettingsMCPMarketPanel({
                           </div>
                         ))}
                         <div className="flex items-center gap-2 pt-1">
-                          <Input
+                          <Input size="xs"
                             type="text"
                             id={`env-key-${detailItem.name}`}
-                            className="h-7 text-xs w-28 shrink-0"
+                            className="text-xs w-28 shrink-0"
                             placeholder="变量名"
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
@@ -825,10 +825,10 @@ export function SettingsMCPMarketPanel({
                               }
                             }}
                           />
-                          <Input
+                          <Input size="xs"
                             type="text"
                             id={`env-val-${detailItem.name}`}
-                            className="h-7 text-xs flex-1"
+                            className="text-xs flex-1"
                             placeholder="值"
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
@@ -849,8 +849,8 @@ export function SettingsMCPMarketPanel({
                           <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 shrink-0"
+                            size="icon-xs"
+                            className="p-0 shrink-0"
                             onClick={() => {
                               const keyInput = document.getElementById(`env-key-${detailItem.name}`) as HTMLInputElement;
                               const valInput = document.getElementById(`env-val-${detailItem.name}`) as HTMLInputElement;
@@ -879,8 +879,8 @@ export function SettingsMCPMarketPanel({
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
-                      className="h-7 text-xs"
+                      size="xs"
+                      className="text-xs"
                       onClick={() => void handleTestInDialog(detailItem.name)}
                       disabled={detailTestingName === detailItem.name}
                     >
@@ -912,7 +912,7 @@ export function SettingsMCPMarketPanel({
                             {tool.name}
                           </div>
                           {tool.description && (
-                            <div className="mt-1 text-[11px] text-muted-foreground leading-4">
+                            <div className="mt-1 text-micro text-muted-foreground leading-4">
                               {tool.description}
                             </div>
                           )}
@@ -927,12 +927,12 @@ export function SettingsMCPMarketPanel({
                   <div className="text-sm font-medium text-foreground">设置</div>
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <div className="text-[11px] text-muted-foreground">超时</div>
+                      <div className="text-micro text-muted-foreground">超时</div>
                       <div className="mt-0.5 text-foreground">{detailItem.timeout_ms || 30000}ms</div>
                     </div>
                     {detailItem.auto_attach_modes && detailItem.auto_attach_modes.length > 0 && (
                       <div>
-                        <div className="text-[11px] text-muted-foreground">自动附加模式</div>
+                        <div className="text-micro text-muted-foreground">自动附加模式</div>
                         <div className="mt-0.5 text-foreground">{detailItem.auto_attach_modes.join(", ")}</div>
                       </div>
                     )}
@@ -959,7 +959,7 @@ export function SettingsMCPMarketPanel({
                     type="button"
                     variant="destructive"
                     size="sm"
-                    className="h-8 text-xs"
+                    className="text-xs"
                     onClick={() => {
                       setDetailServer(null);
                       void handleRemove(detailItem.name);
@@ -973,7 +973,7 @@ export function SettingsMCPMarketPanel({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-8 text-xs"
+                  className="text-xs"
                   onClick={() => setDetailServer(null)}
                 >
                   关闭
@@ -998,7 +998,7 @@ export function SettingsMCPMarketPanel({
           if (!open) setEditingServerName(null);
         }}
       >
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col bg-background">
+        <DialogContent size="sm" className="overflow-hidden flex flex-col bg-background">
           <DialogHeader className="shrink-0">
             <DialogTitle>
               {editingServerName !== null ? "编辑连接器" : "添加连接器"}
@@ -1029,7 +1029,7 @@ export function SettingsMCPMarketPanel({
                   disabled={editingServerName !== null}
                 />
                 {editingServerName !== null ? (
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-micro text-muted-foreground">
                     名称创建后不可修改。
                   </p>
                 ) : null}

@@ -174,7 +174,7 @@ export function EnvVarsPanel({
   const sourceBadge = (source: VarSource) => {
     if (source === "global") {
       return (
-        <Badge variant="secondary" className="text-[10px] h-4 px-1 gap-0.5 shrink-0">
+        <Badge variant="secondary" className="text-nano h-4 px-1 gap-0.5 shrink-0">
           <Globe className="h-2.5 w-2.5" />
           全局
         </Badge>
@@ -184,14 +184,14 @@ export function EnvVarsPanel({
       return (
         <Badge
           variant="outline"
-          className="text-[10px] h-4 px-1 shrink-0 border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300"
+          className="text-nano h-4 px-1 shrink-0 border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300"
         >
           覆盖全局
         </Badge>
       );
     }
     return (
-      <Badge variant="outline" className="text-[10px] h-4 px-1 shrink-0">
+      <Badge variant="outline" className="text-nano h-4 px-1 shrink-0">
         工作区
       </Badge>
     );
@@ -206,17 +206,17 @@ export function EnvVarsPanel({
       ) : isGlobal ? (
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-xl border border-border bg-background px-3 py-3">
-            <div className="text-[11px] font-semibold text-muted-foreground">作用范围</div>
+            <div className="text-micro font-semibold text-muted-foreground">作用范围</div>
             <div className="mt-1 text-sm font-semibold text-foreground">所有工作区</div>
             <div className="mt-1 text-xs leading-5 text-muted-foreground">全局环境变量会注入到所有工作区</div>
           </div>
           <div className="rounded-xl border border-border bg-background px-3 py-3">
-            <div className="text-[11px] font-semibold text-muted-foreground">注入位置</div>
+            <div className="text-micro font-semibold text-muted-foreground">注入位置</div>
             <div className="mt-1 text-sm font-semibold text-foreground">Shell / Python</div>
             <div className="mt-1 text-xs leading-5 text-muted-foreground">下一次执行会读取最新值</div>
           </div>
           <div className="rounded-xl border border-border bg-background px-3 py-3">
-            <div className="text-[11px] font-semibold text-muted-foreground">生效变量</div>
+            <div className="text-micro font-semibold text-muted-foreground">生效变量</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{displayVars.length} 个</div>
             <div className="mt-1 text-xs leading-5 text-muted-foreground">全局 {Object.keys(globalEnvVars).length} 个</div>
           </div>
@@ -224,17 +224,17 @@ export function EnvVarsPanel({
       ) : (
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-xl border border-border bg-background px-3 py-3">
-            <div className="text-[11px] font-semibold text-muted-foreground">当前工作区</div>
+            <div className="text-micro font-semibold text-muted-foreground">当前工作区</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{workspaceSummary?.title || "未选择"}</div>
             <div className="mt-1 text-xs leading-5 text-muted-foreground">变量只影响当前工作区</div>
           </div>
           <div className="rounded-xl border border-border bg-background px-3 py-3">
-            <div className="text-[11px] font-semibold text-muted-foreground">注入位置</div>
+            <div className="text-micro font-semibold text-muted-foreground">注入位置</div>
             <div className="mt-1 text-sm font-semibold text-foreground">Shell / Python</div>
             <div className="mt-1 text-xs leading-5 text-muted-foreground">下一次执行会读取最新值</div>
           </div>
           <div className="rounded-xl border border-border bg-background px-3 py-3">
-            <div className="text-[11px] font-semibold text-muted-foreground">生效变量</div>
+            <div className="text-micro font-semibold text-muted-foreground">生效变量</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{mergedVars.length} 个</div>
             <div className="mt-1 text-xs leading-5 text-muted-foreground">
               全局 {Object.keys(globalEnvVars).length} 个 · 工作区 {Object.keys(workspaceEnvVars).length} 个
@@ -250,8 +250,8 @@ export function EnvVarsPanel({
             <Button
               type="button"
               variant="outline"
-              size="sm"
-              className="h-7 text-xs"
+              size="xs"
+              className="text-xs"
               onClick={() => void loadGlobalEnvVars()}
             >
               重试
@@ -287,7 +287,7 @@ export function EnvVarsPanel({
               type="button"
               variant="outline"
               size="sm"
-              className="mt-3 h-8 text-xs"
+              className="mt-3 text-xs"
               onClick={() => newKeyInputRef.current?.focus()}
             >
               添加环境变量
@@ -313,8 +313,8 @@ export function EnvVarsPanel({
               <span className="text-xs text-muted-foreground">=</span>
 
               {isEditing ? (
-                <Input
-                  className="h-7 text-xs font-mono flex-[2] min-w-0"
+                <Input size="xs"
+                  className="text-xs font-mono flex-[2] min-w-0"
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
                   onKeyDown={(e) => {
@@ -392,17 +392,17 @@ export function EnvVarsPanel({
 
       {/* 添加 / 编辑提示 */}
       <div className="grid gap-2 border-t pt-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,2fr)_auto]">
-        <Input
+        <Input size="sm"
           ref={newKeyInputRef}
-          className="h-8 text-xs font-mono flex-1"
+          className="text-xs font-mono flex-1"
           placeholder="KEY"
           value={newKey}
           onChange={(e) => setNewKey(e.target.value.toUpperCase())}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
         />
         <span className="hidden self-center text-xs text-muted-foreground md:block">=</span>
-        <Input
-          className="h-8 text-xs font-mono flex-[2]"
+        <Input size="sm"
+          className="text-xs font-mono flex-[2]"
           placeholder="value"
           value={newValue}
           onChange={(e) => setNewValue(e.target.value)}
@@ -410,8 +410,8 @@ export function EnvVarsPanel({
         />
         <Button
           variant="outline"
-          size="icon"
-          className="h-8 w-8 shrink-0"
+          size="icon-sm"
+          className="shrink-0"
           disabled={!newKey.trim() || saving}
           onClick={handleAdd}
           aria-label="新增环境变量"
@@ -421,13 +421,13 @@ export function EnvVarsPanel({
       </div>
 
       {!isGlobal && newKey.trim() && newKey.trim() in globalEnvVars && (
-        <div className="text-[11px] text-amber-600 dark:text-amber-400">
+        <div className="text-micro text-amber-600 dark:text-amber-400">
           此变量名与全局环境变量同名，保存后将覆盖全局值
         </div>
       )}
 
       {!isGlobal && newKey.trim() && newKey.trim() in workspaceEnvVars && (
-        <div className="text-[11px] text-blue-600 dark:text-blue-400">
+        <div className="text-micro text-blue-600 dark:text-blue-400">
           此变量已存在于工作区变量中，保存后将更新其值
         </div>
       )}

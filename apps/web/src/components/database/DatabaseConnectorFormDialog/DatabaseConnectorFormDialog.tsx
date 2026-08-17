@@ -94,7 +94,7 @@ export function DatabaseConnectorFormDialog({
 }: DatabaseConnectorFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={compact ? "max-h-[90vh] max-w-2xl overflow-y-auto" : "max-h-[90vh] max-w-xl overflow-y-auto"}>
+      <DialogContent size={compact ? "md" : "sm"} className="overflow-y-auto">
         <DialogHeader className="sr-only">
           <DialogTitle>数据库连接表单</DialogTitle>
           <DialogDescription>配置数据库连接参数，测试通过后方可使用。</DialogDescription>

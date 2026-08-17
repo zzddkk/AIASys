@@ -39,20 +39,20 @@ export function SqlQueryPanel({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <SquareTerminal className="h-4 w-4 text-muted-foreground" />
-          <span className="text-[12px] font-medium">SQL</span>
+          <span className="text-caption font-medium">SQL</span>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          <Input
+          <Input size="xs"
             value={queryLimitInput}
             onChange={(e) => onLimitChange(e.target.value)}
             inputMode="numeric"
             placeholder="100"
-            className="h-7 w-12 text-[11px]"
+            className="w-12 text-micro"
             title="查询行数上限"
           />
           <Button
-            size="sm"
-            className="h-7 shrink-0 whitespace-nowrap px-2 text-[11px]"
+            size="xs"
+            className="shrink-0 whitespace-nowrap px-2 text-micro"
             onClick={onRunQuery}
             disabled={disabled || runningAction !== null}
           >
@@ -65,9 +65,9 @@ export function SqlQueryPanel({
           </Button>
           {canExecute && (
             <Button
-              size="sm"
+              size="xs"
               variant="outline"
-              className="h-7 shrink-0 whitespace-nowrap px-2 text-[11px]"
+              className="shrink-0 whitespace-nowrap px-2 text-micro"
               onClick={onRunExecute}
               disabled={disabled || runningAction !== null}
             >
@@ -91,7 +91,7 @@ export function SqlQueryPanel({
           onValueChange={onSqlChange}
           highlight={highlightCode}
           padding={12}
-          className="font-mono text-[12px] leading-5"
+          className="font-mono text-caption leading-5"
           textareaClassName="focus:outline-none bg-transparent"
           preClassName="language-sql m-0 p-0 bg-transparent min-h-[150px]"
           placeholder="例如：SELECT * FROM your_table LIMIT 20;"
@@ -106,7 +106,7 @@ export function SqlQueryPanel({
       </div>
 
       {error ? (
-        <div className="rounded border border-destructive/30 bg-destructive/5 px-2.5 py-1.5 text-[12px] text-destructive">
+        <div className="rounded border border-destructive/30 bg-destructive/5 px-2.5 py-1.5 text-caption text-destructive">
           <div className="flex items-start gap-1.5">
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>{error}</span>

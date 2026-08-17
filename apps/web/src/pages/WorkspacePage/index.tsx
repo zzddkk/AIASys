@@ -6,6 +6,7 @@ const WorkspaceDialogLayer = lazy(() =>
   })),
 );
 import { WorkspaceLayout } from "./components/WorkspaceLayout";
+import { Toaster } from "@/lib/toast";
 
 // 本地 Hooks
 import { getCurrentUserId } from "@/config/api";
@@ -151,7 +152,6 @@ function WorkspacePageContent({
         thinkingEffort={controller.thinkingEffort}
         setThinkingEnabled={controller.setThinkingEnabled}
         setThinkingEffort={controller.setThinkingEffort}
-        selectedModelSupportsThinking={controller.selectedModelSupportsThinking}
         hasMessagesForMcp={controller.hasMessagesForMcp}
         hasMCPConfig={controller.hasMCPConfig}
         onDeleteSession={controller.handleDeleteSession}
@@ -167,6 +167,8 @@ function WorkspacePageContent({
       <Suspense fallback={null}>
         <WorkspaceDialogLayer controller={controller} />
       </Suspense>
+
+      <Toaster />
     </div>
   );
 }

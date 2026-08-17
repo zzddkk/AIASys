@@ -431,7 +431,7 @@ export function NotebookWorkbenchCanvas({
             <div className="flex items-start gap-3">
               <div className="grid flex-1 gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm sm:grid-cols-4">
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                <div className="text-micro uppercase tracking-wide text-muted-foreground">
                   单元
                 </div>
                 <div className="mt-1 text-lg font-semibold text-foreground">
@@ -439,7 +439,7 @@ export function NotebookWorkbenchCanvas({
                 </div>
               </div>
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                <div className="text-micro uppercase tracking-wide text-muted-foreground">
                   已运行
                 </div>
                 <div className="mt-1 text-lg font-semibold text-foreground">
@@ -447,7 +447,7 @@ export function NotebookWorkbenchCanvas({
                 </div>
               </div>
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                <div className="text-micro uppercase tracking-wide text-muted-foreground">
                   变量
                 </div>
                 <div className="mt-1 text-lg font-semibold text-foreground">
@@ -455,7 +455,7 @@ export function NotebookWorkbenchCanvas({
                 </div>
               </div>
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                <div className="text-micro uppercase tracking-wide text-muted-foreground">
                   产物
                 </div>
                 <div className="mt-1 text-lg font-semibold text-foreground">

@@ -111,7 +111,7 @@ export default function LLMConfigPanel({ onModelsChange }: LLMConfigPanelProps =
               <AlertDescription className="text-success">{success}</AlertDescription>
             </Alert>
           )}
-          
+
           {/* 初始化默认配置按钮 */}
           <div className="mb-4 flex items-center justify-end">
             <Button
@@ -145,7 +145,7 @@ export default function LLMConfigPanel({ onModelsChange }: LLMConfigPanelProps =
                       })
                     }
                   >
-                    <SelectTrigger id="default-chat-model" className="h-9">
+                    <SelectTrigger id="default-chat-model">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -172,7 +172,7 @@ export default function LLMConfigPanel({ onModelsChange }: LLMConfigPanelProps =
                       })
                     }
                   >
-                    <SelectTrigger id="default-embedding-model" className="h-9">
+                    <SelectTrigger id="default-embedding-model">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -214,7 +214,7 @@ export default function LLMConfigPanel({ onModelsChange }: LLMConfigPanelProps =
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Providers Section */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -230,7 +230,7 @@ export default function LLMConfigPanel({ onModelsChange }: LLMConfigPanelProps =
                 onReset={() => { resetProviderForm(); setEditingProvider(null); }}
               />
             </div>
-            
+
             {loading.providers ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -270,7 +270,7 @@ export default function LLMConfigPanel({ onModelsChange }: LLMConfigPanelProps =
           </div>
         </div>
       </main>
-      
+
       {/* Delete Confirmations */}
       <DeleteConfirmDialog
         isOpen={!!deleteProviderTarget}
@@ -280,7 +280,7 @@ export default function LLMConfigPanel({ onModelsChange }: LLMConfigPanelProps =
         onConfirm={handleDeleteProvider}
         isLoading={!!loading.delete}
       />
-      
+
       <DeleteConfirmDialog
         isOpen={!!deleteModelTarget}
         onOpenChange={() => setDeleteModelTarget(null)}
@@ -289,7 +289,7 @@ export default function LLMConfigPanel({ onModelsChange }: LLMConfigPanelProps =
         onConfirm={handleDeleteModel}
         isLoading={!!loading.delete}
       />
-      
+
       {/* Model Edit Dialog */}
       <ModelDialog
         isOpen={isEditModelOpen}
@@ -303,7 +303,7 @@ export default function LLMConfigPanel({ onModelsChange }: LLMConfigPanelProps =
         onFormChange={setModelForm}
         onSave={handleSaveModel}
       />
-      
+
       {/* Fetch Remote Models Dialog */}
       <FetchModelsDialog
         isOpen={isFetchModelsOpen}

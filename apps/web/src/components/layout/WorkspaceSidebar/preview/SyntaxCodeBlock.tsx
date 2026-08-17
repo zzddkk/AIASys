@@ -128,7 +128,7 @@ export const SyntaxCodeBlock: React.FC<SyntaxCodeBlockProps> = ({
         </div>
 
         {/* 语言标签 */}
-        <span className="ml-1 text-[11px] font-medium tracking-wide text-white/50">
+        <span className="ml-1 text-micro font-medium tracking-wide text-white/50">
           {displayLang}
         </span>
 
@@ -139,7 +139,7 @@ export const SyntaxCodeBlock: React.FC<SyntaxCodeBlockProps> = ({
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-white/40 transition-colors hover:bg-white/10 hover:text-white/70"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-micro text-white/40 transition-colors hover:bg-white/10 hover:text-white/70"
           title="复制代码"
         >
           {copied ? (

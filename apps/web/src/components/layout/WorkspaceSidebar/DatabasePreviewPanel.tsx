@@ -90,7 +90,7 @@ export function DatabasePreviewPanel({
             <div className="flex min-w-0 items-center gap-2">
               <Database className="h-4 w-4 shrink-0 text-tertiary" />
               <span className="truncate text-sm font-semibold">{node.name}</span>
-              <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+              <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-nano text-muted-foreground">
                 本地文件
               </span>
             </div>
@@ -125,7 +125,7 @@ export function DatabasePreviewPanel({
           <div className="flex min-w-0 items-center gap-2">
             {icon}
             <span className="truncate text-sm font-semibold">{node.name}</span>
-            <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-nano text-muted-foreground">
               {label}
             </span>
           </div>

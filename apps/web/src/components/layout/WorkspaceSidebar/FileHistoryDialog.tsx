@@ -239,7 +239,7 @@ export function FileHistoryDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[86vh] max-h-[720px] max-w-5xl grid-rows-none flex-col gap-0 overflow-hidden p-0">
+      <DialogContent size="lg" tall className="max-h-[720px] grid-rows-none overflow-hidden">
         <DialogHeader className="border-b border-border px-5 py-4">
           <div className="flex items-center gap-2">
             <History className="h-4 w-4 text-muted-foreground" />
@@ -292,11 +292,11 @@ export function FileHistoryDialog({
                     >
                       <span className="flex items-center justify-between gap-2 text-xs font-medium">
                         <span>{operationLabel(entry.operation)}</span>
-                        <span className="shrink-0 text-[11px] text-muted-foreground">
+                        <span className="shrink-0 text-micro text-muted-foreground">
                           {formatBytes(entry.size)}
                         </span>
                       </span>
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-micro text-muted-foreground">
                         {formatEntryTime(entry.timestamp)}
                       </span>
                     </button>

@@ -92,7 +92,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
           <h2 className="text-sm font-semibold text-foreground">当前工作区</h2>
           <button
             onClick={toggleVersionDetails}
-            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5 rounded hover:bg-accent"
+            className="text-micro text-muted-foreground hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5 rounded hover:bg-accent"
             title="查看版本信息"
           >
             {backendVersion}
@@ -154,8 +154,8 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            className="h-7 gap-1.5 text-[11px]"
+            size="xs"
+            className="gap-1.5 text-micro"
             onClick={() => {
               void onSwitchToLeadSession?.();
             }}

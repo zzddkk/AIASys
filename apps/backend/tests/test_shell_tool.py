@@ -10,9 +10,9 @@ from pathlib import Path
 import pytest
 
 from app.agents.tools.shell_tool import Shell, ShellParams
+from app.services import shell_executor as shell_executor_module
 from app.services.history import current_workspace
 from app.services.runtime.runtime_execution import RuntimeExecutionPlan
-from app.services import shell_executor as shell_executor_module
 
 
 @pytest.fixture

@@ -22,7 +22,7 @@ export function AutoTaskCategorySelector({
 }: AutoTaskCategorySelectorProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>新建自动化任务</DialogTitle>
           <DialogDescription className="sr-only">
@@ -45,7 +45,7 @@ export function AutoTaskCategorySelector({
               <div className="text-sm font-semibold text-foreground">
                 按时间触发
               </div>
-              <div className="mt-1 text-[12px] leading-5 text-muted-foreground">
+              <div className="mt-1 text-caption leading-5 text-muted-foreground">
                 立即、单次、周期或固定时间运行。适合巡检、简报、数据同步等周期性工作。
               </div>
             </div>
@@ -65,7 +65,7 @@ export function AutoTaskCategorySelector({
               <div className="text-sm font-semibold text-foreground">
                 连续推进
               </div>
-              <div className="mt-1 text-[12px] leading-5 text-muted-foreground">
+              <div className="mt-1 text-caption leading-5 text-muted-foreground">
                 绑定会话持续推进目标，直到达成目标或触发停止条件。适合需要多轮自动执行的复杂目标。
               </div>
             </div>

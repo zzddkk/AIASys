@@ -88,7 +88,7 @@ export function AutoTaskList({
                       </Badge>
                     </div>
 
-                    <div className="grid min-w-0 gap-1.5 text-[11px] leading-5 text-muted-foreground">
+                    <div className="grid min-w-0 gap-1.5 text-micro leading-5 text-muted-foreground">
                       <AutoTaskMetaRow
                         label="触发"
                         value={formatScheduleValue(task)}
@@ -138,11 +138,11 @@ export function AutoTaskList({
                       ) : null}
                     </div>
 
-                    <div className="mt-1 truncate text-[12px] leading-5 text-muted-foreground">
+                    <div className="mt-1 truncate text-caption leading-5 text-muted-foreground">
                       {summarizeText(task.prompt, 88)}
                     </div>
 
-                    <div className="mt-2 grid gap-1 text-[11px] leading-5 text-muted-foreground sm:grid-cols-2">
+                    <div className="mt-2 grid gap-1 text-micro leading-5 text-muted-foreground sm:grid-cols-2">
                       <span className="min-w-0 truncate">
                         下次 {formatTimestamp(task.next_run_at)}
                       </span>
@@ -165,7 +165,7 @@ export function AutoTaskList({
                       ) : null}
                     </div>
                     {task.task_category === "continuous" ? (
-                      <div className="mt-1 text-[11px] leading-5 text-muted-foreground">
+                      <div className="mt-1 text-micro leading-5 text-muted-foreground">
                         {formatStopConditionsSummary(task)}
                       </div>
                     ) : null}
@@ -179,7 +179,7 @@ export function AutoTaskList({
                     <Button
                       type="button"
                       size="sm"
-                      className="h-8 gap-1.5 rounded-xl px-3 text-[11px]"
+                      className="gap-1.5 rounded-xl px-3 text-micro"
                       onClick={() => onRunNow(task)}
                       disabled={isMutating}
                     >
@@ -190,7 +190,7 @@ export function AutoTaskList({
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="h-8 gap-1.5 rounded-xl px-3 text-[11px]"
+                      className="gap-1.5 rounded-xl px-3 text-micro"
                       onClick={() => onToggleTask(task)}
                       disabled={isMutating || task.status === "completed"}
                     >
@@ -205,7 +205,7 @@ export function AutoTaskList({
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="h-8 gap-1.5 rounded-xl px-3 text-[11px]"
+                      className="gap-1.5 rounded-xl px-3 text-micro"
                       onClick={() => onEditTask(task)}
                       disabled={isMutating}
                     >
@@ -216,7 +216,7 @@ export function AutoTaskList({
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="h-8 gap-1.5 rounded-xl border-error/20 px-3 text-[11px] text-error hover:bg-error-container hover:text-error"
+                      className="gap-1.5 rounded-xl border-error/20 px-3 text-micro text-error hover:bg-error-container hover:text-error"
                       onClick={() => onDeleteTask(task)}
                       disabled={isMutating}
                     >
@@ -238,7 +238,7 @@ export function AutoTaskList({
             <Button
               type="button"
               size="sm"
-              className="mt-4 h-8 gap-1.5 rounded-xl px-4 text-[11px]"
+              className="mt-4 gap-1.5 rounded-xl px-4 text-micro"
               onClick={onCreateFromTemplate}
             >
               <Plus className="h-3.5 w-3.5" />
@@ -277,7 +277,7 @@ function AutoTaskLastError({ error }: { error: string }) {
   const isLong = error.length > 80 || error.includes("\n");
 
   return (
-    <div className="mt-2 text-[11px] leading-5 text-error">
+    <div className="mt-2 text-micro leading-5 text-error">
       <div
         className={
           expanded
@@ -290,7 +290,7 @@ function AutoTaskLastError({ error }: { error: string }) {
       {isLong ? (
         <button
           type="button"
-          className="mt-0.5 text-[11px] underline hover:text-error/80"
+          className="mt-0.5 text-micro underline hover:text-error/80"
           onClick={() => setExpanded((v) => !v)}
         >
           {expanded ? "收起" : "展开"}

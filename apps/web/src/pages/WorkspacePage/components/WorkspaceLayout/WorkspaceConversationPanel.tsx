@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  Archive,
   Download,
   GitBranchPlus,
   Loader2,
@@ -30,11 +31,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
+import { matchesConversation } from "@/utils/listSearch";
 import * as React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { exportConversation, importConversation } from "@/lib/api/sessions";
+import {
+  archiveConversation,
+  exportConversation,
+  importConversation,
+} from "@/lib/api/sessions";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { useFileUploadToast } from "@/components/file/FileUploadToast";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { TaskWorkspaceSummary, WorkspaceConversationSummary } from "../../types";
 
@@ -94,6 +100,7 @@ interface ConversationItemProps {
     title: string,
   ) => void;
   onStartRename: (sessionId: string, title: string) => void;
+  onArchiveConversation?: (conversation: WorkspaceConversationSummary) => void;
   currentUserId?: string;
   style?: React.CSSProperties;
   measureRef?: (element: HTMLElement | null) => void;
@@ -109,6 +116,7 @@ const ConversationItem = React.memo(function ConversationItem({
   onRequestDelete,
   onExportConversation,
   onStartRename,
+  onArchiveConversation,
   currentUserId,
   style,
   measureRef,
@@ -144,6 +152,11 @@ const ConversationItem = React.memo(function ConversationItem({
       conversation.session_id,
       conversation.title || "conversation",
     );
+  };
+
+  const handleArchiveClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    onArchiveConversation?.(conversation);
   };
 
   const handleDeleteClick = (event: React.MouseEvent) => {
@@ -188,6 +201,19 @@ const ConversationItem = React.memo(function ConversationItem({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
+            {/* 状态点（Harness Rows.tsx 优先级链思路，数据用现有字段）：
+                运行中 > 失败 > 无。待审批状态后端列表数据暂缺，补数后再加。 */}
+            {conversation.last_execution_status === "running" ? (
+              <span
+                className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-amber-500"
+                title="运行中"
+              />
+            ) : conversation.last_execution_status === "failed" ? (
+              <span
+                className="h-2 w-2 shrink-0 rounded-full bg-red-500"
+                title="上次执行失败"
+              />
+            ) : null}
             <div
               className="truncate text-sm font-medium text-foreground"
               title={conversation.title || "未命名对话"}
@@ -195,23 +221,23 @@ const ConversationItem = React.memo(function ConversationItem({
               {conversation.title || "未命名对话"}
             </div>
             {isSwitchPending ? (
-              <span className="rounded-full bg-info-container px-2 py-0.5 text-[10px] font-medium text-info">
+              <span className="rounded-full bg-info-container px-2 py-0.5 text-nano font-medium text-info">
                 切换中...
               </span>
             ) : null}
             {isSwitchSucceeded ? (
-              <span className="rounded-full bg-success-container px-2 py-0.5 text-[10px] font-medium text-success">
+              <span className="rounded-full bg-success-container px-2 py-0.5 text-nano font-medium text-success">
                 切换成功
               </span>
             ) : null}
             {conversation.branched_from_conversation_id ? (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-nano font-medium text-muted-foreground">
                 Fork
               </span>
             ) : null}
           </div>
 
-          <div className="mt-1 text-[11px] text-muted-foreground">
+          <div className="mt-1 text-micro text-muted-foreground">
             创建{" "}
             {formatConversationTimestamp(conversation.created_at)}
             {" · "}
@@ -219,11 +245,20 @@ const ConversationItem = React.memo(function ConversationItem({
             {formatConversationTimestamp(conversation.updated_at)}
           </div>
 
-          <div className="mt-1 text-[11px] text-muted-foreground">
+          <div className="mt-1 text-micro text-muted-foreground">
             {conversation.message_count} 条消息
             {" · "}
             {conversation.execution_record_count ?? 0} 次执行
           </div>
+
+          {conversation.last_user_preview ? (
+            <div
+              className="mt-1 truncate text-micro text-muted-foreground/80"
+              title={conversation.last_user_preview}
+            >
+              最后一问：{conversation.last_user_preview}
+            </div>
+          ) : null}
         </div>
 
         <DropdownMenu>
@@ -231,8 +266,8 @@ const ConversationItem = React.memo(function ConversationItem({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+              size="icon-sm"
+              className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
               onClick={(event) => event.stopPropagation()}
             >
               <MoreHorizontal className="h-4 w-4" />
@@ -251,6 +286,12 @@ const ConversationItem = React.memo(function ConversationItem({
               <DropdownMenuItem onClick={handleExportClick}>
                 <Download className="mr-2 h-4 w-4" />
                 导出对话
+              </DropdownMenuItem>
+            ) : null}
+            {onArchiveConversation ? (
+              <DropdownMenuItem onClick={handleArchiveClick}>
+                <Archive className="mr-2 h-4 w-4" />
+                {conversation.archived ? "取消归档" : "归档对话"}
               </DropdownMenuItem>
             ) : null}
             {onRequestDelete ? (
@@ -304,7 +345,6 @@ export function WorkspaceConversationPanel({
   } | null>(null);
   const [isDeletingConversation, setIsDeletingConversation] = useState(false);
   const { user } = useAuthContext();
-  const { showError } = useFileUploadToast();
   const currentUserId = user?.id;
   const isCollapsed = embedded ? false : collapsed;
   const edgeBorderClass =
@@ -386,11 +426,38 @@ export function WorkspaceConversationPanel({
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-      } catch {
-        // 静默失败，不打扰用户
+      } catch (error) {
+        toast.error(error instanceof Error ? `导出失败：${error.message}` : "导出对话失败");
       }
     },
     [currentUserId],
+  );
+
+  const [isArchiving, setIsArchiving] = useState<string | null>(null);
+  const handleArchiveConversation = useCallback(
+    async (conversation: WorkspaceConversationSummary) => {
+      const workspaceId = workspace?.workspace_id;
+      if (!currentUserId || !workspaceId || isArchiving) return;
+      const targetArchived = !conversation.archived;
+      setIsArchiving(conversation.conversation_id);
+      try {
+        await archiveConversation(
+          currentUserId,
+          workspaceId,
+          conversation.conversation_id,
+          targetArchived,
+        );
+        toast.success(targetArchived ? "已归档" : "已取消归档");
+        onImportConversation?.();
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? `归档失败：${error.message}` : "归档对话失败",
+        );
+      } finally {
+        setIsArchiving(null);
+      }
+    },
+    [currentUserId, workspace?.workspace_id, isArchiving, onImportConversation],
   );
 
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -412,8 +479,10 @@ export function WorkspaceConversationPanel({
       try {
         await importConversation(currentUserId, workspaceId, file);
         onImportConversation?.();
+        toast.success("对话导入成功");
       } catch (error) {
         console.error("导入对话失败:", error);
+        toast.error(error instanceof Error ? `导入失败：${error.message}` : "导入对话失败");
       } finally {
         setIsImporting(false);
         event.target.value = "";
@@ -443,9 +512,7 @@ export function WorkspaceConversationPanel({
     () =>
       trimmedSearchQuery
         ? sortedConversations.filter((conversation) =>
-            (conversation.title || "未命名对话")
-              .toLowerCase()
-              .includes(trimmedSearchQuery),
+            matchesConversation(conversation, trimmedSearchQuery),
           )
         : sortedConversations,
     [sortedConversations, trimmedSearchQuery],
@@ -496,13 +563,14 @@ export function WorkspaceConversationPanel({
         setIsDeletingConversation(true);
         await onDeleteConversation(sessionId);
         setPendingDeletion(null);
+        toast.success("对话已删除");
       } catch (err) {
-        showError(err instanceof Error ? err.message : "删除会话失败");
+        toast.error(err instanceof Error ? err.message : "删除会话失败");
       } finally {
         setIsDeletingConversation(false);
       }
     })();
-  }, [onDeleteConversation, pendingDeletion, showError]);
+  }, [onDeleteConversation, pendingDeletion]);
 
   const handleDeleteDialogOpenChange = useCallback(
     (open: boolean) => {
@@ -567,8 +635,8 @@ export function WorkspaceConversationPanel({
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0 text-muted-foreground"
+                size="icon-sm"
+                className="shrink-0 text-muted-foreground"
                 onClick={() => setCollapsed((prev) => !prev)}
                 title={isCollapsed ? "展开对话列表" : "收起对话列表"}
               >
@@ -706,6 +774,11 @@ export function WorkspaceConversationPanel({
                       }
                       onExportConversation={handleExportConversation}
                       onStartRename={handleStartRename}
+                      onArchiveConversation={
+                        currentUserId && workspace?.workspace_id
+                          ? handleArchiveConversation
+                          : undefined
+                      }
                       currentUserId={currentUserId}
                       measureRef={rowVirtualizer.measureElement}
                       style={{
@@ -768,7 +841,7 @@ export function WorkspaceConversationPanel({
       open={pendingDeletion !== null}
       onOpenChange={handleDeleteDialogOpenChange}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="sm">
         <DialogHeader className="sr-only">
           <DialogTitle>删除对话</DialogTitle>
           <DialogDescription>

@@ -341,9 +341,9 @@ if not JWT_SECRET:
     )
 if JWT_SECRET in _DEFAULT_JWT_PLACEHOLDERS:
     raise RuntimeError(
-        f"auth.jwt_secret 使用了不安全的默认占位值。"
-        f'请生成一个安全的随机密钥，例如：python3 -c "import secrets; print(secrets.token_hex(32))"，'
-        f"并在 config.toml 中设置 jwt_secret 或使用 AIASYS_AUTH_JWT_SECRET 环境变量覆盖。"
+        "auth.jwt_secret 使用了不安全的默认占位值。"
+        '请生成一个安全的随机密钥，例如：python3 -c "import secrets; print(secrets.token_hex(32))"，'
+        "并在 config.toml 中设置 jwt_secret 或使用 AIASYS_AUTH_JWT_SECRET 环境变量覆盖。"
     )
 CORS_ORIGINS = _get_config("server.cors_origins", [])
 
@@ -352,7 +352,7 @@ from app.models.user import AuthConfig
 
 # 管理员账号配置（从配置文件读取）
 # Canvas 配置
-CANVAS_AUTO_SAVE_DEBOUNCE_MS = int(_get_config("canvas.auto_save_debounce_ms", 800))
+CANVAS_AUTO_SAVE_DEBOUNCE_MS = int(_get_config("canvas.auto_save_debounce_ms", 300))
 
 AUTH_CONFIG = AuthConfig(
     # 认证模式: none(开发离线)/local(单机默认用户)

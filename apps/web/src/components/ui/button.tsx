@@ -23,12 +23,17 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
-        "icon-sm": "size-8",
-        "icon-lg": "size-10",
+        // 高度走 control-* token，与 Input / Select 同源：不写 size 时三者天然对齐。
+        // 当前值与改造前完全等价（default=36px / sm=32px / lg=40px），
+        // 另补 xs=28px——全站有 142 处 h-7 手写覆写，说明这一档一直缺。
+        xs: "h-control-xs rounded-md gap-1 px-2 text-micro has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "h-control-sm rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+        default: "h-control-md px-4 py-2 has-[>svg]:px-3",
+        lg: "h-control-lg rounded-md px-6 has-[>svg]:px-4",
+        icon: "size-control-md",
+        "icon-xs": "size-control-xs [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-sm": "size-control-sm",
+        "icon-lg": "size-control-lg",
       },
     },
     defaultVariants: {

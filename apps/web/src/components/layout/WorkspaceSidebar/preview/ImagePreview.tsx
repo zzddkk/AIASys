@@ -40,7 +40,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
-          <span className="text-[10px] font-mono text-muted-foreground w-10 text-center">
+          <span className="text-nano font-mono text-muted-foreground w-10 text-center">
             {Math.round(scale * 100)}%
           </span>
           <button

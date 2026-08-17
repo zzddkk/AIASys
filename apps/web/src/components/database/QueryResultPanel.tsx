@@ -47,14 +47,14 @@ export const QueryResultPanel = memo(function QueryResultPanel({
     <div className="min-h-0 flex-1 flex flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-auto">
         {!result ? (
-          <div className="flex h-full items-center justify-center px-6 text-center text-[12px] text-muted-foreground">
+          <div className="flex h-full items-center justify-center px-6 text-center text-caption text-muted-foreground">
             执行 SQL 后结果将显示在这里。
           </div>
         ) : null}
 
         {result?.type === "execute" ? (
           <div className="p-3">
-            <p className="text-[12px] text-foreground">
+            <p className="text-caption text-foreground">
               {result.data.message || "执行完成"}
             </p>
           </div>
@@ -63,13 +63,13 @@ export const QueryResultPanel = memo(function QueryResultPanel({
         {result?.type === "query" ? (
           <div className="p-3">
             {result.data.columns.length === 0 ? (
-              <div className="px-4 py-6 text-center text-[11px] text-muted-foreground">
+              <div className="px-4 py-6 text-center text-micro text-muted-foreground">
                 查询已执行，但当前结果没有可展示的列。
               </div>
             ) : (
               <div className="overflow-auto">
                 <table
-                  className="w-full text-left text-[11px]"
+                  className="w-full text-left text-micro"
                   style={{ tableLayout: "auto" }}
                 >
                   <thead className="sticky top-0 bg-muted/60">
@@ -93,7 +93,7 @@ export const QueryResultPanel = memo(function QueryResultPanel({
                         {formattedRow.map((cellValue, columnIndex) => (
                           <td
                             key={`c${columnIndex}-r${index}`}
-                            className="px-2 py-1.5 align-top font-mono text-[10px] text-foreground max-w-[240px] truncate"
+                            className="px-2 py-1.5 align-top font-mono text-nano text-foreground max-w-[240px] truncate"
                             title={cellValue}
                           >
                             {cellValue}
@@ -110,7 +110,7 @@ export const QueryResultPanel = memo(function QueryResultPanel({
       </div>
 
       {result ? (
-        <div className="flex-shrink-0 border-t border-border px-3 py-1.5 flex items-center gap-3 text-[11px] text-muted-foreground bg-muted/20">
+        <div className="flex-shrink-0 border-t border-border px-3 py-1.5 flex items-center gap-3 text-micro text-muted-foreground bg-muted/20">
           {result.type === "query" ? (
             <>
               <span className="flex items-center gap-1">
@@ -128,7 +128,7 @@ export const QueryResultPanel = memo(function QueryResultPanel({
                 </span>
               ) : null}
               {result.data.truncated ? (
-                <Badge variant="outline" className="text-[10px] h-5">
+                <Badge variant="outline" className="text-nano h-5">
                   结果已截断
                 </Badge>
               ) : null}

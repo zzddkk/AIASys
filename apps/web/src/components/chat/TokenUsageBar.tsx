@@ -168,13 +168,13 @@ export function TokenUsageBar({
   };
 
   const compactButtonClass = cn(
-    "flex h-7 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-tertiary/40 hover:bg-tertiary-container/50 hover:text-tertiary",
+    "flex h-7 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-micro font-medium text-muted-foreground transition-colors hover:border-tertiary/40 hover:bg-tertiary-container/50 hover:text-tertiary",
     contextPercent >= 85 && !isCompacting && !isRunning && "border-warning/40 bg-warning/10 text-warning hover:text-warning hover:bg-warning/15",
     (isCompacting || isRunning) && "cursor-not-allowed opacity-70",
   );
 
   const triggerButtonClass = cn(
-    "flex h-7 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-tertiary/40 hover:bg-tertiary-container/50 hover:text-tertiary",
+    "flex h-7 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-micro font-medium text-muted-foreground transition-colors hover:border-tertiary/40 hover:bg-tertiary-container/50 hover:text-tertiary",
     budgetExhausted && "border-error/40 bg-error/10 text-error hover:text-error hover:bg-error/15",
   );
 
@@ -245,7 +245,7 @@ export function TokenUsageBar({
             Token 预算上限
           </Label>
           <div className="flex gap-2">
-            <Input
+            <Input size="sm"
               id="budget-tokens"
               type="text"
               inputMode="numeric"
@@ -269,13 +269,13 @@ export function TokenUsageBar({
                 if (e.key === "Enter") void handleSaveBudget();
               }}
               disabled={isSaving}
-              className="h-8 text-sm"
+              className="text-sm"
             />
             <Button
               type="button"
               variant="default"
               size="sm"
-              className="h-8 shrink-0"
+              className="shrink-0"
               onClick={() => void handleSaveBudget()}
               disabled={isSaving}
             >
@@ -283,14 +283,14 @@ export function TokenUsageBar({
             </Button>
           </div>
           {budgetError && (
-            <div className="text-[11px] leading-5 text-error">
+            <div className="text-micro leading-5 text-error">
               {budgetError}
             </div>
           )}
         </div>
       )}
       {contextPercent >= 85 && onCompactConversation && hasMessages && !isCompacting && !isRunning && (
-        <div className="rounded-lg bg-warning/10 px-3 py-2 text-[11px] text-warning">
+        <div className="rounded-lg bg-warning/10 px-3 py-2 text-micro text-warning">
           上下文接近上限（{contextPercentLabel}），建议压缩以释放空间。
           <button
             type="button"
@@ -305,11 +305,11 @@ export function TokenUsageBar({
         </div>
       )}
       {budgetExhausted && (
-        <div className="rounded-lg bg-error/10 px-3 py-2 text-[11px] text-error">
+        <div className="rounded-lg bg-error/10 px-3 py-2 text-micro text-error">
           当前会话预算已耗尽，普通对话和自动化任务都会停止继续消耗。
         </div>
       )}
-      <div className="flex items-center gap-2 rounded-lg bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-2 rounded-lg bg-muted/30 px-3 py-2 text-micro text-muted-foreground">
         <Settings className="h-3 w-3 shrink-0" />
         {budgetEnabled
           ? "token 用量达到预算后，这条会话会停止继续执行。"
@@ -331,7 +331,7 @@ export function TokenUsageBar({
             <Gauge className="h-3.5 w-3.5" />
             <span className="tabular-nums">{contextPercentLabel}</span>
             {compactionJustFinished && (
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-success/10 px-1.5 py-0.5 text-[10px] font-medium text-success">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-success/10 px-1.5 py-0.5 text-nano font-medium text-success">
                 <Sparkles className="h-3 w-3" />
                 已压缩
               </span>
@@ -345,7 +345,7 @@ export function TokenUsageBar({
 
   return (
     <div
-      className="flex items-center gap-2 border-b border-border/50 bg-background px-3 py-2 text-[11px] text-muted-foreground"
+      className="flex items-center gap-2 border-b border-border/50 bg-background px-3 py-2 text-micro text-muted-foreground"
       data-testid="token-usage-bar"
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -389,7 +389,7 @@ export function TokenUsageBar({
             </>
           )}
           {compactionJustFinished && (
-            <span className="shrink-0 inline-flex items-center gap-0.5 rounded-full bg-success/10 px-1.5 py-0.5 text-[10px] font-medium text-success">
+            <span className="shrink-0 inline-flex items-center gap-0.5 rounded-full bg-success/10 px-1.5 py-0.5 text-nano font-medium text-success">
               <Sparkles className="h-3 w-3" />
               已压缩
             </span>
@@ -444,7 +444,7 @@ export function TokenUsageBar({
             globalThis.location.href = "/dashboard";
           }
         }}
-        className="flex h-7 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-tertiary/40 hover:bg-tertiary-container/50 hover:text-tertiary"
+        className="flex h-7 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-micro font-medium text-muted-foreground transition-colors hover:border-tertiary/40 hover:bg-tertiary-container/50 hover:text-tertiary"
         title="Token 消耗面板"
       >
         <BarChart3 className="h-3.5 w-3.5" />

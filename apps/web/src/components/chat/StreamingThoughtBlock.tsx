@@ -5,6 +5,40 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PreviewFile } from "@/components/layout/WorkspaceSidebar/preview";
 import { ChartAwareMarkdown } from "./ChartAwareMarkdown";
 
+/** 思考用时格式化：<60s 显示秒（一位小数），否则「Xm Ys」。对齐 grok-build 的 "Thought for 2.3s" */
+export function formatThinkDuration(ms: number): string {
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  const m = Math.floor(ms / 60_000);
+  const s = Math.round((ms % 60_000) / 1000);
+  return `${m}m ${s}s`;
+}
+
+/** 取最后一行非空内容作为折叠态预览（grok-build Truncated 模式的极简版） */
+export function lastContentLine(content: string): string | undefined {
+  const lines = content.split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const trimmed = lines[i].trim();
+    if (trimmed.length > 0) return trimmed;
+  }
+  return undefined;
+}
+
+/** streaming 中尾部预览的行数（对齐 step-code THINKING_PREVIEW_LINES = 3） */
+export const TAIL_PREVIEW_LINES = 3;
+
+/**
+ * 取内容尾部 n 行作为 streaming 滚动预览。
+ * 渲染为纯文本不走 markdown——预览区不需要格式，且半截 markdown 在
+ * 流式中途必然出现，纯文本渲染天然规避（step-code 同款取舍：
+ * transient=true 时关高亮只透传原文）。
+ */
+export function tailPreviewText(
+  content: string,
+  n: number = TAIL_PREVIEW_LINES,
+): string {
+  return content.split("\n").slice(-n).join("\n");
+}
+
 interface StreamingThoughtBlockProps {
   /**
    * 初始内容（用于非流式场景或恢复历史）
@@ -46,7 +80,7 @@ export function StreamingThoughtBlock({
   initialContent = "",
   isStreaming = false,
   subscribeToStream,
-  defaultOpen = true,
+  defaultOpen = false,
   onOpenInMainCanvas,
   onOpenInBrowserTab,
 }: StreamingThoughtBlockProps) {
@@ -59,6 +93,35 @@ export function StreamingThoughtBlock({
   // 用于累积内容的 ref，避免闭包问题
   const contentRef = useRef(initialContent);
   const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 用户手动折叠/展开过后，完成时不再替他自动折叠（grok-build 同款约定：
+  // finished_display_mode 只作用于用户没有表态的条目）
+  const userToggledRef = useRef(false);
+  // 思考计时：进入 streaming 时打点，结束时定格
+  const startTimeRef = useRef<number | null>(isStreaming ? Date.now() : null);
+  const [durationMs, setDurationMs] = useState<number | null>(null);
+  const prevStreamingRef = useRef(streaming);
+
+  const markFinished = useCallback(() => {
+    if (startTimeRef.current !== null) {
+      setDurationMs(Date.now() - startTimeRef.current);
+      startTimeRef.current = null;
+    }
+    if (!userToggledRef.current) {
+      setIsOpen(false);
+    }
+  }, []);
+
+  // streaming 边沿检测：false→true 打点；true→false 定格用时并按需自动折叠
+  useEffect(() => {
+    if (prevStreamingRef.current === streaming) return;
+    prevStreamingRef.current = streaming;
+    if (streaming) {
+      if (startTimeRef.current === null) startTimeRef.current = Date.now();
+    } else {
+      markFinished();
+    }
+  }, [streaming, markFinished]);
 
   // 清理内容中的特殊标记
   // 只清理 <think> 标签，保留 <code> 标签内容（后者是合法 Markdown/HTML）
@@ -129,26 +192,53 @@ export function StreamingThoughtBlock({
     return null;
   }
 
+  // 折叠态预览：最后一行非空内容（grok-build Truncated 模式）。
+  // 只在「结束后折叠」时显示——streaming 中的预览由下方尾部滚动区承担，
+  // 标题行不再重复显示同一行内容
+  const collapsedPreview =
+    !isOpen && !streaming && cleanedContent
+      ? lastContentLine(cleanedContent)
+      : undefined;
+
+  // streaming 中且未展开：尾部 N 行滚动预览（step-code ThinkingPreview 形态）
+  const showTailPreview = streaming && !isOpen && cleanedContent.length > 0;
+
+  const title = streaming
+    ? "思考中…"
+    : durationMs !== null
+      ? `思考过程 · ${formatThinkDuration(durationMs)}`
+      : "思考过程";
+
   return (
     <div className="mb-3 rounded-lg border border-border/60 bg-muted/20 overflow-hidden">
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="group flex w-full items-center gap-2.5 px-3.5 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+        onClick={() => {
+          userToggledRef.current = true;
+          setIsOpen(!isOpen);
+        }}
+        className="group relative flex w-full items-center gap-2.5 px-3.5 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
       >
+        {streaming && <span className="aiasys-think-sweep" aria-hidden="true" />}
         <div
           className={`flex items-center justify-center w-5 h-5 rounded-md flex-shrink-0 transition-colors ${streaming ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground group-hover:bg-muted-foreground/10"}`}
         >
           <Brain size={12} className={streaming ? "animate-pulse" : ""} />
         </div>
-        <span className="font-medium">思考过程</span>
-        <span className="text-[10px] text-muted-foreground/50 ml-1">
-          {isOpen ? "点击折叠" : "点击展开"}
-        </span>
+        <span className="font-medium flex-shrink-0">{title}</span>
+        {collapsedPreview ? (
+          <span className="min-w-0 flex-1 truncate text-left text-micro font-normal text-muted-foreground/60">
+            {collapsedPreview}
+          </span>
+        ) : (
+          <span className="text-nano text-muted-foreground/50 ml-1 flex-1 text-left">
+            {isOpen ? "点击折叠" : "点击展开"}
+          </span>
+        )}
         {streaming && (
-          <Loader2 size={11} className="animate-spin text-primary ml-auto" />
+          <Loader2 size={11} className="animate-spin text-primary ml-auto flex-shrink-0" />
         )}
         <div
-          className={`flex items-center justify-center w-4 h-4 transition-transform ${isOpen ? "rotate-0" : "-rotate-90"} ${streaming ? "" : "ml-auto"}`}
+          className={`flex items-center justify-center w-4 h-4 flex-shrink-0 transition-transform ${isOpen ? "rotate-0" : "-rotate-90"} ${streaming ? "" : "ml-auto"}`}
         >
           <ChevronDown size={12} />
         </div>
@@ -156,7 +246,7 @@ export function StreamingThoughtBlock({
 
       {isOpen && (
         <div
-          className="prose prose-sm max-w-none min-w-0 max-h-80 break-words overflow-y-auto border-t border-border/40 bg-muted/10 px-4 pb-3.5 pt-2 text-[13px] leading-relaxed text-muted-foreground/90 [overflow-wrap:anywhere] [&_p]:my-1.5"
+          className="prose prose-sm max-w-none min-w-0 max-h-80 break-words overflow-y-auto border-t border-border/40 bg-muted/10 px-4 pb-3.5 pt-2 text-body leading-relaxed text-muted-foreground/90 [overflow-wrap:anywhere] [&_p]:my-1.5"
         >
           <ChartAwareMarkdown
             content={cleanedContent || (streaming ? "..." : "")}
@@ -165,6 +255,19 @@ export function StreamingThoughtBlock({
             onOpenInMainCanvas={onOpenInMainCanvas}
             onOpenInBrowserTab={onOpenInBrowserTab}
           />
+        </div>
+      )}
+
+      {/* streaming 尾部滚动预览：只占 3 行高度，纯文本跟随最新思考位置，
+          顶部渐隐提示上方还有内容。点标题行展开全文。 */}
+      {showTailPreview && (
+        <div
+          data-testid="think-tail-preview"
+          className="border-t border-border/40 bg-muted/10 px-4 py-2"
+        >
+          <div className="max-h-[3.9em] overflow-hidden whitespace-pre-wrap break-words text-caption italic leading-[1.3em] text-muted-foreground/70 [overflow-wrap:anywhere] [mask-image:linear-gradient(to_bottom,transparent,black_45%)]">
+            {tailPreviewText(cleanedContent)}
+          </div>
         </div>
       )}
     </div>
@@ -236,7 +339,7 @@ export function StreamingSegmentsRenderer({
               key={`thought-${idx}`}
               initialContent={seg.content}
               isStreaming={isStreaming && isLast}
-              defaultOpen={true}
+              defaultOpen={false}
             />
           );
         }

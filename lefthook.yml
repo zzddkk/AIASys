@@ -2,31 +2,96 @@
 # https://github.com/evilmartians/lefthook
 #
 # 安装：cd apps/web && npx lefthook install
-# 手动运行：cd apps/web && npx lefthook run pre-commit
+# 手动运行：npx lefthook run pre-commit
+# 验证有效性：bash scripts/dev/lefthook/verify-hooks.sh   ← 改完本文件务必跑
 #
-# 注意：{staged_files} 返回的是相对于仓库根目录的路径（如 apps/backend/app/foo.py），
-# 而后端命令需要在 apps/backend/ 下运行，所以需要去掉 "apps/backend/" 前缀。
+# ── 本文件的六条纪律，都来自实际踩坑，改动前先读 ──────────────────────────
+#
+# 1. 前后端检查不写 glob，改由脚本内的 grep -E 判定范围。
+#    lefthook 的 glob 有两个坑，都会让整个 hook 被静默跳过（日志只留一行
+#    "(skip) no matching staged files"），而提交照常通过：
+#      a. 不认 brace 扩展。写 `{ts,tsx}`、`{app,tests}` 一律不匹配。
+#      b. `src/**/*` 不匹配直接位于 src/ 根层的文件，只匹配子目录里的。
+#    2026-08-09 实测 b：同一个含类型错误的文件，放 src/utils/ 下被 tsc 拦住
+#    （exit status 2），放 src/ 根层则完全跳过——而 App.tsx、main.tsx 正在根层。
+#    grep -E 的行为可预期、跨平台一致，不必再猜 glob 实现的边界。
+#
+# 2. 检查命令末尾不挂 `|| true`。挂了等于该 hook 永远成功，表面绿灯、实际零约束。
+#    包装脚本里也不要无条件 `process.exit(0)`，那是同一件事的 JS 版写法。
+#
+# 3. 文件列表自己从 `git diff --cached` 取，不用 lefthook 的 {staged_files}。
+#    后者在 Windows 下展开数组时会附加多余字符，用它拼 `[ -n "$files" ]` 会报
+#    "[: too many arguments" 且被吞掉。例外是 editorconfig：它把参数直接交给 node
+#    脚本，不经过 shell 的 test 判断，不受影响。
+#
+# 4. 改完本文件必须用探针实测，不能只看 `lefthook run pre-commit` 是否绿。
+#    跑 scripts/dev/lefthook/verify-hooks.sh，它同时做正向（违规必须拦下）和反向
+#    （合规必须放过）验证。只做正向会产生假 PASS：曾有 editorconfig 因 spawn .cmd
+#    报 EINVAL 而恒定 exit 1，四个正向探针全部「通过」，掩盖了两个前端 hook 压根
+#    没在工作的事实。
+#
+# 5. 改 hook 自身的脚本后，先 git add 再测。lefthook 会把 partially staged 文件的
+#    unstaged 部分临时 stash 掉，让检查只看到 staged 版本——所以工作区改了、没 add，
+#    实际跑的仍是旧版脚本。曾为此白排查了一轮。
+#
+# 6. **run 里只写一行命令，多行脚本一律放进 scripts/dev/lefthook/*.sh。**
+#    lefthook（实测 2.0.2 + Windows）执行时构造的是
+#      "C:\Program Files\Git\bin\sh.exe" -c "<整段 run>"
+#    而**不转义脚本内部的双引号**。于是 Windows 的命令行解析在脚本的双引号处
+#    进出「引号态」，一旦在引号外遇到空格就把参数截断——脚本从那里起整段丢失。
+#
+#    最小复现（2026-08-16 实测）：
+#      run: |            期望输出           实得
+#      echo "A1 x y"     A1 x y             A1        ← 双引号内有空格，被截断
+#      echo 'D1 x y'     D1 x y             D1 x y    ← 单引号安全
+#
+#    这条纪律的代价是实打实付过的：frontend-lint 曾内联一句
+#      echo "改动 $count 个文件，超过单次传参阈值，改跑全量 lint"
+#    它是脚本里第 7 个双引号（奇数 → 引号外状态），紧随其后的空格把脚本截断在
+#    `echo 改动` 处，if 失去 fi。结果该 hook 恒定 exit 0：一个含 parse error 的
+#    文件被直接放过，lefthook 显示 ✓、耗时 0.16 秒。同一份文件直接跑 eslint
+#    退出码 1。**这个失效持续存在，而本文件此前的结论写的是「已知噪音，不要修，
+#    功能没有失效」——那个结论是错的**，它建立在「其余 hook 恰好没被截断」之上：
+#    `"$files"` 这类引号紧贴变量、内部无空格的写法侥幸安全，于是无人怀疑。
+#
+#    所以不要再判断「我这段内联脚本会不会被截断」——那取决于双引号的奇偶与空格
+#    位置，任何人加一句带空格的提示文字都可能重现事故。直接放进 .sh 文件，
+#    run 只留 `bash scripts/dev/lefthook/xxx.sh` 一行（无双引号，不受影响）。
+#    这条纪律由 scripts/dev/lefthook/check-inline-scripts.mjs 静态强制，它同时跑在
+#    pre-commit 与 CI 里，并带自证（见该脚本 --self-test）。
 
 pre-commit:
   parallel: true
   commands:
+    # --- 本文件自身的纪律 6 强制器 ---
+    # 放在最前：它拦的是「run 里又出现多行脚本」这类改动，而那种改动会让下面
+    # 任何一条检查静默失效。它自己的 run 当然也是单行。
+    lefthook-inline-guard:
+      glob: "lefthook.yml"
+      run: node scripts/dev/lefthook/check-inline-scripts.mjs
+
+    # 引用完整性：CI/npm scripts 指向的脚本必须都在版本库里。
+    # 判据是 git 跟踪状态而不是文件是否存在——后者在本地恒真，测不出这类失效。
+    tracked-scripts:
+      run: bash scripts/dev/lefthook/tracked-scripts.sh
+
     # --- Frontend ---
     frontend-lint:
-      glob: "apps/web/src/**/*.{ts,tsx,js,jsx}"
-      # 通过 git diff --cached 自行获取 staged files，并逐文件调用 eslint，避免 lefthook 在 Windows 下解析数组扩展时附加多余字符
-      run: cd apps/web && files=$(git diff --cached --name-only --diff-filter=ACM | grep '^apps/web/src/' | sed 's|apps/web/||g') && rc=0 && for f in $files; do [ -f "$f" ] && npx eslint "$f" || rc=$?; done; exit $rc || true
+      run: bash scripts/dev/lefthook/frontend-lint.sh
+
+    design-tokens:
+      run: bash scripts/dev/lefthook/design-tokens.sh
 
     frontend-type-check:
-      glob: "apps/web/src/**/*.{ts,tsx}"
-      # 必须用 -b（build mode），因为 apps/web/tsconfig.json 是 project references 结构，
-      # 直接 --noEmit 会因 files: [] 而不检查任何源文件。
-      run: cd apps/web && npx tsc -b --noEmit
+      run: bash scripts/dev/lefthook/frontend-type-check.sh
 
     # --- Backend ---
-    # 用 shell 参数替换去掉 apps/backend/ 前缀，因为命令在 apps/backend/ 下执行
     backend-ruff:
-      glob: "apps/backend/app/**/*.py"
-      run: cd apps/backend && files=$(echo "{staged_files}" | sed 's|apps/backend/||g') && [ -n "$files" ] && uv run ruff check $files && uv run ruff format --check $files || true
+      run: bash scripts/dev/lefthook/backend-ruff.sh
+
+    # --- Desktop ---
+    desktop-unit:
+      run: bash scripts/dev/lefthook/desktop-unit.sh
 
     # --- Commit Author ---
     author-check:
@@ -34,6 +99,8 @@ pre-commit:
       run: bash scripts/dev/lefthook/author-check.sh
 
     # --- EditorConfig ---
+    # glob 保持 "*"：这个检查本就该覆盖所有类型的文件，且它把参数交给 node 脚本处理，
+    # 不受纪律 1 里那两个 glob 坑的影响（"*" 是平铺匹配，不涉及 ** 语义）。
     editorconfig:
       glob: "*"
       run: node scripts/dev/lefthook/editorconfig-checker.mjs {staged_files}

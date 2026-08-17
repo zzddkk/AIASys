@@ -1,4 +1,5 @@
 """Verify R6 error-handling fixes and detect new issues in modified backend files."""
+
 from __future__ import annotations
 
 import re
@@ -44,7 +45,9 @@ TARGET_SERVICES = [
 ]
 
 # Patterns of interest
-RE_EXCEPT_RAISE_HTTP = re.compile(r"except\s+\w[\w\s,()]+:\s*\n\s*raise\s+HTTPException", re.MULTILINE)
+RE_EXCEPT_RAISE_HTTP = re.compile(
+    r"except\s+\w[\w\s,()]+:\s*\n\s*raise\s+HTTPException", re.MULTILINE
+)
 RE_RAISE_FROM_NONE = re.compile(r"raise\s+.*\s+from\s+None")
 RE_EXCEPT_PASS = re.compile(r"except\s+.*:\s*\n\s*pass")
 RE_CREATE_TASK_NO_CALLBACK = re.compile(r"asyncio\.create_task\([^)]+\)")
@@ -84,22 +87,22 @@ def scan_file(path: Path) -> dict:
     for m in RE_EXCEPT_RAISE_HTTP.finditer(text):
         start = m.start()
         line_no = text.count("\n", 0, start) + 1
-        snippet = text[m.start():m.start() + 200].splitlines()[0]
+        snippet = text[m.start() : m.start() + 200].splitlines()[0]
         findings["except_raise_http"].append((line_no, snippet.strip()))
     for m in RE_RAISE_FROM_NONE.finditer(text):
         start = m.start()
         line_no = text.count("\n", 0, start) + 1
-        snippet = text[m.start():m.start() + 200].splitlines()[0]
+        snippet = text[m.start() : m.start() + 200].splitlines()[0]
         findings["raise_from_none"].append((line_no, snippet.strip()))
     for m in RE_EXCEPT_PASS.finditer(text):
         start = m.start()
         line_no = text.count("\n", 0, start) + 1
-        snippet = text[m.start():m.start() + 200].splitlines()[0]
+        snippet = text[m.start() : m.start() + 200].splitlines()[0]
         findings["except_pass"].append((line_no, snippet.strip()))
     for m in RE_CREATE_TASK_NO_CALLBACK.finditer(text):
         start = m.start()
         line_no = text.count("\n", 0, start) + 1
-        snippet = text[m.start():m.start() + 200].splitlines()[0]
+        snippet = text[m.start() : m.start() + 200].splitlines()[0]
         findings["create_task_no_callback"].append((line_no, snippet.strip()))
     return findings
 
@@ -177,7 +180,10 @@ def main() -> None:
     print("\n## R6 fix verification (sample)")
     sample_checks = [
         ("apps/backend/app/api/routes/llm_config.py", [244, 340, 364, 391, 458, 496]),
-        ("apps/backend/app/api/routes/sessions_branches.py", [907, 987, 1043, 1072, 1104, 1211, 1314]),
+        (
+            "apps/backend/app/api/routes/sessions_branches.py",
+            [907, 987, 1043, 1072, 1104, 1211, 1314],
+        ),
         ("apps/backend/app/api/routes/sessions_exports.py", [93, 123]),
         ("apps/backend/app/api/routes/sessions_messages.py", [90, 180, 260]),
         ("apps/backend/app/api/routes/ui_settings.py", [120, 180]),

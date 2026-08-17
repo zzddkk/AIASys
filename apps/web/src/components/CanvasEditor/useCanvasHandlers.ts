@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { API_ENDPOINTS } from "@/config/api";
 import { apiRequest } from "@/lib/api/httpClient";
 import type { PreviewFile } from "@/components/layout/WorkspaceSidebar/preview";
@@ -305,6 +305,52 @@ export function useCanvasHandlers(options: UseCanvasHandlersOptions) {
     saveVersionRef.current += 1;
     void persistCanvas(pending, saveVersionRef.current);
   }, [getCanvas, persistCanvas, saveTimerRef, pendingSaveRef, saveVersionRef]);
+
+  /**
+   * 卸载、切换画布文件、页面隐藏时，把还压在 300ms debounce 里的编辑冲掉。
+   *
+   * 没有这层，最后一次编辑会静默丢失：scheduleSave 只起了个 setTimeout，组件一卸载
+   * 定时器就随之消失，磁盘停在上一次落盘的内容。用户侧表现为「改完立刻切走，改动没了」，
+   * 且界面不报错——保存状态那时已经是 dirty，看不出区别。
+   *
+   * 三个实现约束，改动时不要绕过：
+   *
+   * 1. effect 依赖只能是 filePath / workspaceId 这类原始值，不能是 persistCanvas 本身。
+   *    persistCanvas 的依赖里有 onSave、onPersistContent 这些常被内联传入的回调，每次
+   *    渲染都是新引用；一旦进依赖数组，cleanup 就会在每次渲染时执行一次 flush，等于把
+   *    debounce 退化成「每敲一个字符发一次 PUT」。
+   * 2. flush 必须用本次 effect 闭包里捕获的 persistCanvas，不能在 cleanup 里读 ref 的
+   *    当前值。切换画布文件时 cleanup 晚于新一轮渲染，ref 里已经是指向新文件的写入函数，
+   *    用它 flush 会把旧文件的内容写进新文件。
+   * 3. 走 persistCanvas 而不是直接 writeCanvas。前者有 in-flight 排队，能保证与正在进行
+   *    的保存串行；直接并发 PUT 时两个请求的到达顺序不定，旧内容可能后到并覆盖新内容。
+   *
+   * pagehide 分支是尽力而为：浏览器不保证关闭页面时异步请求能发完。真正兜住这个场景要
+   * 靠 sendBeacon，但写画布走的是 PUT + JSON body，beacon 只能 POST，暂不改协议。
+   */
+  const persistCanvasRef = useRef(persistCanvas);
+  persistCanvasRef.current = persistCanvas;
+  useEffect(() => {
+    const persist = persistCanvasRef.current;
+    const flushPending = () => {
+      if (saveTimerRef.current !== null) {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      const pending = pendingSaveRef.current;
+      pendingSaveRef.current = null;
+      if (!pending) {
+        return;
+      }
+      saveVersionRef.current += 1;
+      void persist(pending, saveVersionRef.current);
+    };
+    window.addEventListener("pagehide", flushPending);
+    return () => {
+      window.removeEventListener("pagehide", flushPending);
+      flushPending();
+    };
+  }, [filePath, workspaceId, saveTimerRef, pendingSaveRef, saveVersionRef]);
 
   const handleUndo = useCallback(() => {
     const next = undoCanvas();

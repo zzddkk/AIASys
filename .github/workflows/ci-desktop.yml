@@ -54,6 +54,9 @@ jobs:
               apps/desktop/dist/*.exe
               apps/desktop/dist/*.zip
     runs-on: ${{ matrix.os }}
+    # 硬上限：没有它时挂起的 job 会跑到 GitHub 默认的 6 小时上限。
+    # 挂起比失败更糟——看不到结论、烧配额、还阻塞队列。electron 三平台打包，实测最慢一档接近 30 分钟。
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v6
@@ -155,6 +158,9 @@ jobs:
   release:
     needs: build-desktop
     runs-on: ubuntu-latest
+    # 硬上限：没有它时挂起的 job 会跑到 GitHub 默认的 6 小时上限。
+    # 挂起比失败更糟——看不到结论、烧配额、还阻塞队列。只做产物上传与 release 创建。
+    timeout-minutes: 20
     permissions:
       contents: write
     steps:

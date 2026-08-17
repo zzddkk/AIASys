@@ -11,17 +11,15 @@ import type {
 } from "@/pages/WorkspacePage/types";
 import type { SubAgentTask } from "../SubAgentTaskCard";
 
+// 只保留实际有面板渲染的六个值。monitor/settings/channel/auto-tasks/env/terminal
+// 六个死值已于 2026-08-14 移除（无生产者、无渲染节点；terminal 早已迁主画布
+// Tab，channel/settings 的面板从未接线）。死值留在枚举里会允许 activeTab 被
+// 设成无内容的 tab，右栏空白且无反馈。
 export type SidebarTab =
-  | "monitor"
   | "subagents"
   | "artifacts"
   | "search"
   | "database"
-  | "settings"
-  | "channel"
-  | "auto-tasks"
-  | "env"
-  | "terminal"
   | "file-changes"
   | "snapshots";
 

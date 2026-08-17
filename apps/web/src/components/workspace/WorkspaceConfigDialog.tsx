@@ -194,7 +194,7 @@ export function WorkspaceConfigDialog({
                     {item.icon}
                     <span className="font-medium">{item.label}</span>
                   </div>
-                  <span className="line-clamp-1 text-[11px] opacity-70">
+                  <span className="line-clamp-1 text-micro opacity-70">
                     {item.description}
                   </span>
                 </button>
@@ -206,7 +206,7 @@ export function WorkspaceConfigDialog({
               <div className="text-xs font-medium text-foreground">
                 {workspaceSummary.title || "未命名工作区"}
               </div>
-              <div className="mt-0.5 truncate text-[10px] text-muted-foreground">
+              <div className="mt-0.5 truncate text-nano text-muted-foreground">
                 {workspaceSummary.workspace_id}
               </div>
             </div>

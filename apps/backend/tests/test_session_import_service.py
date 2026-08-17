@@ -231,7 +231,11 @@ def test_export_import_round_trip_preserves_messages(tmp_path: Path) -> None:
 
         # 4. 验证 display_history.jsonl
         display_path = (
-            imported_session_dir / ".aiasys" / "session" / imported_session_id / "display_history.jsonl"
+            imported_session_dir
+            / ".aiasys"
+            / "session"
+            / imported_session_id
+            / "display_history.jsonl"
         )
         display_lines = [
             json.loads(line)

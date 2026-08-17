@@ -11,6 +11,9 @@ permissions:
 jobs:
   auto-review:
     runs-on: ubuntu-latest
+    # 硬上限：没有它时挂起的 job 会跑到 GitHub 默认的 6 小时上限。
+    # 挂起比失败更糟——看不到结论、烧配额、还阻塞队列。uv sync + ruff/pylint + 发评论。
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +40,12 @@ jobs:
           FORMAT_FAILED="false"
           CHECK_FAILED=""
           FIX_CMDS=""
+          # 追加命令时的换行用 $'\n' 表示，不要在字符串里直接敲回车。
+          # 直接敲回车会让续行顶格到 column 1，脱离 run: | 的 block scalar 缩进，
+          # 整个 workflow 被 GitHub 判为 Invalid workflow file 而静默不跑。
+          # 2026-08-10 实测：本文件此前正是这样坏掉的，且已经坏了很久没人发现——
+          # workflow 语法错误不会阻止合并、也不会在别处报错，只是那道检查从此不存在。
+          NL=$'\n'
           
           if ! uv run ruff format --check app/ > /dev/null 2>&1; then
             FORMAT_FAILED="true"
@@ -45,17 +54,20 @@ jobs:
           
           if ! uv run ruff check app/ > /dev/null 2>&1; then
             CHECK_FAILED="ruff check"
-            FIX_CMDS="${FIX_CMDS:+${FIX_CMDS}
-}cd apps/backend && uv run ruff check --fix app/"
+            FIX_CMDS="${FIX_CMDS:+${FIX_CMDS}${NL}}cd apps/backend && uv run ruff check --fix app/"
           fi
           
           if ! uv run pylint --disable=R,C --exit-zero app/ > /dev/null 2>&1; then
             CHECK_FAILED="${CHECK_FAILED:+${CHECK_FAILED}, }pylint"
           fi
           
-          echo "$FORMAT_FAILED" > format-failed.txt
-          echo "$CHECK_FAILED" > check-failed.txt
-          printf '%s' "$FIX_CMDS" > fix-cmds.txt
+          # 必须写到 $GITHUB_WORKSPACE：本步骤开头 cd 进了 apps/backend，而下面
+          # 「Post auto-review comment」用的 github-script cwd 固定在仓库根。
+          # 写相对路径会让读取方 ENOENT——这个 workflow 因此从未成功运行过一次
+          # （2026-08-16 核对上游历史：全部 4 次 run 均为 failure，从未发出过评论）。
+          echo "$FORMAT_FAILED" > "$GITHUB_WORKSPACE/format-failed.txt"
+          echo "$CHECK_FAILED" > "$GITHUB_WORKSPACE/check-failed.txt"
+          printf '%s' "$FIX_CMDS" > "$GITHUB_WORKSPACE/fix-cmds.txt"
         continue-on-error: true
 
       - name: Setup Node.js
@@ -79,8 +91,9 @@ jobs:
             FIX_CMD="cd apps/web && npm run lint -- --fix"
           fi
           
-          echo "$FAILED" > web-failed.txt
-          echo "$FIX_CMD" > web-fix.txt
+          # 同上：本步骤开头 cd 进了 apps/web，必须写回 workspace 根。
+          echo "$FAILED" > "$GITHUB_WORKSPACE/web-failed.txt"
+          echo "$FIX_CMD" > "$GITHUB_WORKSPACE/web-fix.txt"
         continue-on-error: true
 
       - name: Security baseline check
@@ -95,8 +108,10 @@ jobs:
           
           mapfile -t debug < <(git diff --name-only $BASE_REF...HEAD 2>/dev/null | grep -E '^apps/.*/(verify-|test-|inspect-).*\.(py|js|cjs|mjs|ts|ps1|sh)$' || true)
           
-          printf '%s\n' "${sensitive[@]}" > sensitive-files.txt
-          printf '%s\n' "${debug[@]}" > debug-files.txt
+          # 本步骤没有 cd，但仍写绝对路径：将来有人加一行 cd 就会重现下面那个
+          # 静默失效，而症状（读取方 ENOENT）离原因很远。
+          printf '%s\n' "${sensitive[@]}" > "$GITHUB_WORKSPACE/sensitive-files.txt"
+          printf '%s\n' "${debug[@]}" > "$GITHUB_WORKSPACE/debug-files.txt"
         continue-on-error: true
 
       - name: Post auto-review comment
@@ -104,14 +119,34 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
-            const formatFailed = fs.readFileSync('format-failed.txt', 'utf8').trim();
-            const checkFailed = fs.readFileSync('check-failed.txt', 'utf8').trim();
-            const fixCmds = fs.readFileSync('fix-cmds.txt', 'utf8').trim();
-            const webFailed = fs.readFileSync('web-failed.txt', 'utf8').trim();
-            const webFix = fs.readFileSync('web-fix.txt', 'utf8').trim();
-            const sensitive = fs.readFileSync('sensitive-files.txt', 'utf8').trim().split('\n').filter(Boolean);
-            const debug = fs.readFileSync('debug-files.txt', 'utf8').trim().split('\n').filter(Boolean);
+
+            // 逐个文件读，缺失时记下来而不是抛错或当空值处理。
+            //
+            // 为什么不写成 `existsSync(f) ? read(f) : ''`：上游三个检查步骤都挂了
+            // continue-on-error: true，整步失败（uv 装不上、npm ci 挂了）时文件根本
+            // 不会生成。此时把缺失当空值，评论就会显示「All automated checks passed」
+            // ——把「没跑」伪装成「通过」，正是这套自动检查最该避免的失效。
+            // 所以缺失单独成一节报出来，并让本 job 失败：红叉的含义是「有检查没跑成」，
+            // 不是「代码有问题」，评论正文里会写清这一点。
+            const missing = [];
+            function readOrMissing(name) {
+              try {
+                return fs.readFileSync(name, 'utf8').trim();
+              } catch (e) {
+                missing.push(name);
+                return null;
+              }
+            }
+
+            const formatFailed = readOrMissing('format-failed.txt');
+            const checkFailed = readOrMissing('check-failed.txt');
+            const fixCmds = readOrMissing('fix-cmds.txt');
+            const webFailed = readOrMissing('web-failed.txt');
+            const webFix = readOrMissing('web-fix.txt');
+            const sensitiveRaw = readOrMissing('sensitive-files.txt');
+            const debugRaw = readOrMissing('debug-files.txt');
+            const sensitive = (sensitiveRaw ?? '').split('\n').filter(Boolean);
+            const debug = (debugRaw ?? '').split('\n').filter(Boolean);
             
             let body = "## PR Auto Review\n\n";
             let hasIssues = false;
@@ -164,6 +199,18 @@ jobs:
               body += "\nPlease remove before merging.\n\n";
             }
             
+            if (missing.length > 0) {
+              hasIssues = true;
+              body += "### ⚠️ 部分检查未产出结果\n\n";
+              body += "以下中间结果文件不存在，说明对应的检查步骤本身失败了";
+              body += "（三个检查步骤都带 `continue-on-error: true`，整步失败不会中断 job）：\n\n";
+              for (const f of missing) {
+                body += "- `" + f + "`\n";
+              }
+              body += "\n**这些项的结论未知，不代表通过。** 请看本 job 的日志确认是哪一步挂了。\n";
+              body += "本检查显示为失败的含义是「有检查没跑成」，不是「代码有问题」。\n\n";
+            }
+
             if (!hasIssues) {
               body += "✅ All automated checks passed. No issues found.\n";
             }
@@ -190,4 +237,13 @@ jobs:
                 repo: context.repo.repo,
                 body: body
               });
+            }
+
+            // 评论已经发出去之后才失败，顺序不能颠倒：先 setFailed 会让 PR 上只剩一个
+            // 红叉而看不到原因，跟这个 workflow 此前直接 ENOENT 崩掉的效果没有区别。
+            if (missing.length > 0) {
+              core.setFailed(
+                '有 ' + missing.length + ' 项检查未产出结果（' + missing.join(', ') +
+                '），结论未知。详情见 PR 评论与本 job 日志。'
+              );
             }

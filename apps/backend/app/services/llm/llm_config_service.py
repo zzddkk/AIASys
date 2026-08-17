@@ -19,6 +19,7 @@ from app.models.llm_provider import (
     LLMProviderConfig,
     ProviderTestResult,
     RemoteModelInfo,
+    normalize_force_thinking_capabilities,
 )
 from app.storage.llm_provider_storage import LLMProviderStorage, get_llm_provider_storage
 
@@ -168,7 +169,21 @@ class LLMConfigService:
     ) -> List[LLMModelConfig]:
         """列出模型配置"""
         data_list = self._storage.list_models(user_id, enabled_only, provider_id)
-        return [self._dict_to_model_config(d) for d in data_list]
+        models = [self._dict_to_model_config(d) for d in data_list]
+
+        # 强制思考模型（step 系列等）读路径归一化：补 always_thinking，
+        # 前端三态（none/switchable/always）据此渲染「常开」而非可关闭开关。
+        # 读路径归一化，存量配置无需迁移。
+        provider_base_urls = {p.id: p.base_url for p in self.list_providers(user_id)}
+        for model in models:
+            caps = normalize_force_thinking_capabilities(
+                list(model.capabilities) if model.capabilities else [],
+                provider_base_urls.get(model.provider),
+                model.model,
+            )
+            if model.capabilities is not None:
+                model.capabilities = set(caps)
+        return models
 
     def update_model(
         self, user_id: str, model_id: str, updates: Dict[str, Any]

@@ -612,7 +612,7 @@ export function ContainerResourcesPanel({
 
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               <div className="rounded-xl border border-border bg-background px-3 py-3">
-                <div className="text-[11px] font-semibold text-muted-foreground">
+                <div className="text-micro font-semibold text-muted-foreground">
                   登记数量
                 </div>
                 <div className="mt-1 text-sm font-semibold text-foreground">
@@ -623,7 +623,7 @@ export function ContainerResourcesPanel({
                 </div>
               </div>
               <div className="rounded-xl border border-border bg-background px-3 py-3">
-                <div className="text-[11px] font-semibold text-muted-foreground">
+                <div className="text-micro font-semibold text-muted-foreground">
                   运行中
                 </div>
                 <div className="mt-1 text-sm font-semibold text-foreground">
@@ -634,7 +634,7 @@ export function ContainerResourcesPanel({
                 </div>
               </div>
               <div className="rounded-xl border border-border bg-background px-3 py-3">
-                <div className="text-[11px] font-semibold text-muted-foreground">
+                <div className="text-micro font-semibold text-muted-foreground">
                   当前作用
                 </div>
                 <div className="mt-1 text-sm font-semibold text-foreground">

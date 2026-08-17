@@ -85,7 +85,7 @@ export function ChangeEventCard({
             {event.file_count} 个文件
           </span>
         </span>
-        <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
+        <span className="flex shrink-0 items-center gap-1 text-micro text-muted-foreground">
           <Clock className="h-3 w-3" />
           {formatEventTime(event.timestamp)}
         </span>

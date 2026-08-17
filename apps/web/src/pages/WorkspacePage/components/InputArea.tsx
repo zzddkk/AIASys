@@ -3,12 +3,9 @@ import {
   Brain,
   Check,
   ChevronDown,
-  Container,
   FileText,
-  FlaskConical,
   Hash,
   RefreshCw,
-  SlidersHorizontal,
   StopCircle,
   Upload,
   X,
@@ -20,7 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
   type ChangeEvent,
   type KeyboardEvent,
@@ -37,6 +33,7 @@ import type { LLMModelConfig } from "@/lib/api/llm";
 import { API_ENDPOINTS, getCurrentUserId } from "@/config/api";
 import { extractClipboardFiles } from "@/utils/clipboardFiles";
 import { useDragDrop } from "@/hooks/useDragDrop";
+import { modelThinkingMode } from "../hooks/useModelSelection";
 import {
   WORKSPACE_FILE_DRAG_MIME,
   type WorkspaceFileReferenceDragPayload,
@@ -44,6 +41,12 @@ import {
 import { cn } from "@/lib/utils";
 import type { FailedUpload } from "@/hooks/useAgentFileUpload";
 import { ModelSelector } from "./ModelSelector";
+import { isImageFilename, shouldWarnImageAttachment } from "./imageAttachmentWarning";
+import {
+  buildPastedTextFilename,
+  shouldPasteAsAttachment,
+} from "./pasteAsAttachment";
+import { PermissionModeSelect } from "./PermissionModeSelect";
 import { FileMentionPicker, type FileMentionPickerRef } from "./FileMentionPicker";
 
 interface UploadedFile {
@@ -123,20 +126,12 @@ interface InputAreaProps {
   thinkingEffort?: "low" | "medium" | "high";
   setThinkingEnabled?: (enabled: boolean) => void;
   setThinkingEffort?: (effort: "low" | "medium" | "high") => void;
-  selectedModelSupportsThinking?: boolean;
+  /** 三态：true / false / undefined（未解析出具体模型，语义「不知道」，不警告） */
+  selectedModelSupportsImageInput?: boolean;
   /** 跳转到配置页面 */
   onOpenConfig?: () => void;
-  /** 打开当前会话工具配置 */
-  onOpenToolConfig?: () => void;
   /** 打开执行资源面板 */
-  onOpenRuntimeTab?: () => void;
   /** 当前运行环境信息 */
-  activeEnv?: {
-    id: string;
-    name: string;
-    image: string;
-    sandbox_mode?: string;
-  } | null;
   /** 需要把焦点重新带回输入框时递增 */
   focusSignal?: number;
   /** 当前工作区 ID，用于 @ 文件引用 */
@@ -172,16 +167,20 @@ export const InputArea = memo(function InputArea({
   thinkingEffort = "high",
   setThinkingEnabled,
   setThinkingEffort,
-  selectedModelSupportsThinking = false,
+  selectedModelSupportsImageInput,
   onOpenConfig,
-  onOpenToolConfig,
-  onOpenRuntimeTab,
-  activeEnv,
   focusSignal,
   workspaceId,
 }: InputAreaProps) {
-  const isImageFile = (filename: string) =>
-    /\.(png|jpe?g|gif|webp)$/i.test(filename);
+  const isImageFile = isImageFilename;
+
+  // 思考能力三态（none/switchable/always），由当前选中模型的 capabilities 派生。
+  // always_thinking 模型的思考关不掉（后端强制开启），UI 必须区分：
+  // switchable 显示开关，always 不提供「关闭」项（假控件：点了后端也不认）。
+  const thinkingMode = modelThinkingMode(
+    userModels?.find((m) => m.id === selectedModelId),
+  );
+  const thinkingOn = thinkingMode === "always" ? true : thinkingEnabled;
 
   const [showAttachments, setShowAttachments] = useState(false);
   const fileMentions = useMemo(() => extractFileMentions(inputValue), [inputValue]);
@@ -369,18 +368,44 @@ export const InputArea = memo(function InputArea({
   const handlePaste = useCallback(
     (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
       const pastedFiles = extractClipboardFiles(e.clipboardData);
-      if (pastedFiles.length === 0) return;
+      if (pastedFiles.length > 0) {
+        // 阻止默认粘贴行为，改走统一文件上传链路。
+        e.preventDefault();
 
-      // 阻止默认粘贴行为，改走统一文件上传链路。
-      e.preventDefault();
+        if (
+          !onFileChange ||
+          isUploading ||
+          isPrewarming ||
+          isInitializingEnvironment
+        ) {
+          return;
+        }
 
-      if (!onFileChange || isUploading || isPrewarming || isInitializingEnvironment) {
+        // 构造虚拟 ChangeEvent 以复用系统文件上传处理流程
+        const dt = new DataTransfer();
+        pastedFiles.forEach((f) => dt.items.add(f));
+        const mockEvent = {
+          target: { files: dt.files },
+        } as React.ChangeEvent<HTMLInputElement>;
+        onFileChange(mockEvent);
         return;
       }
 
-      // 构造虚拟 ChangeEvent 以复用系统文件上传处理流程
+      // 长文本粘贴转附件（pasteAsAttachment.ts 有语义与阈值说明）：
+      // 粘贴长文档/日志不淹没输入框，转 .txt 走统一上传链路。
+      if (!onFileChange || isUploading || isPrewarming || isInitializingEnvironment) {
+        return;
+      }
+      const text = e.clipboardData.getData("text/plain");
+      if (!shouldPasteAsAttachment(text)) {
+        return;
+      }
+      e.preventDefault();
+      const file = new File([text], buildPastedTextFilename(), {
+        type: "text/plain",
+      });
       const dt = new DataTransfer();
-      pastedFiles.forEach((f) => dt.items.add(f));
+      dt.items.add(file);
       const mockEvent = {
         target: { files: dt.files },
       } as React.ChangeEvent<HTMLInputElement>;
@@ -414,6 +439,23 @@ export const InputArea = memo(function InputArea({
             : "bg-muted border-border",
         )}
       >
+        {/* 非视觉模型 + 图片附件：警告但放行（交互设计/model-capability-display.md）。
+            警告随附件常驻，移除附件或切换视觉模型后消失，不阻断发送。 */}
+        {shouldWarnImageAttachment({
+          supportsImageInput: selectedModelSupportsImageInput,
+          filenames: uploadedFiles.map((file) => file.filename),
+        }) && (
+          <div
+            role="alert"
+            className="mb-2 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-micro text-amber-800"
+          >
+            <AlertCircle size={13} className="flex-shrink-0 text-amber-600" />
+            <span>
+              当前模型不支持图片输入，图片将以链接文本发送，模型无法看到图片内容。
+            </span>
+          </div>
+        )}
+
         {/* 待发送附件预览 */}
         {uploadedFiles.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2">
@@ -637,7 +679,6 @@ export const InputArea = memo(function InputArea({
               thinkingEffort={thinkingEffort}
               setThinkingEnabled={setThinkingEnabled}
               setThinkingEffort={setThinkingEffort}
-              selectedModelSupportsThinking={selectedModelSupportsThinking}
               onOpenConfig={onOpenConfig}
               disabled={
                 isRunning ||
@@ -647,7 +688,10 @@ export const InputArea = memo(function InputArea({
               }
             />
 
-            {selectedModelSupportsThinking && setThinkingEnabled && setThinkingEffort ? (
+            {/* 权限档位 chip（交互设计/permission-mode-management.md） */}
+            <PermissionModeSelect sessionId={sessionId} />
+
+            {thinkingMode !== "none" && setThinkingEnabled && setThinkingEffort ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
@@ -660,28 +704,44 @@ export const InputArea = memo(function InputArea({
                     }
                     className={cn(
                       "flex-shrink-0 inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                      thinkingEnabled
+                      thinkingOn
                         ? "bg-primary/10 text-primary hover:bg-primary/20"
                         : "bg-secondary text-secondary-foreground hover:bg-secondary/80",
                     )}
-                    title={thinkingEnabled ? `Thinking ${THINKING_EFFORT_LABELS[thinkingEffort]}` : "Thinking 关闭"}
-                    aria-label={thinkingEnabled ? `Thinking 已开启，强度 ${THINKING_EFFORT_LABELS[thinkingEffort]}` : "Thinking 已关闭"}
+                    title={
+                      thinkingMode === "always"
+                        ? `该模型始终开启思考，无法关闭 · 强度 ${THINKING_EFFORT_LABELS[thinkingEffort]}`
+                        : thinkingOn
+                          ? `Thinking ${THINKING_EFFORT_LABELS[thinkingEffort]}`
+                          : "Thinking 关闭"
+                    }
+                    aria-label={
+                      thinkingMode === "always"
+                        ? `Thinking 常开，强度 ${THINKING_EFFORT_LABELS[thinkingEffort]}`
+                        : thinkingOn
+                          ? `Thinking 已开启，强度 ${THINKING_EFFORT_LABELS[thinkingEffort]}`
+                          : "Thinking 已关闭"
+                    }
                   >
                     <Brain className="h-4 w-4" />
                     <span className="min-w-4 text-left font-medium">
-                      {thinkingEnabled ? THINKING_EFFORT_LABELS[thinkingEffort] : "关"}
+                      {thinkingOn ? THINKING_EFFORT_LABELS[thinkingEffort] : "关"}
                     </span>
                     <ChevronDown className="h-3.5 w-3.5 opacity-70" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" side="top" sideOffset={6} className="w-32">
-                  <DropdownMenuItem
-                    onClick={() => setThinkingEnabled(false)}
-                    className="flex items-center justify-between text-xs"
-                  >
-                    <span>关闭</span>
-                    {!thinkingEnabled ? <Check className="h-3.5 w-3.5" /> : null}
-                  </DropdownMenuItem>
+                  {/* always_thinking 模型不提供「关闭」项——后端会强制开启，
+                      提供关闭只会成为假控件（UI 说关了，实际一直在思考） */}
+                  {thinkingMode === "switchable" ? (
+                    <DropdownMenuItem
+                      onClick={() => setThinkingEnabled(false)}
+                      className="flex items-center justify-between text-xs"
+                    >
+                      <span>关闭</span>
+                      {!thinkingOn ? <Check className="h-3.5 w-3.5" /> : null}
+                    </DropdownMenuItem>
+                  ) : null}
                   {(["low", "medium", "high"] as const).map((level) => (
                     <DropdownMenuItem
                       key={level}
@@ -692,72 +752,13 @@ export const InputArea = memo(function InputArea({
                       className="flex items-center justify-between text-xs"
                     >
                       <span>{THINKING_EFFORT_LABELS[level]}</span>
-                      {thinkingEnabled && thinkingEffort === level ? (
+                      {thinkingOn && thinkingEffort === level ? (
                         <Check className="h-3.5 w-3.5" />
                       ) : null}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : null}
-
-            {onOpenToolConfig ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={onOpenToolConfig}
-                    disabled={!sessionId}
-                    className="flex-shrink-0 inline-flex items-center justify-center rounded-md bg-secondary p-2 text-xs text-secondary-foreground transition-colors hover:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-50"
-                    title="当前会话工具配置"
-                    aria-label="当前会话工具配置"
-                    data-testid="input-tool-config"
-                  >
-                    <SlidersHorizontal className="h-4 w-4" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top" sideOffset={6}>
-                  当前会话工具配置
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
-
-            {/* 运行环境状态徽标 */}
-            {activeEnv && onOpenRuntimeTab ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={onOpenRuntimeTab}
-                    disabled={isInitializingEnvironment}
-                    className={cn(
-                      "flex-shrink-0 inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                      activeEnv.image === "none"
-                        ? "bg-warning/10 text-warning hover:bg-warning/20"
-                        : activeEnv.image === "docker"
-                          ? "bg-info/10 text-info hover:bg-info/20"
-                          : "bg-success/10 text-success hover:bg-success/20",
-                    )}
-                    aria-label={`运行环境：${activeEnv.name}`}
-                  >
-                    {activeEnv.image === "docker" ? (
-                      <Container className="h-3.5 w-3.5" />
-                    ) : activeEnv.image === "none" ? (
-                      <FlaskConical className="h-3.5 w-3.5" />
-                    ) : (
-                      <FlaskConical className="h-3.5 w-3.5" />
-                    )}
-                    <span className="max-w-[120px] truncate">
-                      {activeEnv.image === "none" ? "未配置环境" : activeEnv.name}
-                    </span>
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top" sideOffset={6}>
-                  {activeEnv.image === "none"
-                    ? "未配置运行环境，点击配置"
-                    : `运行环境：${activeEnv.name}，点击管理`}
-                </TooltipContent>
-              </Tooltip>
             ) : null}
 
             <input

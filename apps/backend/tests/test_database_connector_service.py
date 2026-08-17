@@ -356,7 +356,7 @@ def test_query_attached_connector_readonly_allows_writable_connector_reads(
 def test_create_connector_can_persist_explicit_write_access_policy(tmp_path: Path) -> None:
     service = DatabaseConnectorService(tmp_path, session_manager=SessionManager(tmp_path))
 
-    connector = service.create_connector(
+    _ = service.create_connector(
         "db-user",
         DatabaseConnectorDraft(
             name="写入 PG",

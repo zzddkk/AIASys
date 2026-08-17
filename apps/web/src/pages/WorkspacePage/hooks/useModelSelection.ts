@@ -27,6 +27,8 @@ export interface UseModelSelectionReturn {
   setThinkingEffort: (effort: "low" | "medium" | "high") => void;
   /** 当前选中的模型是否支持 thinking */
   selectedModelSupportsThinking: boolean;
+  /** 三态：true / false / undefined（模型未解析，语义为「不知道」） */
+  selectedModelSupportsImageInput: boolean | undefined;
 }
 
 function getDisplayName(selection: SessionLLMSelectionSummary | null): string | null {
@@ -93,10 +95,45 @@ function saveThinkingConfig(
   }
 }
 
+/**
+ * 模型思考能力三态：none（不能思考）/ switchable（可开关）/ always（永远思考）。
+ *
+ * 为什么必须三态：always_thinking 模型（R1、o 系列）的思考关不掉——后端
+ * _resolve_request_options 会无视前端传的 thinking_enabled=false 强制开启。
+ * 二态判定（supports/not）会让 UI 在这类模型上显示一个可点的「关」，
+ * 点了实际无效，成为假控件。UI 应按三态分叉：none 隐藏、switchable 开关、
+ * always 显示常开徽章（交互设计/permission-mode-management.md 同批调查结论，
+ * 参照 deepseek-harness「UI 只提供模型声明的档位」原则）。
+ */
+export type ModelThinkingMode = "none" | "switchable" | "always";
+
+export function modelThinkingMode(
+  model: LLMModelConfig | undefined,
+): ModelThinkingMode {
+  if (!model) return "none";
+  const caps = model.capabilities ?? [];
+  if (caps.includes("always_thinking")) return "always";
+  if (caps.includes("thinking")) return "switchable";
+  return "none";
+}
+
 function modelSupportsThinking(model: LLMModelConfig | undefined): boolean {
   if (!model) return false;
   const caps = model.capabilities ?? [];
   return caps.includes("thinking") || caps.includes("always_thinking");
+}
+
+/**
+ * 图片输入能力判定。三态语义：true / false / undefined。
+ * undefined（模型未解析，如选中 "system" 默认）表示「不知道」，
+ * 调用方不得按不支持处理——误报警告比漏报更伤信任
+ * （交互设计/model-capability-display.md）。
+ */
+export function modelSupportsImageInput(
+  model: LLMModelConfig | undefined,
+): boolean | undefined {
+  if (!model) return undefined;
+  return (model.capabilities ?? []).includes("image_in");
 }
 
 export function useModelSelection(
@@ -122,6 +159,7 @@ export function useModelSelection(
 
   const selectedModel = models.find((m) => m.id === selectedModelId);
   const selectedModelSupportsThinking = modelSupportsThinking(selectedModel);
+  const selectedModelSupportsImageInput = modelSupportsImageInput(selectedModel);
 
   const reloadAvailableModels = useCallback(async () => {
     const res = await getModels(true, undefined);
@@ -285,5 +323,6 @@ export function useModelSelection(
     setThinkingEnabled,
     setThinkingEffort,
     selectedModelSupportsThinking,
+    selectedModelSupportsImageInput,
   };
 }

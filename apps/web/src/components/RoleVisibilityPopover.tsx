@@ -94,11 +94,17 @@ export function RoleVisibilityPopover({
         <Button
           type="button"
           variant="ghost"
-          size="sm"
-          className="h-8 w-8 rounded-lg p-0"
+          size="icon-sm"
+          className="rounded-lg p-0"
           title={triggerTitle}
           aria-label={`${role.displayName} 协作专家启用策略`}
           data-testid={`role-visibility-trigger-${role.name}`}
+          onClick={(e) => {
+            // 本组件嵌在 RoleListItem 的整行 onClick=onPreview 区域内，
+            // 兄弟按钮全部 stopPropagation，唯独这里漏了——不拦截的话
+            // 开 popover 的同时会冒泡触发行预览，详情弹窗盖住 popover。
+            e.stopPropagation();
+          }}
         >
           <TriggerIcon className="h-3.5 w-3.5" />
         </Button>
@@ -108,6 +114,12 @@ export function RoleVisibilityPopover({
         side="left"
         className="w-80 space-y-4 p-4"
         data-testid={`role-visibility-popover-${role.name}`}
+        onClick={(e) => {
+          // Radix PopoverContent 走 portal，但 React 合成事件仍按组件树冒泡——
+          // 本组件在 React 树里嵌在 RoleListItem 的整行 onClick=onPreview 区域内，
+          // 不拦截的话 popover 里的每次点击（拨开关、点保存）都会触发详情弹窗。
+          e.stopPropagation();
+        }}
       >
         <div className="space-y-1">
           <div className="flex items-start justify-between gap-3">
@@ -124,11 +136,11 @@ export function RoleVisibilityPopover({
             </Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <Badge variant="outline" className="rounded-md px-1.5 py-0.5 text-[10px]">
+            <Badge variant="outline" className="rounded-md px-1.5 py-0.5 text-nano">
               来源: {SOURCE_LABELS[role.visibilitySource] ?? role.visibilitySource}
             </Badge>
             {locked ? (
-              <Badge variant="warning" className="rounded-md px-1.5 py-0.5 text-[10px]">
+              <Badge variant="warning" className="rounded-md px-1.5 py-0.5 text-nano">
                 已锁定
               </Badge>
             ) : null}
@@ -141,7 +153,7 @@ export function RoleVisibilityPopover({
               <div className="text-xs font-medium text-foreground">
                 当前 Agent 可见
               </div>
-              <div className="mt-1 text-[11px] text-muted-foreground">
+              <div className="mt-1 text-micro text-muted-foreground">
                 当前 Agent 在协作专家目录中可以看到并选择它
               </div>
             </div>
@@ -161,7 +173,7 @@ export function RoleVisibilityPopover({
               <div className="text-xs font-medium text-foreground">
                 {role.scope === "global" ? "全局默认启用" : "工作区默认启用"}
               </div>
-              <div className="mt-1 text-[11px] text-muted-foreground">
+              <div className="mt-1 text-micro text-muted-foreground">
                 新会话默认将该专家加入可协作列表
               </div>
             </div>
@@ -191,7 +203,6 @@ export function RoleVisibilityPopover({
             type="button"
             size="sm"
             variant="outline"
-            className="h-8"
             onClick={() => setOpen(false)}
           >
             关闭
@@ -199,7 +210,6 @@ export function RoleVisibilityPopover({
           <Button
             type="button"
             size="sm"
-            className="h-8"
             onClick={() => void handleSave()}
             disabled={readonly || saving || !changed}
             data-testid={`role-visibility-save-${role.name}`}

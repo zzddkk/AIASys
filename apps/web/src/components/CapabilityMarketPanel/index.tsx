@@ -59,7 +59,7 @@ export function CapabilityMarketPanel({ workspaceId }: CapabilityMarketPanelProp
                 {group.icon}
                 <span className="font-medium">{group.label}</span>
               </div>
-              <span className="text-[10px] leading-tight opacity-70">
+              <span className="text-nano leading-tight opacity-70">
                 {group.description}
               </span>
             </button>

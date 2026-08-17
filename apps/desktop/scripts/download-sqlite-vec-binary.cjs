@@ -2,6 +2,11 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { spawnSync } = require("child_process");
+const {
+  describeSpawnFailure,
+  parseChecksumsTxt,
+  parseSingleSha256,
+} = require("./lib/vendor-download-utils.cjs");
 
 const SQLITE_VEC_VERSION = "0.1.6";
 const REPO = "asg017/sqlite-vec";
@@ -49,14 +54,22 @@ function resolveRepoRoot() {
 
 function curlDownload(url, dest) {
   console.log(`[download-sqlite-vec] 下载: ${url}`);
+  // 诊断必须区分「命令不在 PATH」和「命令跑了但请求失败」。curl -f 遇 404 退出码是 22，
+  // 此时 curl 本身完好；旧版把两者一律报成「curl 不可用」，掩盖了 URL 拼错的真问题。
+  let curlFail = null;
+  let wgetFail = null;
   let result = spawnSync(
     "curl",
     ["-L", "-f", "--connect-timeout", "15", "--max-time", "120", "-o", dest, url],
     { encoding: "utf-8", stdio: "pipe", windowsHide: true }
   );
   if (result.status !== 0) {
-    // Fallback to wget（精简 CI/Windows Server Core 环境可能只有 wget）
-    console.log(`[download-sqlite-vec] curl 不可用，尝试 wget...`);
+    curlFail = describeSpawnFailure(result);
+    console.log(
+      curlFail.kind === "missing"
+        ? `[download-sqlite-vec] curl 不可用（${curlFail.detail}），尝试 wget...`
+        : `[download-sqlite-vec] curl 请求失败（${curlFail.detail}），尝试 wget...`
+    );
     result = spawnSync(
       "wget",
       ["-q", "--timeout=15", "--tries=3", "-O", dest, url],
@@ -64,8 +77,13 @@ function curlDownload(url, dest) {
     );
   }
   if (result.status !== 0) {
-    const detail = result.stderr || result.error || `curl/wget exit ${result.status}`;
-    throw new Error(`下载失败 (${url}): curl 和 wget 均不可用 (${detail})`);
+    wgetFail = describeSpawnFailure(result);
+    const bothMissing = curlFail?.kind === "missing" && wgetFail.kind === "missing";
+    throw new Error(
+      bothMissing
+        ? `下载失败 (${url}): curl 和 wget 均不在 PATH 上 (curl=${curlFail.detail}, wget=${wgetFail.detail})`
+        : `下载失败 (${url}): curl=${curlFail?.detail ?? "n/a"}, wget=${wgetFail.detail}`
+    );
   }
   const stat = fs.statSync(dest);
   console.log(`[download-sqlite-vec] 已保存: ${dest} (${(stat.size / 1024).toFixed(1)} KB)`);
@@ -100,30 +118,45 @@ function resolvePython() {
 function extractTarGz(archivePath, targetDir) {
   console.log(`[download-sqlite-vec] 解压: ${archivePath}`);
   fs.mkdirSync(targetDir, { recursive: true });
-  const result = spawnSync("tar", ["-xzf", archivePath, "-C", targetDir], {
+
+  // 与 download-uv-binary.cjs / download-fnm-binary.cjs 同款修复（三处各有一份复制
+  // 粘贴的解压逻辑）。这里的 asset 是 tar.gz，Windows 平台也走这条路径，所以同样会
+  // 撞上 Git for Windows 的 GNU tar 把盘符冒号当「主机:路径」的问题：
+  //   tar: Cannot connect to C: resolve failed
+  const systemTar = path.join(
+    process.env.SystemRoot || "C:\\Windows",
+    "System32",
+    "tar.exe"
+  );
+  const tarCmd =
+    process.platform === "win32" && fs.existsSync(systemTar) ? systemTar : "tar";
+  const result = spawnSync(tarCmd, ["-xzf", archivePath, "-C", targetDir], {
     encoding: "utf-8",
     stdio: "pipe",
     windowsHide: true,
   });
   if (result.status === 0) return;
-  if (result.error && result.error.code === "ENOENT") {
-    const pyCmd = resolvePython();
-    if (!pyCmd) {
-      throw new Error("未找到可用的 Python 解释器（尝试 py/python3/python），无法解压 tar.gz");
-    }
-    console.log(`[download-sqlite-vec] 未找到 tar，使用 ${pyCmd} tarfile 解压`);
-    // 通过 sys.argv 传参，避免 Windows 反斜杠路径被 Python 解释为转义序列
-    const pyResult = spawnSync(
-      pyCmd,
-      ["-c", "import sys, tarfile, gzip; ar=sys.argv[1]; td=sys.argv[2]; f=tarfile.open(ar, 'r:gz' if ar.endswith('.gz') else 'r'); f.extractall(td)", archivePath, targetDir],
-      { encoding: "utf-8", stdio: "pipe", windowsHide: true }
+
+  // 回退条件从「仅 ENOENT」放宽到「任何失败」：判据应是「没干成」而非「不存在」。
+  const why = result.error
+    ? String(result.error.code || result.error.message)
+    : `exit ${result.status}: ${(result.stderr || "").trim()}`;
+  const pyCmd = resolvePython();
+  if (!pyCmd) {
+    throw new Error(
+      `${tarCmd} 解压失败（${why}），且未找到可回退的 Python 解释器（尝试 py/python3/python）`
     );
-    if (pyResult.status !== 0) {
-      throw new Error(`${pyCmd} tarfile 解压失败: ${pyResult.stderr || pyResult.error}`);
-    }
-    return;
   }
-  throw new Error(`解压失败: ${result.stderr || result.error}`);
+  console.log(`[download-sqlite-vec] ${tarCmd} 解压失败（${why}），改用 ${pyCmd} tarfile 解压`);
+  // 通过 sys.argv 传参，避免 Windows 反斜杠路径被 Python 解释为转义序列
+  const pyResult = spawnSync(
+    pyCmd,
+    ["-c", "import sys, tarfile, gzip; ar=sys.argv[1]; td=sys.argv[2]; f=tarfile.open(ar, 'r:gz' if ar.endswith('.gz') else 'r'); f.extractall(td)", archivePath, targetDir],
+    { encoding: "utf-8", stdio: "pipe", windowsHide: true }
+  );
+  if (pyResult.status !== 0) {
+    throw new Error(`${pyCmd} tarfile 解压失败: ${pyResult.stderr || pyResult.error}`);
+  }
 }
 
 async function downloadForPlatform(platformSlug) {
@@ -169,22 +202,33 @@ async function downloadForPlatform(platformSlug) {
   }
   if (lastErr) throw lastErr;
 
-  // 下载 sha256 校验文件并校验（获取失败时降级为警告，不阻塞构建）
+  // sqlite-vec 的 release 不提供 per-asset 的 `<asset>.sha256`（实测 v0.1.6 为 HTTP 404），
+  // 提供的是汇总文件 checksums.txt。旧版一直在请求不存在的 `.sha256`，于是每次都静默
+  // 「跳过校验」——日志看着像网络不好，实际是文件名从来就不对，校验从未真正执行过。
+  const checksumsPath = path.join(downloadDir, "checksums.txt");
   let expectedSha = null;
   for (const base of bases) {
-    const url = `${base}/${REPO}/releases/download/v${SQLITE_VEC_VERSION}/${shaName}`;
+    const url = `${base}/${REPO}/releases/download/v${SQLITE_VEC_VERSION}/checksums.txt`;
     try {
-      curlDownload(url, shaPath);
-      const content = fs.readFileSync(shaPath, "utf-8").trim();
-      expectedSha = content.split(/\s+/)[0];
-      break;
-    } catch {
-      console.warn("[download-sqlite-vec] 获取 sha256 文件失败，跳过校验");
+      curlDownload(url, checksumsPath);
+      const content = fs.readFileSync(checksumsPath, "utf-8");
+      expectedSha = parseChecksumsTxt(content, assetName);
+      if (expectedSha) break;
+      console.warn(
+        `[download-sqlite-vec] checksums.txt 里没有 ${assetName} 的条目，换下一个源`
+      );
+    } catch (err) {
+      console.warn(`[download-sqlite-vec] 获取 checksums.txt 失败: ${err.message}`);
     }
   }
 
   if (expectedSha) {
     verifySha256(archivePath, expectedSha);
+  } else {
+    // 拿不到校验值就明确说清是哪种情况，不要让人以为「校验通过了」。
+    console.warn(
+      `[download-sqlite-vec] 未取得 ${assetName} 的 sha256，本次下载未校验完整性`
+    );
   }
 
   extractTarGz(archivePath, platformDir);

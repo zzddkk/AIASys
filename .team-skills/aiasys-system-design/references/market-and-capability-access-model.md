@@ -152,7 +152,7 @@ Skill 的安装形态后续宜支持：
 - 安装落地的是 skill 目录包
 - 工作区加载的是显式启用的 skill 包
 - `SKILL.md` 只承担入口说明，不承担完整包的全部含义
-- 运行时 builtin Skill 目录应独立于协作/开发 skill 仓库，例如 `apps/backend/builtin_skills/`
+- 运行时 builtin Skill 目录应独立于协作/开发 skill 仓库，例如 `apps/backend/skills/`
 - `.agents/skills/` 负责 AI 开发协作，不直接冒充最终用户可安装的 runtime Skill 系统目录
 
 ---

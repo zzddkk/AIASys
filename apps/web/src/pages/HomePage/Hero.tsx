@@ -89,7 +89,7 @@ export const Hero = () => {
               {surfaceTags.slice(0, 6).map((tag) => (
                 <div
                   key={tag}
-                  className="rounded-full border border-foreground/10 bg-white/72 px-3 py-1.5 text-[11px] sm:text-[12px] font-medium tracking-[0.04em] text-muted-foreground shadow-[0_16px_28px_-24px_rgba(15,23,42,0.32)] backdrop-blur-sm whitespace-nowrap"
+                  className="rounded-full border border-foreground/10 bg-white/72 px-3 py-1.5 text-micro sm:text-caption font-medium tracking-[0.04em] text-muted-foreground shadow-[0_16px_28px_-24px_rgba(15,23,42,0.32)] backdrop-blur-sm whitespace-nowrap"
                 >
                   {tag}
                 </div>
@@ -125,7 +125,7 @@ export const Hero = () => {
               <div className="rounded-[1.3rem] sm:rounded-[1.6rem] border border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(248,250,252,0.84)_100%)] p-3 sm:p-5">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0">
-                    <div className="text-[10px] sm:text-[11px] font-mono tracking-[0.2em] text-muted-foreground">
+                    <div className="text-nano sm:text-micro font-mono tracking-[0.2em] text-muted-foreground">
                       核心能力
                     </div>
                     <div className="mt-1 text-base sm:text-lg font-semibold tracking-[-0.03em] text-foreground">
@@ -168,10 +168,10 @@ export const Hero = () => {
                                 <Icon className="h-3 w-3" />
                               </div>
                               <div className="min-w-0 flex-1">
-                                <div className="text-[11px] sm:text-xs font-medium text-white truncate">
+                                <div className="text-micro sm:text-xs font-medium text-white truncate">
                                   {index + 1}. {item.title}
                                 </div>
-                                <p className="text-[10px] sm:text-[11px] leading-4 text-muted-foreground truncate">
+                                <p className="text-nano sm:text-micro leading-4 text-muted-foreground truncate">
                                   {item.description}
                                 </p>
                               </div>
@@ -188,10 +188,10 @@ export const Hero = () => {
                         key={panel.title}
                         className="rounded-[1.2rem] sm:rounded-[1.35rem] border border-foreground/8 bg-white/78 p-2.5 sm:p-3 shadow-[0_22px_40px_-34px_rgba(15,23,42,0.35)]"
                       >
-                        <div className="text-[11px] sm:text-xs font-semibold tracking-[-0.02em] text-foreground truncate">
+                        <div className="text-micro sm:text-xs font-semibold tracking-[-0.02em] text-foreground truncate">
                           {panel.title}
                         </div>
-                        <p className="mt-1 text-[10px] sm:text-[11px] leading-4 text-muted-foreground line-clamp-2">
+                        <p className="mt-1 text-nano sm:text-micro leading-4 text-muted-foreground line-clamp-2">
                           {panel.detail}
                         </p>
                       </div>
@@ -209,7 +209,7 @@ export const Hero = () => {
               key={signal.title}
               className="rounded-[1.3rem] border border-foreground/8 bg-white/62 p-3.5 sm:p-4 shadow-[0_26px_50px_-40px_rgba(15,23,42,0.32)] backdrop-blur-sm"
             >
-              <div className="text-[10px] font-mono tracking-[0.2em] text-muted-foreground">
+              <div className="text-nano font-mono tracking-[0.2em] text-muted-foreground">
                 产品理念
               </div>
               <div className="mt-2 text-sm sm:text-base font-semibold tracking-[-0.02em] text-foreground">

@@ -89,7 +89,7 @@ description: |
 
 ### 4. Feature-Folder 的适用范围
 
-**现状**：只有复杂页面采用 Feature-Folder（`pages/DataAnalysisPage/components/`、`hooks/`），简单页面仍是单文件。
+**现状**：只有复杂页面采用 Feature-Folder（`pages/WorkspacePage/components/`、`hooks/`），简单页面仍是单文件。
 
 **取舍原因**：
 - 不要为了拆分而拆分。简单页面（如 `SettingsPage`、`LoginPage`）保持扁平更直观
@@ -127,7 +127,7 @@ apps/web/src/
 ├── pages/
 │   ├── HomePage/
 │   │   └── index.tsx
-│   ├── DataAnalysisPage/
+│   ├── WorkspacePage/
 │   │   ├── index.tsx
 │   │   ├── components/        # 页面专属组件
 │   │   ├── hooks/             # 页面专属 hooks
@@ -162,7 +162,7 @@ apps/web/src/
 - 页面内列表数据、筛选条件、查询结果
 - 页面级弹窗开关
 - 页面内表单状态
-- 页面级副作用协调（如 DataAnalysisPage 的 controller hook）
+- 页面级副作用协调（如 WorkspacePage 的 controller hook）
 
 ### 组件层
 

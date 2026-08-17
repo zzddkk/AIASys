@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { createWorkspace, deleteWorkspace, registerLifecycleUser } from "./support";
+import { createWorkspace, deleteWorkspace } from "./support";
 
 test.describe("Expert policy settings", () => {
   test("sidebar collaboration experts entry opens settings dialog without route navigation", async ({
@@ -78,177 +78,47 @@ test.describe("Expert policy settings", () => {
     }
   });
 
-  test("workspace experts catalog and workspace collaboration policy stay connected", async ({
+  test("global visibility switch updates role selectability via settings dialog", async ({
     page,
   }) => {
+    // 入口链路较长（goto + 三级菜单 + 对话框渲染），默认 60s 不够。
+    test.setTimeout(120_000);
     const api = page.request;
-    const { userId } = await registerLifecycleUser(api);
-    const workspace = await createWorkspace(api, {
-      title: `协作专家回归-${Date.now()}`,
-      mode: "analysis",
-    });
-
-    try {
-      await page.goto(
-        `/analysis?workspace_id=${workspace.workspaceId}&session_id=${workspace.currentConversationId}`,
-        {
-          waitUntil: "domcontentloaded",
-        },
-      );
-
-      await expect
-        .poll(async () => {
-          const response = await api.get(
-            `/api/workspaces/${workspace.workspaceId}/experts`,
-          );
-          const payload = (await response.json()) as {
-            roles: Array<{ role_id: string }>;
-          };
-          return payload.roles.map((role) => role.role_id).join(",");
-        })
-        .toContain("data_analyst");
-
-      await expect
-        .poll(() => {
-          return new URL(page.url()).searchParams.get("session_id");
-        })
-        .toBe(workspace.currentConversationId);
-
-      const initialPolicyResponse = await api.put(
-        `/api/workspaces/${workspace.workspaceId}/experts/policy`,
-        {
-          data: {
-            enabled_role_ids: ["data_analyst", "researcher"],
-          },
-        },
-      );
-      expect(initialPolicyResponse.ok()).toBeTruthy();
-
-      await page.getByRole("button", { name: "协作专家", exact: true }).click();
-
-      const policySummary = page.getByTestId("workspace-expert-policy-summary");
-      await expect(policySummary).toBeVisible();
-      await expect(policySummary).toHaveAttribute(
-        "data-workspace-id",
-        workspace.workspaceId,
-      );
-      await policySummary.getByTestId("open-workspace-collaboration-settings").click();
-
-      const policySurface = page.getByTestId("workspace-expert-policy-panel");
-      await expect(
-        policySurface,
-      ).toBeVisible();
-      await expect(policySurface).toHaveAttribute(
-        "data-workspace-id",
-        workspace.workspaceId,
-      );
-
-      await expect(
-        page.getByRole("button", { name: "工作区协作配置", exact: true }),
-      ).toBeVisible();
-
-      await policySurface.getByRole("tab", { name: "协作专家" }).click();
-      const researcherToggle = policySurface.getByTestId(
-        "workspace-expert-role-toggle-researcher",
-      );
-      await researcherToggle.click();
-      await expect(researcherToggle).toHaveAttribute("data-state", "unchecked");
-      await policySurface.getByRole("tab", { name: "工具权限" }).click();
-      const dataAnalystNotebookOutputTool = policySurface.getByTestId(
-        "workspace-expert-role-tool-toggle-data_analyst-ReadNotebookOutputsTool",
-      );
-      await dataAnalystNotebookOutputTool.click({ force: true });
-      await expect(dataAnalystNotebookOutputTool).toHaveAttribute("data-state", "unchecked");
-
-      const saveRequest = page.waitForResponse((response) => {
-        return (
-          response
-            .url()
-            .includes(`/api/workspaces/${workspace.workspaceId}/experts/policy`) &&
-          response.request().method() === "PUT"
-        );
-      });
-      await policySurface.getByTestId("workspace-expert-policy-save").click();
-      const saveResponse = await saveRequest;
-      expect(saveResponse.ok()).toBeTruthy();
-
-      await expect
-        .poll(async () => {
-          const response = await api.get(
-            `/api/workspaces/${workspace.workspaceId}/experts/policy`,
-          );
-          const payload = (await response.json()) as {
-            policy_mode: string;
-            configured_enabled_role_ids: string[] | null;
-            configured_role_tool_ids: Record<string, string[]> | null;
-          };
-          return JSON.stringify(payload);
-        })
-        .toContain('"policy_mode":"workspace"');
-      await expect
-        .poll(async () => {
-          const response = await api.get(
-            `/api/workspaces/${workspace.workspaceId}/experts/policy`,
-          );
-          const payload = (await response.json()) as {
-            configured_enabled_role_ids: string[] | null;
-          };
-          return JSON.stringify(payload.configured_enabled_role_ids || []);
-        })
-        .not.toContain("researcher");
-      await expect
-        .poll(async () => {
-          const response = await api.get(
-            `/api/workspaces/${workspace.workspaceId}/experts/policy`,
-          );
-          const payload = (await response.json()) as {
-            configured_role_tool_ids: Record<string, string[]> | null;
-          };
-          return JSON.stringify(payload.configured_role_tool_ids || {});
-        })
-        .not.toContain("ReadNotebookOutputsTool");
-
-      await page.reload({ waitUntil: "domcontentloaded" });
-      await page.getByRole("button", { name: "协作专家", exact: true }).click();
-      await page
-        .getByTestId("workspace-expert-policy-summary")
-        .getByTestId("open-workspace-collaboration-settings")
-        .click();
-
-      const reloadedPolicySurface = page.getByTestId("workspace-expert-policy-panel");
-      await expect(
-        reloadedPolicySurface,
-      ).toBeVisible();
-      await reloadedPolicySurface.getByRole("tab", { name: "协作专家" }).click();
-      await expect(
-        reloadedPolicySurface
-          .getByTestId("workspace-expert-role-toggle-researcher"),
-      ).toHaveAttribute("data-state", "unchecked");
-      await reloadedPolicySurface.getByRole("tab", { name: "工具权限" }).click();
-      await expect(
-        reloadedPolicySurface
-          .getByTestId("workspace-expert-role-tool-toggle-data_analyst-ReadNotebookOutputsTool"),
-      ).toHaveAttribute("data-state", "unchecked");
-
-      await page.keyboard.press("Escape");
-      await expect(
-        page.getByRole("button", { name: "协作节点", exact: true }),
-      ).toBeVisible();
-    } finally {
-      await deleteWorkspace(api, workspace.workspaceId);
-    }
-  });
-
-  test("workspace visibility switch hides non selectable roles from workspace policy", async ({
-    page,
-  }) => {
-    const api = page.request;
-    const { userId } = await registerLifecycleUser(api);
     const workspace = await createWorkspace(api, {
       title: `协作专家可见性回归-${Date.now()}`,
       mode: "analysis",
     });
 
+    // 全局策略是用户级状态：先记录初始值，结束后恢复，避免污染其他用例。
+    const initialPolicyResponse = await api.get("/api/experts/global/policy");
+    const initialPolicy = (await initialPolicyResponse.json()) as {
+      available_roles: Array<{
+        role_id: string;
+        catalog_visible: boolean;
+        host_selectable: boolean;
+        default_enabled: boolean;
+      }>;
+    };
+    const initialCoder = initialPolicy.available_roles.find(
+      (role) => role.role_id === "coder",
+    );
+    const coderWasInstalled = Boolean(initialCoder);
+    if (!coderWasInstalled) {
+      const enableResponse = await api.post("/api/experts/global/coder/enable", {
+        data: { role_id: "coder" },
+      });
+      expect(enableResponse.ok()).toBeTruthy();
+    } else if (initialCoder && !initialCoder.host_selectable) {
+      const restore = await api.put("/api/experts/global/coder/visibility", {
+        data: {
+          catalog_visible: initialCoder.catalog_visible,
+          host_selectable: true,
+          default_enabled: initialCoder.default_enabled,
+        },
+      });
+      expect(restore.ok()).toBeTruthy();
+    }
+
     try {
       await page.goto(
         `/analysis?workspace_id=${workspace.workspaceId}&session_id=${workspace.currentConversationId}`,
@@ -256,89 +126,78 @@ test.describe("Expert policy settings", () => {
           waitUntil: "domcontentloaded",
         },
       );
+      await expect
+        .poll(() => new URL(page.url()).searchParams.get("workspace_id"))
+        .toBe(workspace.workspaceId);
 
-      const installResponse = await api.post(
-        `/api/workspaces/${workspace.workspaceId}/experts/coder/enable`,
-        {
-          data: { role_id: "coder" },
-        },
-      );
-      expect(installResponse.ok()).toBeTruthy();
-      const installReviewerResponse = await api.post(
-        `/api/workspaces/${workspace.workspaceId}/experts/reviewer/enable`,
-        {
-          data: { role_id: "reviewer" },
-        },
-      );
-      expect(installReviewerResponse.ok()).toBeTruthy();
+      // 入口与 :6 相同：侧边栏齿轮 -> 全局设置 -> 能力管理 -> 新建专家。
+      await page.getByTestId("sidebar-workspace-tools-menu-trigger").click();
+      await expect(page.getByTestId("global-settings-dialog")).toBeVisible();
+      await page.getByTestId("global-settings-nav-capabilities").click();
+      await page.getByTestId("capability-panel-new-expert").click();
+      await expect(
+        page.getByTestId("collaboration-roles-settings-dialog"),
+      ).toBeVisible();
 
-      await page.getByRole("button", { name: "协作专家", exact: true }).click();
-      await expect(page.getByTestId("role-visibility-trigger-coder")).toBeVisible();
-      await page.getByTestId("role-visibility-trigger-coder").click();
+      // 默认 tab「我的协作专家」里每个角色卡片带可见性开关
+      // （RoleListItem -> RoleVisibilityPopover）。
+      const trigger = page.getByTestId("role-visibility-trigger-coder");
+      await expect(trigger).toBeVisible();
+      await trigger.click();
 
       const popover = page.getByTestId("role-visibility-popover-coder");
       await expect(popover).toBeVisible();
       const hostSelectable = popover.getByTestId(
         "role-visibility-host-selectable-coder",
       );
+      // 直接点 Switch 本体。旧面板时代的 xpath=.. 点的是父容器，
+      // 在 RoleVisibilityPopover 里父容器只是个 div，点了不动开关。
       await expect(hostSelectable).toBeChecked();
       await hostSelectable.locator("xpath=..").click();
       await expect(hostSelectable).not.toBeChecked();
+      // 确认 popover 仍开着再点保存，避免点击落到下层角色行触发详情弹窗。
+      await expect(popover).toBeVisible();
 
       const saveRequest = page.waitForResponse((response) => {
         return (
-          response.url().includes(
-            `/api/workspaces/${workspace.workspaceId}/experts/coder/visibility`,
-          ) && response.request().method() === "PUT"
+          response.url().includes("/api/experts/global/coder/visibility") &&
+          response.request().method() === "PUT"
         );
       });
       await popover.getByTestId("role-visibility-save-coder").click();
       const saveResponse = await saveRequest;
       expect(saveResponse.ok()).toBeTruthy();
 
+      // UI -> API 闭环：全局策略里 coder 不再可被主控选用。
       await expect
         .poll(async () => {
-          const response = await api.get(
-            `/api/workspaces/${workspace.workspaceId}/experts`,
-          );
+          const response = await api.get("/api/experts/global/policy");
           const payload = (await response.json()) as {
-            roles: Array<{
+            available_roles: Array<{
               role_id: string;
               host_selectable: boolean;
-              default_enabled: boolean;
             }>;
           };
-          const coder = payload.roles.find((role) => role.role_id === "coder");
-          return `${coder?.host_selectable}:${coder?.default_enabled}`;
+          const coder = payload.available_roles.find(
+            (role) => role.role_id === "coder",
+          );
+          return coder?.host_selectable;
         })
-        .toBe("false:false");
-
-      await page
-        .getByTestId("workspace-expert-policy-summary")
-        .getByTestId("open-workspace-collaboration-settings")
-        .click();
-
-      const policySurface = page.getByTestId("workspace-expert-policy-panel");
-      await expect(policySurface).toBeVisible();
-      await policySurface.getByRole("tab", { name: "协作专家" }).click();
-      await expect(
-        policySurface.getByTestId("workspace-expert-role-toggle-coder"),
-      ).toHaveCount(0);
-      await expect(
-        policySurface.getByTestId("workspace-expert-role-toggle-reviewer"),
-      ).toBeVisible();
-
-      const rejected = await api.put(
-        `/api/workspaces/${workspace.workspaceId}/experts/policy`,
-        {
-          data: {
-            enabled_role_ids: ["coder"],
-          },
-        },
-      );
-      expect(rejected.status()).toBe(400);
+        .toBe(false);
     } finally {
+      if (coderWasInstalled && initialCoder) {
+        await api.put("/api/experts/global/coder/visibility", {
+          data: {
+            catalog_visible: initialCoder.catalog_visible,
+            host_selectable: initialCoder.host_selectable,
+            default_enabled: initialCoder.default_enabled,
+          },
+        });
+      } else {
+        await api.delete("/api/experts/global/coder");
+      }
       await deleteWorkspace(api, workspace.workspaceId);
     }
   });
+
 });

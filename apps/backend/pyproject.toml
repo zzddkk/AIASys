@@ -111,6 +111,7 @@ url = "https://mirrors.aliyun.com/pypi/simple/"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = ["app/vendors"]
 
 [tool.ruff.lint]
 select = [
@@ -145,3 +146,20 @@ show_error_codes = true
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["."]
+# 单条测试卡住超过 60 秒就 dump 所有线程的堆栈（pytest 内置能力，不需要插件）。
+# 起因是 2026-08-09 用反向探针把 check_write_guard 改成无条件放行后，
+# test_team_write_guard.py::test_write_outside_scope_blocked 卡住不返回：这类测试断言
+# 的正是「底层工具不被调用」，守卫一失效，被拦的调用就真的发生了。没有它时，现场只有
+# 一个卡住的进度条，看不出是哪条测试、更看不出卡在哪一层。
+#
+# 阈值定 60 而不是 10：先试过 10 秒，全量跑出 1 次转储，堆栈是
+# asyncio/windows_events.py 的 _poll → select → run_forever，即某条正常的 async 测试
+# 等 IO 就超过了 10 秒（结果仍是 1818 passed，因为 pytest 用的是 dump_traceback_later
+# 的默认 exit=False，只转储不终止）。10 秒会让每次全量都吐无意义的堆栈噪音，久了就没人
+# 看了——这类「常态报警」比不报警更糟。60 秒高于任何正常单测（全量 1818 条约 200 秒），
+# 又远低于 ci.yml 里 25 分钟的 job 上限，真挂起仍会被抓到。
+#
+# 注意它只转储不终止，真正的兜底是 .github/workflows/ci.yml 里的 timeout-minutes。
+# 本想用 pytest-timeout 直接判失败，但本机装不上（uv 走的镜像连不通），而没法本地
+# 实测的东西不进 CI，所以先用内置能力顶住。
+faulthandler_timeout = 60

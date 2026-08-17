@@ -35,7 +35,7 @@ export function SidebarContainer({ children }: SidebarContainerProps) {
           size={16}
           className="text-muted-foreground group-hover:text-foreground transition-colors"
         />
-        <span className="text-[10px] text-muted-foreground group-hover:text-foreground font-medium writing-mode-vertical whitespace-nowrap transition-colors [writing-mode:vertical-rl]">
+        <span className="text-nano text-muted-foreground group-hover:text-foreground font-medium writing-mode-vertical whitespace-nowrap transition-colors [writing-mode:vertical-rl]">
           工作区侧栏
         </span>
       </div>

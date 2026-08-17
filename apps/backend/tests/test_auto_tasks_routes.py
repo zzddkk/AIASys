@@ -417,6 +417,11 @@ class TestAutoTaskGlobalRoutes:
     def test_list_all_tasks_empty(self, monkeypatch, tmp_path):
         """全局列表在无任务时返回空。"""
         client = _build_client(monkeypatch, tmp_path)
+        # 全局路由走 get_workspace_registry_service()，不 patch 会摸到真实用户目录
+        # （本地因目录已存在而侥幸通过，CI runner 上 FileNotFoundError）
+        # list_workspaces 对不存在的用户目录直接 iterdir 抛错，需先建空目录
+        (tmp_path / "local_default").mkdir()
+        _patch_registry(monkeypatch, WorkspaceRegistryService(tmp_path))
 
         response = client.get(f"{_PREFIX}/tasks")
         assert response.status_code == 200
@@ -426,6 +431,8 @@ class TestAutoTaskGlobalRoutes:
     def test_tasks_summary_empty(self, monkeypatch, tmp_path):
         """全局概览在无任务时返回零值。"""
         client = _build_client(monkeypatch, tmp_path)
+        (tmp_path / "local_default").mkdir()
+        _patch_registry(monkeypatch, WorkspaceRegistryService(tmp_path))
 
         response = client.get(f"{_PREFIX}/tasks/summary")
         assert response.status_code == 200

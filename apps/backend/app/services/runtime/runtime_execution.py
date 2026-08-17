@@ -11,7 +11,7 @@ import logging
 import os
 import re
 import shlex
-import shutil
+import shutil  # noqa: F401 — test monkeypatches runtime_execution.shutil.which
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path

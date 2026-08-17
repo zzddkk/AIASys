@@ -22,6 +22,33 @@ InternalMessageOrigin = Literal[
     "forked",
 ]
 
+DisplayHint = Literal["visible", "collapsed", "hidden"]
+
+# origin → display_hint 映射表（设计依据：agent产品横向设计对比.md 第五节）
+# origin 是后端内部概念，不透传给前端；display_hint 只有三值，职责清晰：
+# 后端决定该不该显示，前端决定怎么排版。
+_ORIGIN_TO_DISPLAY_HINT: dict[str, DisplayHint] = {
+    "user": "visible",
+    "assistant": "visible",
+    "tool": "visible",
+    "system": "hidden",
+    "compaction_summary": "hidden",
+    "system_notice": "visible",
+    "contextual_user": "collapsed",
+    "forked": "collapsed",
+}
+
+
+def compute_display_hint(origin: str | None) -> DisplayHint:
+    """将内部 origin 映射为前端渲染语义 display_hint。
+
+    未知值降级为 "visible"（宁可多显示也不要静默吞掉内容）。
+    缺省字段（None）同样返回 "visible"，保证向后兼容。
+    """
+    if origin is None:
+        return "visible"
+    return _ORIGIN_TO_DISPLAY_HINT.get(origin, "visible")
+
 
 class InternalToolFunction(TypedDict, total=False):
     name: str
@@ -41,6 +68,16 @@ class InternalMessage(TypedDict):
     tool_call_id: NotRequired[str]
     tool_calls: NotRequired[list[InternalToolCall]]
     reasoning_content: NotRequired[Any]
+    # Anthropic thinking 块的 signature。原样携带、原样回灌，
+    # 绝不伪造空值——空签名会被 Claude 校验拒绝。
+    # 注：Responses 协议的 reasoning.encrypted_content 目前未接入本字段
+    # （codex_client 未捕获、to_responses_input_messages 未投影），
+    # 该链路的加密推理透传属待办，勿据本字段名推断其已支持。
+    reasoning_signature: NotRequired[str]
+    # Anthropic redacted_thinking 块的 data。与 reasoning_signature 分开承载：
+    # 它回灌时是独立的 {"type":"redacted_thinking","data":...} 块，
+    # 不是 thinking 块的签名；混用会类型错位并互相覆盖。
+    reasoning_redacted_data: NotRequired[str]
     origin: NotRequired[InternalMessageOrigin]
     turn_n: NotRequired[int]
 
@@ -69,6 +106,14 @@ def normalize_internal_message(message: dict[str, Any]) -> InternalMessage:
 
     if "reasoning_content" in message:
         normalized["reasoning_content"] = message.get("reasoning_content")
+
+    reasoning_signature = message.get("reasoning_signature")
+    if isinstance(reasoning_signature, str) and reasoning_signature.strip():
+        normalized["reasoning_signature"] = reasoning_signature.strip()
+
+    reasoning_redacted_data = message.get("reasoning_redacted_data")
+    if isinstance(reasoning_redacted_data, str) and reasoning_redacted_data.strip():
+        normalized["reasoning_redacted_data"] = reasoning_redacted_data.strip()
 
     origin = message.get("origin")
     if origin in (
@@ -126,9 +171,56 @@ def to_openai_chat_messages(messages: list[dict[str, Any]]) -> list[dict[str, An
     return converted_messages
 
 
+def _build_anthropic_thinking_blocks(
+    message: InternalMessage,
+    is_native_anthropic: bool,
+) -> list[dict[str, Any]]:
+    """构造该消息的推理相关块（thinking / redacted_thinking），按协议顺序返回。
+
+    两类块独立存在，同一轮可同时出现，必须各自投影：
+
+    thinking 块按签名三态：
+    - 有签名 → 带真实 signature 回填（signed，Claude 官方唯一接受的形态）
+    - 无签名 + Anthropic 兼容后端（Kimi 等）→ 保留 thinking 但不带 signature 键，
+      避免丢 thinking 导致多步工具调用断裂
+    - 无签名 + Claude 官方 → 丢弃该块，绝不伪造空签名
+
+    redacted_thinking 块：内容不可读，data 必须原样回灌，否则后续轮次被拒。
+    它不依赖 reasoning_content 是否存在——只有 redacted 没有可读 thinking 是
+    合法形态，此时仍须发出该块。
+    """
+    blocks: list[dict[str, Any]] = []
+
+    reasoning = message.get("reasoning_content")
+    if reasoning:
+        signature = message.get("reasoning_signature")
+        if isinstance(signature, str) and signature.strip():
+            blocks.append(
+                {
+                    "type": "thinking",
+                    "thinking": reasoning,
+                    "signature": signature.strip(),
+                }
+            )
+        elif not is_native_anthropic:
+            blocks.append({"type": "thinking", "thinking": reasoning})
+
+    redacted_data = message.get("reasoning_redacted_data")
+    if isinstance(redacted_data, str) and redacted_data.strip():
+        blocks.append({"type": "redacted_thinking", "data": redacted_data.strip()})
+
+    return blocks
+
+
 def to_anthropic_messages(
     messages: list[dict[str, Any]],
+    is_native_anthropic: bool = True,
 ) -> tuple[str | None, list[dict[str, Any]]]:
+    """投影为 Anthropic Messages API 格式。
+
+    is_native_anthropic 区分「Claude 官方端点」与「Anthropic 兼容后端」，
+    仅影响无签名 thinking 块的取舍。默认 True（对 Claude 官方保守安全）。
+    """
     system_parts: list[str] = []
     anthropic_messages: list[dict[str, Any]] = []
 
@@ -162,16 +254,17 @@ def to_anthropic_messages(
             anthropic_messages.append(
                 {
                     "role": "assistant",
-                    "content": _build_anthropic_assistant_blocks(message),
+                    "content": _build_anthropic_assistant_blocks(
+                        message,
+                        is_native_anthropic=is_native_anthropic,
+                    ),
                 }
             )
             continue
 
         if role == "assistant":
             content_blocks: list[dict[str, Any]] = []
-            reasoning = message.get("reasoning_content")
-            if reasoning:
-                content_blocks.append({"type": "thinking", "thinking": reasoning, "signature": ""})
+            content_blocks.extend(_build_anthropic_thinking_blocks(message, is_native_anthropic))
             converted = message_content_to_anthropic_input(content)
             if isinstance(converted, str):
                 if converted:
@@ -290,9 +383,16 @@ def _normalize_tool_calls(raw_tool_calls: Any) -> list[InternalToolCall]:
 
 
 def _tool_arguments_as_text(raw_arguments: Any) -> str:
+    """把 tool_call 的 arguments 统一成文本形态。
+
+    空白字符串归一为 "{}"：空串不是合法 JSON，直接发给服务商会被解析拒绝，
+    而「无参数」的合法表达就是空对象。注意不要把这条推广到所有非法 JSON——
+    模型吐出的截断片段（如 '{"a":'）必须原样保留，那是判断截断还是真错误的
+    唯一线索，在此处吞掉会让上层只能看到一个无从追溯的空对象。
+    """
     if isinstance(raw_arguments, str):
-        return raw_arguments
-    if raw_arguments in (None, "", {}, []):
+        return raw_arguments if raw_arguments.strip() else "{}"
+    if raw_arguments in (None, {}, []):
         return "{}"
     return json.dumps(raw_arguments, ensure_ascii=False)
 
@@ -329,12 +429,11 @@ def _to_openai_tool_call_payload(tool_call: InternalToolCall) -> dict[str, Any]:
 
 def _build_anthropic_assistant_blocks(
     message: InternalMessage,
+    is_native_anthropic: bool = True,
 ) -> list[dict[str, Any]]:
     content_blocks: list[dict[str, Any]] = []
 
-    reasoning = message.get("reasoning_content")
-    if reasoning:
-        content_blocks.append({"type": "thinking", "thinking": reasoning, "signature": ""})
+    content_blocks.extend(_build_anthropic_thinking_blocks(message, is_native_anthropic))
 
     content = message.get("content", "")
     if content:

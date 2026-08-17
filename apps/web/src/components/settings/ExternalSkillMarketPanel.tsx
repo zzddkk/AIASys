@@ -147,7 +147,7 @@ export function ExternalSkillMarketPanel({
                   key={source.source_id}
                   type="button"
                   onClick={() => setSelectedSourceId(source.source_id)}
-                  className={`rounded-full border px-3 py-1 text-[11px] transition-colors ${
+                  className={`rounded-full border px-3 py-1 text-micro transition-colors ${
                     active
                       ? "border-tertiary/30 bg-tertiary-container text-on-tertiary-container"
                       : "border-border bg-card text-muted-foreground hover:bg-accent"
@@ -159,7 +159,7 @@ export function ExternalSkillMarketPanel({
             })
           )}
           <div className="flex-1" />
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-micro text-muted-foreground">
             {items.length} / {totalCount}
           </span>
         </div>
@@ -167,18 +167,18 @@ export function ExternalSkillMarketPanel({
         <div className="flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
+            <Input size="sm"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="搜索技能名称或分类"
-              className="pl-9 h-8 text-xs"
+              className="pl-9 text-xs"
             />
           </div>
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="h-8 text-xs"
+            className="text-xs"
             onClick={() => void refreshItems()}
           >
             刷新
@@ -189,7 +189,7 @@ export function ExternalSkillMarketPanel({
           <button
             type="button"
             onClick={() => setSelectedCategory(null)}
-            className={`rounded-full border px-2.5 py-0.5 text-[11px] transition-colors ${
+            className={`rounded-full border px-2.5 py-0.5 text-micro transition-colors ${
               selectedCategory === null
                 ? "border-tertiary/30 bg-tertiary-container text-on-tertiary-container"
                 : "border-border bg-card text-muted-foreground hover:bg-accent"
@@ -202,7 +202,7 @@ export function ExternalSkillMarketPanel({
               key={category}
               type="button"
               onClick={() => setSelectedCategory(category)}
-              className={`rounded-full border px-2.5 py-0.5 text-[11px] transition-colors ${
+              className={`rounded-full border px-2.5 py-0.5 text-micro transition-colors ${
                 selectedCategory === category
                   ? "border-tertiary/30 bg-tertiary-container text-on-tertiary-container"
                   : "border-border bg-card text-muted-foreground hover:bg-accent"
@@ -217,7 +217,7 @@ export function ExternalSkillMarketPanel({
               key={option.value}
               type="button"
               onClick={() => setSortBy(option.value)}
-              className={`rounded-full border px-2.5 py-0.5 text-[11px] transition-colors ${
+              className={`rounded-full border px-2.5 py-0.5 text-micro transition-colors ${
                 sortBy === option.value
                   ? "border-tertiary/30 bg-tertiary-container text-on-tertiary-container"
                   : "border-border bg-card text-muted-foreground hover:bg-accent"
@@ -268,7 +268,7 @@ export function ExternalSkillMarketPanel({
                       <div className="truncate text-sm font-semibold text-foreground">
                         {item.display_name}
                       </div>
-                      <div className="mt-0.5 text-[11px] text-muted-foreground">
+                      <div className="mt-0.5 text-micro text-muted-foreground">
                         {item.slug}
                         {item.version ? ` · v${item.version}` : ""}
                       </div>
@@ -290,7 +290,7 @@ export function ExternalSkillMarketPanel({
                         type="button"
                         variant={installed ? "secondary" : "accent"}
                         size="sm"
-                        className="h-8 text-xs"
+                        className="text-xs"
                         onClick={(event) => {
                           event.stopPropagation();
                           void openDetail(item.item_id);
@@ -310,13 +310,13 @@ export function ExternalSkillMarketPanel({
 
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {item.categories.slice(0, 3).map((category) => (
-                      <Badge key={`${item.slug}-${category}`} variant="outline" className="text-[10px]">
+                      <Badge key={`${item.slug}-${category}`} variant="outline" className="text-nano">
                         {category}
                       </Badge>
                     ))}
                   </div>
 
-                  <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+                  <div className="mt-2 flex flex-wrap gap-1.5 text-micro text-muted-foreground">
                     {item.owner_name ? (
                       <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
                         <User className="h-3 w-3" />
@@ -358,14 +358,14 @@ export function ExternalSkillMarketPanel({
             正在加载更多...
           </div>
         ) : hasMoreItems ? null : items.length > 0 ? (
-          <div className="py-2 text-center text-[11px] text-muted-foreground">
+          <div className="py-2 text-center text-micro text-muted-foreground">
             已加载全部
           </div>
         ) : null}
       </div>
 
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="h-[90vh] max-h-[90vh] max-w-2xl overflow-hidden flex flex-col gap-0 bg-background">
+        <DialogContent size="md" tall className="overflow-hidden bg-background">
           <DialogHeader className="shrink-0">
             <DialogTitle>
               {detail?.item.display_name || "外部技能详情"}
@@ -399,7 +399,7 @@ export function ExternalSkillMarketPanel({
                           "暂无说明"}
                       </div>
                       {detail.item.owner_name ? (
-                        <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <div className="mt-2 flex items-center gap-2 text-micro text-muted-foreground">
                           <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
                             <User className="h-3 w-3" />
                             {detail.item.owner_name}
@@ -416,7 +416,7 @@ export function ExternalSkillMarketPanel({
                           <Badge
                             key={`${detail.item.slug}-detail-${category}`}
                             variant="outline"
-                            className="text-[10px]"
+                            className="text-nano"
                           >
                             {category}
                           </Badge>
@@ -437,7 +437,7 @@ export function ExternalSkillMarketPanel({
                         type="button"
                         variant="accent"
                         size="sm"
-                        className="mt-3 w-full h-8 text-xs"
+                        className="mt-3 w-full text-xs"
                         disabled={
                           !workspaceId ||
                           !selectedSourceId ||
@@ -463,7 +463,7 @@ export function ExternalSkillMarketPanel({
                 {detail.readme_excerpt ? (
                   <section>
                     <div className="text-sm font-medium text-foreground">入口文档</div>
-                    <div className="mt-1 text-[11px] text-muted-foreground">
+                    <div className="mt-1 text-micro text-muted-foreground">
                       {detail.entry_relative_path || "SKILL.md"}
                     </div>
                     <pre className="mt-2 max-h-[35vh] overflow-auto rounded-xl border border-border bg-muted/50 p-3 text-xs leading-5 text-foreground">
@@ -499,7 +499,7 @@ export function ExternalSkillMarketPanel({
           </div>
           <div className="shrink-0 flex items-center justify-end gap-2 pt-4 border-t border-border">
             {detail?.item.homepage_url ? (
-              <Button variant="outline" size="sm" className="h-8 text-xs" asChild>
+              <Button variant="outline" size="sm" className="text-xs" asChild>
                 <a
                   href={detail.item.homepage_url}
                   target="_blank"
@@ -514,7 +514,7 @@ export function ExternalSkillMarketPanel({
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 text-xs"
+              className="text-xs"
               onClick={() => setDetailOpen(false)}
             >
               关闭

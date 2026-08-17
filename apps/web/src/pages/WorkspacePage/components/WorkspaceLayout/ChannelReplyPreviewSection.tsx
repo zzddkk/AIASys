@@ -42,7 +42,7 @@ export function ChannelReplyPreviewSection({
           同步最近回复
         </Button>
       </div>
-      <div className="mt-3 text-[11px] text-muted-foreground">
+      <div className="mt-3 text-micro text-muted-foreground">
         原始时间：{formatDateTime(preview?.source_timestamp)}
         {preview?.duplicate_of_last_dispatch ? " · 与最近一次同步重复" : ""}
       </div>
@@ -65,7 +65,7 @@ export function ChannelReplyPreviewSection({
           {renderAttachmentList(preview.attachments)}
         </div>
       ) : null}
-      <div className="mt-2 text-[11px] leading-5 text-muted-foreground">
+      <div className="mt-2 text-micro leading-5 text-muted-foreground">
         预计分片 {preview?.chunks.length || 0} 段；当前只做出站同步，不会把工具调用、推理过程或系统提示发到远端。
       </div>
     </div>

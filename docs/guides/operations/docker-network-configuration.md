@@ -83,7 +83,7 @@
 
 对应实现位置：
 
-- `apps/backend/app/services/database_access_broker.py`
+- `apps/backend/app/services/database/database_access_broker.py`
 - `apps/backend/app/agents/tools/local_ipython_box.py`
 
 ### 3.2 容器内 helper

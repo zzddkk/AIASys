@@ -42,7 +42,7 @@ export function EmptyConversationState({
 
         {/* 示例问题 */}
         <div className="space-y-2 text-left">
-          <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-micro font-medium text-muted-foreground">
             <Lightbulb className="h-3 w-3" />
             示例
           </div>
@@ -74,7 +74,7 @@ export function EmptyConversationState({
           </div>
         ) : null}
 
-        <p className="text-[11px] text-muted-foreground/70">
+        <p className="text-micro text-muted-foreground/70">
           也可以直接拖拽文件或文件夹到输入框
         </p>
       </div>

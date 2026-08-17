@@ -193,14 +193,14 @@ function FileEditToolbar({
             hasUnsavedChanges ? "bg-warning" : "bg-success"
           }`}
         />
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-micro text-muted-foreground">
           {hasUnsavedChanges ? "未保存" : "已保存"}
         </span>
       </div>
       <button
         type="button"
         onClick={onToggleMode}
-        className="flex items-center gap-1 px-2.5 py-0.5 text-[11px] border border-border bg-white hover:bg-muted/50 rounded text-foreground transition-colors"
+        className="flex items-center gap-1 px-2.5 py-0.5 text-micro border border-border bg-white hover:bg-muted/50 rounded text-foreground transition-colors"
       >
         {sourceViewMode === "source" ? (
           <>
@@ -218,7 +218,7 @@ function FileEditToolbar({
         type="button"
         onClick={onSave}
         disabled={isSaving || !hasUnsavedChanges}
-        className="flex items-center gap-1 px-2.5 py-0.5 text-[11px] bg-primary hover:bg-primary/90 disabled:bg-muted disabled:opacity-50 disabled:cursor-not-allowed rounded text-primary-foreground transition-colors"
+        className="flex items-center gap-1 px-2.5 py-0.5 text-micro bg-primary hover:bg-primary/90 disabled:bg-muted disabled:opacity-50 disabled:cursor-not-allowed rounded text-primary-foreground transition-colors"
       >
         {isSaving ? (
           <>
@@ -236,7 +236,7 @@ function FileEditToolbar({
         <button
           type="button"
           onClick={onOpenHistory}
-          className="flex items-center gap-1 px-2.5 py-0.5 text-[11px] border border-border bg-white hover:bg-muted/50 rounded text-foreground transition-colors"
+          className="flex items-center gap-1 px-2.5 py-0.5 text-micro border border-border bg-white hover:bg-muted/50 rounded text-foreground transition-colors"
           title="文件历史"
         >
           <History className="w-3 h-3" />
@@ -929,7 +929,7 @@ const FilePreviewPanelComponent: React.FC<FilePreviewPanelProps> = ({
         <button
           type="button"
           onClick={() => onEditFile?.(file)}
-          className="flex items-center gap-1 px-2.5 py-0.5 text-[11px] border border-border bg-white hover:bg-muted/50 rounded text-foreground transition-colors"
+          className="flex items-center gap-1 px-2.5 py-0.5 text-micro border border-border bg-white hover:bg-muted/50 rounded text-foreground transition-colors"
         >
           <Pencil className="w-3 h-3" />
           编辑

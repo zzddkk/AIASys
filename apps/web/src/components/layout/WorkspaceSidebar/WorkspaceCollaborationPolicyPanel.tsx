@@ -275,7 +275,7 @@ export function WorkspaceCollaborationPolicyPanel({
             type="button"
             size="sm"
             variant="outline"
-            className="h-8 shrink-0"
+            className="shrink-0"
             onClick={onOpenDetails}
             disabled={!onOpenDetails}
             data-testid="open-workspace-collaboration-settings"
@@ -299,25 +299,25 @@ export function WorkspaceCollaborationPolicyPanel({
         ) : (
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div className="rounded-md border border-border bg-background px-3 py-2">
-              <div className="text-[10px] text-muted-foreground">最大深度</div>
+              <div className="text-nano text-muted-foreground">最大深度</div>
               <div className="mt-1 text-sm font-semibold text-foreground">
                 {maxDepth || "1"}
               </div>
             </div>
             <div className="rounded-md border border-border bg-background px-3 py-2">
-              <div className="text-[10px] text-muted-foreground">最大并发</div>
+              <div className="text-nano text-muted-foreground">最大并发</div>
               <div className="mt-1 text-sm font-semibold text-foreground">
                 {maxThreads || "默认"}
               </div>
             </div>
             <div className="rounded-md border border-border bg-background px-3 py-2">
-              <div className="text-[10px] text-muted-foreground">启用专家</div>
+              <div className="text-nano text-muted-foreground">启用专家</div>
               <div className="mt-1 text-sm font-semibold text-foreground">
                 {enabledRoleCount}/{totalRoleCount}
               </div>
             </div>
             <div className="rounded-md border border-border bg-background px-3 py-2">
-              <div className="text-[10px] text-muted-foreground">嵌套派发</div>
+              <div className="text-nano text-muted-foreground">嵌套派发</div>
               <div className="mt-1 text-sm font-semibold text-foreground">
                 {allowNestedSpawn ? "允许" : "关闭"}
               </div>
@@ -349,7 +349,7 @@ export function WorkspaceCollaborationPolicyPanel({
               <h2 className="text-base font-semibold text-foreground">
                 工作区协作配置
               </h2>
-              <Badge variant="outline" className="rounded-md px-2 py-0.5 text-[10px]">
+              <Badge variant="outline" className="rounded-md px-2 py-0.5 text-nano">
                 next-run-only
               </Badge>
             </div>
@@ -381,7 +381,7 @@ export function WorkspaceCollaborationPolicyPanel({
                 key={metric.label}
                 className="rounded-lg border border-border bg-card px-3 py-2.5"
               >
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-2 text-micro text-muted-foreground">
                   <Icon className="h-3.5 w-3.5" />
                   {metric.label}
                 </div>
@@ -439,7 +439,6 @@ export function WorkspaceCollaborationPolicyPanel({
                         max={5}
                         value={maxDepth}
                         onChange={(event) => setMaxDepth(event.target.value)}
-                        className="h-9"
                         disabled={false}
                       />
                     </div>
@@ -455,7 +454,6 @@ export function WorkspaceCollaborationPolicyPanel({
                         placeholder="默认"
                         value={maxThreads}
                         onChange={(event) => setMaxThreads(event.target.value)}
-                        className="h-9"
                         disabled={false}
                       />
                     </div>
@@ -465,7 +463,7 @@ export function WorkspaceCollaborationPolicyPanel({
                           <div className="text-xs font-medium text-foreground">
                             允许嵌套派发
                           </div>
-                          <div className="mt-1 text-[11px] text-muted-foreground">
+                          <div className="mt-1 text-micro text-muted-foreground">
                             子 Agent 是否可以继续派发协作节点
                           </div>
                         </div>
@@ -545,7 +543,7 @@ export function WorkspaceCollaborationPolicyPanel({
                                 onCheckedChange={(checked) => toggleTool(role, toolId, checked === true)}
                                 disabled={!enabled}
                                 label={shortName}
-                                className="min-w-0 rounded-md border border-border/70 bg-background px-2.5 py-2 text-[11px]"
+                                className="min-w-0 rounded-md border border-border/70 bg-background px-2.5 py-2 text-micro"
                                 aria-label={`${role.display_name} 工具 ${shortName}`}
                                 data-testid={`workspace-expert-role-tool-toggle-${role.role_id}-${shortName}`}
                               />

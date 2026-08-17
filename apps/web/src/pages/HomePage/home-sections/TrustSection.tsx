@@ -17,7 +17,7 @@ export function TrustSection({ isAuthenticated }: TrustSectionProps) {
     >
       <div className="mx-auto max-w-7xl">
         <div className="mt-16 sm:mt-20 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-foreground/8 bg-white/78 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="inline-flex items-center gap-2 rounded-full border border-foreground/8 bg-white/78 px-3 py-1 text-micro font-mono uppercase tracking-[0.2em] text-muted-foreground">
             后续规划
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
@@ -28,7 +28,7 @@ export function TrustSection({ isAuthenticated }: TrustSectionProps) {
         <div className="mt-10 overflow-hidden rounded-[2rem] sm:rounded-[2.4rem] border border-foreground/8 bg-white/82 p-5 sm:p-8 shadow-[0_40px_90px_-62px_rgba(15,23,42,0.42)] backdrop-blur-xl">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(320px,1.08fr)] lg:items-end">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-foreground/8 bg-white/78 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.24em] text-muted-foreground">
+              <div className="inline-flex items-center gap-2 rounded-full border border-foreground/8 bg-white/78 px-3 py-1 text-micro font-mono uppercase tracking-[0.24em] text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5" />
                 开始体验
               </div>

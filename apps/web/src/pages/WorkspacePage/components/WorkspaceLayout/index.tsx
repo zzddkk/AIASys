@@ -39,7 +39,7 @@ export function WorkspaceLayout({
   thinkingEffort,
   setThinkingEnabled,
   setThinkingEffort,
-  selectedModelSupportsThinking,
+  selectedModelSupportsImageInput,
   hasMessagesForMcp,
   hasMCPConfig,
   onDeleteSession,
@@ -283,7 +283,7 @@ export function WorkspaceLayout({
         thinkingEffort={thinkingEffort}
         setThinkingEnabled={setThinkingEnabled}
         setThinkingEffort={setThinkingEffort}
-        selectedModelSupportsThinking={selectedModelSupportsThinking}
+        selectedModelSupportsImageInput={selectedModelSupportsImageInput}
         hasMessagesForMcp={hasMessagesForMcp}
         hasMCPConfig={hasMCPConfig}
         onOpenDatabaseConnectionsDialog={onOpenDatabaseConnectionsDialog}

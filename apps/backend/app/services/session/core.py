@@ -11,11 +11,10 @@ import os
 import shutil
 import tempfile
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List, Optional
-
-from app.utils.path_utils import as_system_path
 from uuid import uuid4
 
 from app.models.session import (
@@ -36,11 +35,106 @@ from app.services.session.constants import (
 from app.services.session.files import FileSnapshotMixin
 from app.services.session.history import HistoryMixin
 from app.services.session.status import StatusMixin
+from app.utils.path_utils import as_system_path
 from app.utils.validators import validate_id
 
 logger = logging.getLogger(__name__)
 
 _EXPERT_POLICY_UNSET = object()
+
+# Windows 上目录内只要还有未释放的文件句柄（或有进程以它为 cwd），os.rename 就报
+# WinError 5「拒绝访问」，而 Linux 允许重命名带打开句柄的目录。表现是删除工作区时
+# 会话目录 detach 进 .trash 失败、接口 500，且这个缺陷只在 Windows 现场出现。
+#
+# 2026-08-11 实测确认占用是**瞬时**的：删除失败后手工重命名同一目录即刻成功，
+# 说明句柄由刚结束的会话执行链（agent 执行、日志文件、ipython kernel）持有，
+# 释放有延迟。所以带退避的重试就能覆盖，不需要去找具体持有者。
+_MOVE_RETRY_ATTEMPTS = 7
+_MOVE_RETRY_BASE_DELAY = 0.1
+# 退避总窗口：0.1+0.2+0.4+0.8+1.6+3.2 ≈ 6.3 秒
+
+
+def _is_transient_lock_error(exc: BaseException) -> bool:
+    """判断是否为「句柄未释放」这类可重试错误，而不是权限配置错误。"""
+    winerror = getattr(exc, "winerror", None)
+    if winerror in (5, 32, 33, 145):
+        # 5=拒绝访问 32=文件被占用 33=区域锁定 145=目录非空
+        return True
+    # 非 Windows 平台不会有 winerror；EACCES(13)/EBUSY(16) 同样按可重试处理。
+    if winerror is not None:
+        return False
+    return isinstance(exc, OSError) and exc.errno in (13, 16)
+
+
+def move_path_with_retry(
+    src: str,
+    dst: str,
+    *,
+    attempts: int = _MOVE_RETRY_ATTEMPTS,
+    base_delay: float = _MOVE_RETRY_BASE_DELAY,
+) -> None:
+    """shutil.move 的 Windows 安全版：句柄未释放时退避重试。
+
+    只重试瞬时占用类错误；真正的权限/路径错误立即抛出，不做无意义的等待。
+    """
+    last_exc: BaseException | None = None
+    for attempt in range(attempts):
+        try:
+            shutil.move(src, dst)
+            if attempt:
+                logger.info("移动目录在第 %s 次重试后成功: %s", attempt + 1, src)
+            return
+        except (PermissionError, OSError) as exc:
+            if not _is_transient_lock_error(exc):
+                raise
+            last_exc = exc
+            if attempt == attempts - 1:
+                break
+            delay = base_delay * (2**attempt)
+            logger.warning(
+                "移动目录被占用，%.1fs 后重试(%s/%s): %s (%s)",
+                delay,
+                attempt + 1,
+                attempts,
+                src,
+                exc,
+            )
+            time.sleep(delay)
+
+    assert last_exc is not None
+    raise last_exc
+
+
+def rmtree_with_retry(
+    target: str,
+    *,
+    attempts: int = _MOVE_RETRY_ATTEMPTS,
+    base_delay: float = _MOVE_RETRY_BASE_DELAY,
+) -> None:
+    """shutil.rmtree 的 Windows 安全版。
+
+    delete_workspace 里 purge 紧跟在 detach 之后执行，同一把未释放的句柄会同样
+    咬到 rmtree（WinError 5/32），所以两侧都要有退避重试。
+    """
+    last_exc: BaseException | None = None
+    for attempt in range(attempts):
+        try:
+            shutil.rmtree(target)
+            if attempt:
+                logger.info("删除目录在第 %s 次重试后成功: %s", attempt + 1, target)
+            return
+        except FileNotFoundError:
+            return
+        except (PermissionError, OSError) as exc:
+            if not _is_transient_lock_error(exc):
+                raise
+            last_exc = exc
+            if attempt == attempts - 1:
+                break
+            time.sleep(base_delay * (2**attempt))
+
+    assert last_exc is not None
+    raise last_exc
 
 
 def _is_rewrite_visible_history_message(message: dict) -> bool:
@@ -348,7 +442,10 @@ class SessionManager(StatusMixin, HistoryMixin, FileSnapshotMixin):
         trash_dir = self.base_dir / ".trash" / user_id
         trash_dir.mkdir(parents=True, exist_ok=True)
         detached_path = trash_dir / f"{session_id}-{uuid4().hex[:8]}"
-        shutil.move(as_system_path(str(session_dir)), as_system_path(str(detached_path)))
+        move_path_with_retry(
+            as_system_path(str(session_dir)),
+            as_system_path(str(detached_path)),
+        )
         logger.info(
             "会话目录已 detach 到回收区: user=%s, session=%s, path=%s",
             user_id,
@@ -363,7 +460,7 @@ class SessionManager(StatusMixin, HistoryMixin, FileSnapshotMixin):
         if not target.exists():
             return False
 
-        shutil.rmtree(as_system_path(str(target)))
+        rmtree_with_retry(as_system_path(str(target)))
         logger.info("已物理删除 detach 会话目录: %s", target)
         return True
 
@@ -1150,6 +1247,53 @@ class SessionManager(StatusMixin, HistoryMixin, FileSnapshotMixin):
             )
             return False
 
+    def update_session_metadata(
+        self,
+        session_id: str,
+        user_id: str,
+        **fields: Any,
+    ) -> bool:
+        """原子更新会话元数据的任意字段。
+
+        只更新 SessionMetadata 已声明的字段，未知字段忽略（避免污染存储）。
+        供归档/隐藏标记等轻量字段写入复用，不必为每个字段写一个 update_* 方法。
+        """
+        try:
+            metadata = self.get_session(session_id, user_id)
+            if not metadata:
+                logger.warning(
+                    "会话元数据不存在，无法更新: user=%s, session=%s",
+                    user_id,
+                    session_id,
+                )
+                return False
+
+            allowed = set(type(metadata).model_fields.keys())
+            changed = False
+            for key, value in fields.items():
+                if key not in allowed:
+                    continue
+                if getattr(metadata, key, None) != value:
+                    setattr(metadata, key, value)
+                    changed = True
+
+            if not changed:
+                return True
+
+            metadata.updated_at = datetime.now().isoformat()
+            session_dir = self._get_session_dir(session_id, user_id)
+            self._write_metadata_atomic(session_dir, metadata.model_dump())
+            return True
+        except Exception as e:
+            logger.error(
+                "更新会话元数据失败: user=%s, session=%s, fields=%s, error=%s",
+                user_id,
+                session_id,
+                list(fields.keys()),
+                e,
+            )
+            return False
+
     def update_session_title(
         self,
         session_id: str,
@@ -1299,6 +1443,50 @@ class SessionManager(StatusMixin, HistoryMixin, FileSnapshotMixin):
         except Exception as e:
             logger.error(
                 "更新会话任务配置失败: user=%s, session=%s, error=%s",
+                user_id,
+                session_id,
+                e,
+            )
+            return None
+
+    def update_authorization_mode(
+        self,
+        *,
+        session_id: str,
+        user_id: str,
+        authorization_mode: str,
+    ) -> SessionMetadata | None:
+        """更新会话的能力授权模式（manual/smart/auto/full_auto）。
+
+        生效语义为 next_run_only：已创建的运行时会话保持旧档位，
+        下一轮执行时由 mixins/session.py 的读取逻辑生效。
+        """
+        try:
+            metadata = self.get_session(session_id, user_id)
+            if not metadata:
+                logger.warning(
+                    "会话元数据不存在，无法更新授权模式: user=%s, session=%s",
+                    user_id,
+                    session_id,
+                )
+                return None
+
+            metadata.authorization_mode = authorization_mode
+            metadata.updated_at = datetime.now().isoformat()
+
+            session_dir = self._get_session_dir(session_id, user_id)
+            self._write_metadata_atomic(session_dir, metadata.model_dump())
+
+            logger.info(
+                "会话授权模式已更新: user=%s, session=%s, mode=%s",
+                user_id,
+                session_id,
+                authorization_mode,
+            )
+            return metadata
+        except Exception as e:
+            logger.error(
+                "更新会话授权模式失败: user=%s, session=%s, error=%s",
                 user_id,
                 session_id,
                 e,

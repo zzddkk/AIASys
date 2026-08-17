@@ -146,16 +146,16 @@ export function GlobalEnvVarsDialog({
       </div>
 
       <div className="flex items-center gap-2 pt-2 border-t">
-        <Input
-          className="h-8 text-xs font-mono flex-1"
+        <Input size="sm"
+          className="text-xs font-mono flex-1"
           placeholder="KEY"
           value={newKey}
           onChange={(e) => setNewKey(e.target.value.toUpperCase())}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
         />
         <span className="text-xs text-muted-foreground">=</span>
-        <Input
-          className="h-8 text-xs font-mono flex-[2]"
+        <Input size="sm"
+          className="text-xs font-mono flex-[2]"
           placeholder="value"
           value={newValue}
           onChange={(e) => setNewValue(e.target.value)}
@@ -163,8 +163,8 @@ export function GlobalEnvVarsDialog({
         />
         <Button
           variant="outline"
-          size="icon"
-          className="h-8 w-8 shrink-0"
+          size="icon-sm"
+          className="shrink-0"
           disabled={!newKey.trim() || saving}
           onClick={handleAdd}
         >

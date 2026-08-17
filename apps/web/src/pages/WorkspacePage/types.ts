@@ -25,6 +25,15 @@ export type ChatSegment = {
   monitorCommand?: string;
   monitorStatus?: string;
   monitorExitCode?: number | null;
+  /** 显示提示：后端根据 origin 映射，前端据此决定渲染方式 */
+  display_hint?: "visible" | "collapsed" | "hidden";
+  /** 压缩标记专用：本次压缩的 token 统计（compaction_summary 段） */
+  compactionStats?: {
+    tokens_before?: number;
+    tokens_after?: number;
+    saved_tokens?: number;
+    compacted_count?: number;
+  };
 };
 
 export type WorkerRecord = {
@@ -113,6 +122,12 @@ export type SessionHistoryMessage = {
   content: SessionHistoryContentItem[] | string;
   display_content?: SessionHistoryContentItem[] | string;
   reasoning_content?: string | null;
+  compaction_stats?: {
+    tokens_before?: number;
+    tokens_after?: number;
+    saved_tokens?: number;
+    compacted_count?: number;
+  } | null;
   rewritten_from?: string | null;
   timestamp?: string | null;
   turn_n?: number | null;
@@ -225,6 +240,10 @@ export interface WorkspaceConversationSummary {
   auto_task_id?: string | null;
   automation_continuation_id?: string | null;
   automation_continuation_target_kind?: string | null;
+  /** 最后一条用户消息预览（列表行展示与搜索匹配用） */
+  last_user_preview?: string | null;
+  /** 归档（从默认列表隐藏，数据保留可恢复） */
+  archived?: boolean;
 }
 
 export interface TaskWorkspaceSummary {
@@ -253,6 +272,7 @@ export type ListProjectScopedSessionsResponse = {
 
 export type SessionStatusInfo = {
   session_id: string;
+  authorization_mode?: string | null;
   status?: string;
   message_count?: number;
   code_timeout?: number | null;

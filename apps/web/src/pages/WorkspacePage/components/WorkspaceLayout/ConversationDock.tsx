@@ -85,7 +85,7 @@ interface ConversationDockProps {
   thinkingEffort: "low" | "medium" | "high";
   setThinkingEnabled: (enabled: boolean) => void;
   setThinkingEffort: (effort: "low" | "medium" | "high") => void;
-  selectedModelSupportsThinking: boolean;
+  selectedModelSupportsImageInput?: boolean;
   onOpenLLMConfigDialog: () => void;
   onOpenToolConfig: () => void;
   onOpenRuntimeTab?: () => void;
@@ -155,7 +155,7 @@ export function ConversationDock({
   thinkingEffort,
   setThinkingEnabled,
   setThinkingEffort,
-  selectedModelSupportsThinking,
+  selectedModelSupportsImageInput,
   onOpenLLMConfigDialog,
   onOpenToolConfig,
   onOpenRuntimeTab,
@@ -253,6 +253,7 @@ export function ConversationDock({
         onOpenToolConfig={onOpenToolConfig}
         onOpenLLMConfigDialog={onOpenLLMConfigDialog}
         onOpenRuntimeTab={onOpenRuntimeTab}
+        activeEnv={runtimeControls.activeEnv}
       />
 
       <DockChatView
@@ -295,9 +296,8 @@ export function ConversationDock({
         thinkingEffort={thinkingEffort}
         setThinkingEnabled={setThinkingEnabled}
         setThinkingEffort={setThinkingEffort}
-        selectedModelSupportsThinking={selectedModelSupportsThinking}
+        selectedModelSupportsImageInput={selectedModelSupportsImageInput}
         onOpenLLMConfigDialog={onOpenLLMConfigDialog}
-        onOpenToolConfig={onOpenToolConfig}
         sessionInputFocusSignal={sessionInputFocusSignal}
         tasks={sessionStatus?.tasks}
         planState={sessionStatus?.plan_state}

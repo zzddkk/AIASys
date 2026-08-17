@@ -9,7 +9,7 @@ export const Pill = ({ children, className }: PillProps) => {
   return (
     <div
       className={cn(
-        "inline-flex h-9 items-center justify-center gap-3 rounded-full border border-foreground/10 bg-white/72 px-4 text-[12px] font-medium tracking-[0.08em] text-muted-foreground shadow-[0_16px_40px_-28px_rgba(15,23,42,0.45)] backdrop-blur-md",
+        "inline-flex h-9 items-center justify-center gap-3 rounded-full border border-foreground/10 bg-white/72 px-4 text-caption font-medium tracking-[0.08em] text-muted-foreground shadow-[0_16px_40px_-28px_rgba(15,23,42,0.45)] backdrop-blur-md",
         className,
       )}
     >

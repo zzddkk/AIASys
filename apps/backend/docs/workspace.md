@@ -193,6 +193,5 @@ workspaces/{user_id}/{session_id}/{filename}
 
 - `app/api/routes/files.py`
 - `app/api/routes/sessions.py`
-- `app/services/session_manager.py`
-- `app/services/agent_service.py`
-- `app/preferences/manager.py`
+- `app/api/routes/workspaces_core.py`
+- `app/services/session/files.py`

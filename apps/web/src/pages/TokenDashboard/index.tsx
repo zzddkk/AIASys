@@ -15,9 +15,8 @@ export default function TokenDashboard() {
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               onClick={handleBack}
-              className="h-8 w-8"
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>

@@ -425,15 +425,15 @@ export function DatabaseQueryWorkbench({
               onValueChange={setSelectedHandle}
               disabled={loadingHandles || handles.length === 0}
             >
-              <SelectTrigger className="h-8 text-[12px]">
+              <SelectTrigger size="sm" className="text-caption">
                 <SelectValue placeholder={loadingHandles ? "加载中..." : "选择数据源"} />
               </SelectTrigger>
               <SelectContent>
                 {handles.map((handle) => (
-                  <SelectItem key={handle.handle} value={handle.handle} className="text-[12px]">
+                  <SelectItem key={handle.handle} value={handle.handle} className="text-caption">
                     <span className="flex items-center gap-1.5">
                       {handle.name}
-                      <span className="text-[10px] text-muted-foreground">{getRuntimeDatabaseTypeLabel(handle.db_type)}</span>
+                      <span className="text-nano text-muted-foreground">{getRuntimeDatabaseTypeLabel(handle.db_type)}</span>
                     </span>
                   </SelectItem>
                 ))}
@@ -451,7 +451,7 @@ export function DatabaseQueryWorkbench({
             </button>
 
             {selectedHandleInfo ? (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-micro text-muted-foreground">
                 {getHandleSubtitle(selectedHandleInfo)}
               </span>
             ) : null}

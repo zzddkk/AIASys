@@ -1,46 +1,16 @@
 import { writeFile } from "node:fs/promises";
 
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext } from "@playwright/test";
 
-import { createWorkspace, deleteWorkspace, registerLifecycleUser } from "./support";
+import {
+  createWorkspace,
+  deleteWorkspace,
+  openGlobalResourcesPanel,
+  openWorkspaceFilesPanel,
+  registerLifecycleUser,
+} from "./support";
 
-async function openWorkspaceFilesPanel(page: Page) {
-  await expect(page.locator("textarea")).toBeVisible();
-  const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-  if (!(await panel.isVisible())) {
-    const fileTab = page.locator("button[aria-label='文件']");
-    if (await fileTab.isVisible()) {
-      await fileTab.click();
-    } else {
-      await page.getByRole("button", { name: "文件", exact: true }).click();
-    }
-  }
-  await expect(panel).toBeVisible();
-  await expect(panel.getByTestId("workspace-artifacts-tree-surface")).toBeVisible();
-  return panel;
-}
 
-async function openGlobalResourcesPanel(page: Page) {
-  await expect(page.locator("textarea")).toBeVisible();
-  const globalTab = page
-    .locator("button[aria-label='全局工作区'], button[aria-label='全局资源']")
-    .first();
-  if ((await globalTab.count()) > 0 && (await globalTab.isVisible())) {
-    await globalTab.click();
-  } else {
-    await page
-      .getByRole("button", { name: "全局工作区", exact: true })
-      .or(page.getByRole("button", { name: "全局资源", exact: true }))
-      .first()
-      .click();
-  }
-  const panel = page.locator('[data-testid="workspace-global-resources-panel"]');
-  await expect(panel).toBeVisible();
-  await expect(
-    panel.getByTestId("workspace-global-resources-tree-surface"),
-  ).toBeVisible();
-  return panel;
-}
 
 async function deleteGlobalFiles(
   api: APIRequestContext,
@@ -79,6 +49,10 @@ test.describe("Workspace artifacts upload flow", () => {
     );
 
     let executePayload: Record<string, unknown> | null = null;
+    // TS 的控制流分析看不见 page.route 回调里的赋值，会把 executePayload 收窄成 null，
+    // 于是 readExecutePayload()?.prompt 报 "Property does not exist on type never"。
+    // 通过函数读取即可绕过收窄，且不需要 as 断言。
+    const readExecutePayload = () => executePayload;
 
     try {
       await page.route("**/api/agent/execute/stream", async (route) => {
@@ -124,8 +98,8 @@ test.describe("Workspace artifacts upload flow", () => {
         .poll(() => executePayload, { timeout: 15_000 })
         .not.toBeNull();
 
-      expect(executePayload?.prompt).toBe("请确认你收到了刚上传的文件。");
-      expect(executePayload?.attachments).toEqual([
+      expect(readExecutePayload()?.prompt).toBe("请确认你收到了刚上传的文件。");
+      expect(readExecutePayload()?.attachments).toEqual([
         "/workspace/right-panel-upload.txt",
       ]);
 
@@ -153,6 +127,10 @@ test.describe("Workspace artifacts upload flow", () => {
     });
 
     let executePayload: Record<string, unknown> | null = null;
+    // TS 的控制流分析看不见 page.route 回调里的赋值，会把 executePayload 收窄成 null，
+    // 于是 readExecutePayload()?.prompt 报 "Property does not exist on type never"。
+    // 通过函数读取即可绕过收窄，且不需要 as 断言。
+    const readExecutePayload = () => executePayload;
 
     try {
       await page.route("**/api/agent/execute/stream", async (route) => {
@@ -212,8 +190,8 @@ test.describe("Workspace artifacts upload flow", () => {
         .poll(() => executePayload, { timeout: 15_000 })
         .not.toBeNull();
 
-      expect(executePayload?.prompt).toBe("请确认你收到了刚粘贴的文件。");
-      expect(executePayload?.attachments).toEqual([
+      expect(readExecutePayload()?.prompt).toBe("请确认你收到了刚粘贴的文件。");
+      expect(readExecutePayload()?.attachments).toEqual([
         "/workspace/right-panel-pasted.txt",
       ]);
 
@@ -239,6 +217,10 @@ test.describe("Workspace artifacts upload flow", () => {
     });
 
     let executePayload: Record<string, unknown> | null = null;
+    // TS 的控制流分析看不见 page.route 回调里的赋值，会把 executePayload 收窄成 null，
+    // 于是 readExecutePayload()?.prompt 报 "Property does not exist on type never"。
+    // 通过函数读取即可绕过收窄，且不需要 as 断言。
+    const readExecutePayload = () => executePayload;
 
     try {
       await page.route("**/api/agent/execute/stream", async (route) => {
@@ -324,8 +306,8 @@ test.describe("Workspace artifacts upload flow", () => {
         .poll(() => executePayload, { timeout: 15_000 })
         .not.toBeNull();
 
-      expect(executePayload?.prompt).toBe("请确认你收到了刚拖拽的文件。");
-      expect(executePayload?.attachments).toEqual([
+      expect(readExecutePayload()?.prompt).toBe("请确认你收到了刚拖拽的文件。");
+      expect(readExecutePayload()?.attachments).toEqual([
         "/workspace/right-panel-dragged.txt",
       ]);
 
@@ -351,6 +333,10 @@ test.describe("Workspace artifacts upload flow", () => {
     });
 
     let executePayload: Record<string, unknown> | null = null;
+    // TS 的控制流分析看不见 page.route 回调里的赋值，会把 executePayload 收窄成 null，
+    // 于是 readExecutePayload()?.prompt 报 "Property does not exist on type never"。
+    // 通过函数读取即可绕过收窄，且不需要 as 断言。
+    const readExecutePayload = () => executePayload;
 
     try {
       await page.route("**/api/agent/execute/stream", async (route) => {
@@ -408,8 +394,8 @@ test.describe("Workspace artifacts upload flow", () => {
         .poll(() => executePayload, { timeout: 15_000 })
         .not.toBeNull();
 
-      expect(executePayload?.prompt).toBe("请确认你收到了输入框里粘贴的文件。");
-      expect(executePayload?.attachments).toEqual([
+      expect(readExecutePayload()?.prompt).toBe("请确认你收到了输入框里粘贴的文件。");
+      expect(readExecutePayload()?.attachments).toEqual([
         "/workspace/composer-pasted.txt",
       ]);
 

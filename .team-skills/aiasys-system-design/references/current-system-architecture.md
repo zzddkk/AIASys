@@ -484,7 +484,7 @@ AIASys 当前不把 MCP 视为总模型，而把能力接入视为一等概念�
 
 当前 Skill 的实现建议进一步收口为：
 
-- 运行时系统目录从独立 builtin Skill 目录读取，例如 `apps/backend/builtin_skills/`
+- 运行时系统目录从独立 builtin Skill 目录读取，例如 `apps/backend/skills/`
 - 当前工作区实际拥有的 Skill 包直接存放在 `workspaces/{user_id}/{workspace_id}/skills/`
 - 运行时直接挂载当前工作区的 `skills/` 目录
 - zip 导入只要求包内存在可识别的 `SKILL.md` 入口文件，不强制固定目录模板

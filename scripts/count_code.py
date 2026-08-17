@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -125,7 +124,9 @@ def count_lines(path: Path) -> int:
         return 0
 
 
-def collect_stats(root: Path) -> tuple[dict[str, LanguageStats], dict[str, DirectoryStats], int]:
+def collect_stats(
+    root: Path,
+) -> tuple[dict[str, LanguageStats], dict[str, DirectoryStats], int]:
     lang_stats: dict[str, LanguageStats] = defaultdict(LanguageStats)
     dir_stats: dict[str, DirectoryStats] = defaultdict(DirectoryStats)
     total_files = 0
@@ -151,7 +152,11 @@ def collect_stats(root: Path) -> tuple[dict[str, LanguageStats], dict[str, Direc
     return dict(lang_stats), dict(dir_stats), total_files
 
 
-def format_text(lang_stats: dict[str, LanguageStats], dir_stats: dict[str, DirectoryStats], total_files: int) -> str:
+def format_text(
+    lang_stats: dict[str, LanguageStats],
+    dir_stats: dict[str, DirectoryStats],
+    total_files: int,
+) -> str:
     lines: list[str] = []
     lines.append("=" * 60)
     lines.append("代码量统计")
@@ -176,7 +181,11 @@ def format_text(lang_stats: dict[str, LanguageStats], dir_stats: dict[str, Direc
     return "\n".join(lines)
 
 
-def format_markdown(lang_stats: dict[str, LanguageStats], dir_stats: dict[str, DirectoryStats], total_files: int) -> str:
+def format_markdown(
+    lang_stats: dict[str, LanguageStats],
+    dir_stats: dict[str, DirectoryStats],
+    total_files: int,
+) -> str:
     lines: list[str] = []
     lines.append("# 代码量统计")
     lines.append("")
@@ -199,7 +208,11 @@ def format_markdown(lang_stats: dict[str, LanguageStats], dir_stats: dict[str, D
     return "\n".join(lines)
 
 
-def format_json(lang_stats: dict[str, LanguageStats], dir_stats: dict[str, DirectoryStats], total_files: int) -> str:
+def format_json(
+    lang_stats: dict[str, LanguageStats],
+    dir_stats: dict[str, DirectoryStats],
+    total_files: int,
+) -> str:
     payload = {
         "total_files": total_files,
         "total_lines": sum(s.lines for s in lang_stats.values()),
@@ -208,7 +221,10 @@ def format_json(lang_stats: dict[str, LanguageStats], dir_stats: dict[str, Direc
             dname: {
                 "files": dstat.files,
                 "lines": dstat.lines,
-                "languages": {lang: {"files": s.files, "lines": s.lines} for lang, s in dstat.languages.items()},
+                "languages": {
+                    lang: {"files": s.files, "lines": s.lines}
+                    for lang, s in dstat.languages.items()
+                },
             }
             for dname, dstat in dir_stats.items()
         },
@@ -219,7 +235,12 @@ def format_json(lang_stats: dict[str, LanguageStats], dir_stats: dict[str, Direc
 def main() -> int:
     parser = argparse.ArgumentParser(description="统计项目代码量")
     parser.add_argument("path", nargs="?", default=".", help="要扫描的路径（默认当前目录）")
-    parser.add_argument("--format", choices=["text", "json", "markdown"], default="text", help="输出格式")
+    parser.add_argument(
+        "--format",
+        choices=["text", "json", "markdown"],
+        default="text",
+        help="输出格式",
+    )
     args = parser.parse_args()
 
     root = Path(args.path).resolve()

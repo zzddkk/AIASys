@@ -170,3 +170,22 @@ apps/backend/vendor/node/.download/
 apps/backend/fnm/
 
 apps/backend/config.json
+
+# Agent CLI 的本地工作目录（memory / skills 索引卡片 / 会话）
+#
+# 这些不是产品代码，是各 AI 编码 CLI 在本机的工作产物：
+#   - .step-code/memory/  AI 积累的观察笔记，只对本机这一份工作上下文有意义
+#   - .step-code/skills/  由 pkm-hub-skills 的 deploy.py 生成的索引卡片，
+#                         正文全是指向 C:/Users/ke/... 的绝对路径导航
+#
+# 入版本会造成两处后果（x-web-bridge 已按同样理由忽略）：
+#   1. 事实源分叉——skill 源码在 pkm-hub-skills，仓里再存一份卡片，改哪份都不对；
+#   2. 路径与观察对别的机器毫无意义，clone 下来是死链加无关笔记。
+#
+# 2026-08-16 实测：.step-code/memory/ 下 2 个文件已被跟踪，
+# 且已在 PR #161 里，再往前一步就随合并进了公开仓库。
+.step-code/
+.kimi-code/
+.claude/
+.codex/
+.agents/

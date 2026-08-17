@@ -506,13 +506,16 @@ curl "http://localhost:13001/api/agent/execution/test_user/test_session/tasks"
 
 | 文件 | 说明 |
 |-----|------|
-| `app/services/agent_service.py` | Agent 执行服务，处理 SubagentEvent 并记录执行日志 |
-| `app/services/execution_logger.py` | 执行日志记录和查询，维护 Host/SubAgent 事件关联 |
-| `app/api/routes/agent.py` | API 路由定义，提供执行日志查询接口 |
-| `app/agents/docker_sandbox_agent_config/data_analysis.yaml` | Docker 模式 Host Agent 配置 |
-| `app/agents/docker_sandbox_agent_config/data_analysis_sub.yaml` | Docker 模式 Worker Agent 配置 |
+| `app/services/agent/mixins/events.py` | SubagentEvent 事件处理 |
+| `app/api/routes/sessions_execution.py` | 执行流中的 Subagent 事件分发 |
+| `app/api/routes/agent.py` | API 路由定义 |
+| `app/services/agent/subagent_lifecycle.py` | Worker 生命周期管理 |
+| `app/services/agent/subagent_registry.py` | Worker 注册表 |
 | `app/services/agent/system_presets.py` | Local 主线 system preset 事实源（Host/Subagent 基线） |
 | `app/agents/local_sandbox_agent_config/*.md` | Local 主线 prompt 模板 |
+
+> Docker 沙箱模式的 Agent 配置（原 `app/agents/docker_sandbox_agent_config/*.yaml`）与独立的执行日志模块
+> （原 `app/services/execution_logger.py`）已移除，当前只保留 Local 主线。
 
 ### SDK 源码参考
 

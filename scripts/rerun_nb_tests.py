@@ -2,10 +2,10 @@
 """重测 NB 域用例"""
 
 import json
-import sys
-import urllib.request
-import time
 import os
+import sys
+import time
+import urllib.request
 from pathlib import Path
 
 BASE_URL = "http://localhost:13001"
@@ -15,17 +15,31 @@ OUTPUT_DIR = "/tmp/agent_test_nb_rerun"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 TEST_CASES = [
-    {"id": "NB-001", "prompt": "帮我创建一个 Jupyter notebook，名字叫 analysis.ipynb，里面加一个代码单元格，写一段计算 1 到 10 乘积的代码。"},
-    {"id": "NB-002", "prompt": "当前工作区里有个 analysis.ipynb，帮我执行里面的第一个代码单元格，然后把输出结果给我。"},
-    {"id": "NB-003", "prompt": "把当前工作区的 analysis.ipynb 导出成一个 Python 脚本 analysis.py，然后让我看看这个脚本的内容。"},
-    {"id": "NB-004", "prompt": "在当前工作区创建一个 notebook package_test.ipynb，添加一个代码单元格安装 numpy，再添加一个代码单元格用 numpy 生成一个 3x3 的随机矩阵并打印出来。然后执行这两个单元格。"},
+    {
+        "id": "NB-001",
+        "prompt": "帮我创建一个 Jupyter notebook，名字叫 analysis.ipynb，里面加一个代码单元格，写一段计算 1 到 10 乘积的代码。",
+    },
+    {
+        "id": "NB-002",
+        "prompt": "当前工作区里有个 analysis.ipynb，帮我执行里面的第一个代码单元格，然后把输出结果给我。",
+    },
+    {
+        "id": "NB-003",
+        "prompt": "把当前工作区的 analysis.ipynb 导出成一个 Python 脚本 analysis.py，然后让我看看这个脚本的内容。",
+    },
+    {
+        "id": "NB-004",
+        "prompt": "在当前工作区创建一个 notebook package_test.ipynb，添加一个代码单元格安装 numpy，再添加一个代码单元格用 numpy 生成一个 3x3 的随机矩阵并打印出来。然后执行这两个单元格。",
+    },
 ]
 
 
 def send_prompt(prompt: str):
     url = f"{BASE_URL}/api/agent/execute/stream"
     data = json.dumps({"session_id": SESSION_ID, "prompt": prompt}).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+    req = urllib.request.Request(
+        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
+    )
     tool_calls = []
     tool_results = []
     events = []
@@ -51,7 +65,11 @@ def send_prompt(prompt: str):
                     pass
     except Exception as e:
         return {"error": str(e)}
-    return {"tool_calls": tool_calls, "tool_results": tool_results, "event_count": len(events)}
+    return {
+        "tool_calls": tool_calls,
+        "tool_results": tool_results,
+        "event_count": len(events),
+    }
 
 
 def run_test(tc: dict):
@@ -93,6 +111,15 @@ if __name__ == "__main__":
         else:
             tc_names = [tc.get("tool_name", "?") for tc in r["tool_calls"]]
             tr_errors = sum(1 for tr in r["tool_results"] if tr.get("is_error"))
-            status = "FAIL" if tr_errors > 0 and len(r["tool_results"]) > 0 else "PASS" if len(r["tool_calls"]) > 0 else "NO_TOOLS"
+            status = (
+                "FAIL"
+                if tr_errors > 0 and len(r["tool_results"]) > 0
+                else "PASS"
+                if len(r["tool_calls"]) > 0
+                else "NO_TOOLS"
+            )
             detail = f"tools={','.join(tc_names) or 'none'} errors={tr_errors}"
-        print(f"{tid}: {status} | {detail} | {r.get('elapsed_sec', '?')}s", file=sys.stderr)
+        print(
+            f"{tid}: {status} | {detail} | {r.get('elapsed_sec', '?')}s",
+            file=sys.stderr,
+        )

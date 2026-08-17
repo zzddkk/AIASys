@@ -17,7 +17,7 @@ export function sectionTitle(
     >
       <div
         className={cn(
-          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium tracking-[0.12em]",
+          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-micro font-medium tracking-[0.12em]",
           dark
             ? "border border-white/12 bg-white/8 text-muted-foreground"
             : "border border-foreground/8 bg-white/72 text-muted-foreground shadow-[0_16px_35px_-28px_rgba(15,23,42,0.32)] backdrop-blur-sm",
@@ -63,7 +63,7 @@ export function statusBadge(status: string, tone: StatusTone, dark = false) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium tracking-wide",
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-micro font-medium tracking-wide",
         className,
       )}
     >
@@ -77,7 +77,7 @@ export function renderSurfacePreview(kind: SurfacePreviewKind) {
     return (
       <div className="grid h-full grid-cols-[72px_minmax(0,1fr)_96px] gap-2">
         <div className="rounded-[1.1rem] border border-foreground/8 bg-foreground/96 p-2">
-          <div className="rounded-md bg-white/10 px-2 py-1 text-[10px] font-medium text-white">
+          <div className="rounded-md bg-white/10 px-2 py-1 text-nano font-medium text-white">
             任务
           </div>
           <div className="mt-2 space-y-1.5">
@@ -96,25 +96,25 @@ export function renderSurfacePreview(kind: SurfacePreviewKind) {
             <div className="h-2.5 w-2.5 rounded-full bg-muted" />
           </div>
           <div className="mt-3 space-y-2">
-            <div className="ml-auto w-[72%] rounded-2xl bg-foreground px-3 py-2 text-[10px] leading-4 text-white">
+            <div className="ml-auto w-[72%] rounded-2xl bg-foreground px-3 py-2 text-nano leading-4 text-white">
               帮我分析这批数据并保留过程。
             </div>
-            <div className="w-[86%] rounded-2xl border border-foreground/8 bg-muted px-3 py-2 text-[10px] leading-4 text-muted-foreground">
+            <div className="w-[86%] rounded-2xl border border-foreground/8 bg-muted px-3 py-2 text-nano leading-4 text-muted-foreground">
               已进入任务上下文，开始执行并同步写入工作区。
             </div>
-            <div className="w-[78%] rounded-2xl border border-dashed border-border bg-white px-3 py-2 text-[10px] leading-4 text-muted-foreground">
+            <div className="w-[78%] rounded-2xl border border-dashed border-border bg-white px-3 py-2 text-nano leading-4 text-muted-foreground">
               [TOOL] Python / SQL / AskUser / 导出
             </div>
           </div>
           <div className="mt-3 h-8 rounded-[0.9rem] border border-foreground/8 bg-muted" />
         </div>
         <div className="rounded-[1.1rem] border border-foreground/8 bg-muted p-2.5">
-          <div className="text-[10px] font-medium text-muted-foreground">工作区</div>
+          <div className="text-nano font-medium text-muted-foreground">工作区</div>
           <div className="mt-2 space-y-1.5">
             {["summary.md", "chart.png", "export.zip"].map((label) => (
               <div
                 key={label}
-                className="rounded-md border border-foreground/8 bg-white px-2 py-1 text-[10px] text-muted-foreground"
+                className="rounded-md border border-foreground/8 bg-white px-2 py-1 text-nano text-muted-foreground"
               >
                 {label}
               </div>
@@ -129,13 +129,13 @@ export function renderSurfacePreview(kind: SurfacePreviewKind) {
     return (
       <div className="grid h-full grid-cols-[118px_minmax(0,1fr)] gap-2">
         <div className="rounded-[1.1rem] border border-foreground/8 bg-white p-2.5">
-          <div className="text-[10px] font-medium text-muted-foreground">知识库</div>
+          <div className="text-nano font-medium text-muted-foreground">知识库</div>
           <div className="mt-2 space-y-1.5">
             {["生产周报", "异常案例", "设备手册"].map((label, index) => (
               <div
                 key={label}
                 className={cn(
-                  "rounded-md px-2 py-1 text-[10px]",
+                  "rounded-md px-2 py-1 text-nano",
                   index === 0
                     ? "border border-foreground/8 bg-foreground text-white"
                     : "border border-foreground/8 bg-muted text-muted-foreground",
@@ -148,12 +148,12 @@ export function renderSurfacePreview(kind: SurfacePreviewKind) {
         </div>
         <div className="rounded-[1.1rem] border border-foreground/8 bg-muted p-2.5">
           <div className="flex items-center justify-between gap-2">
-            <div className="text-[10px] font-medium text-muted-foreground">文档与检索</div>
-            <div className="rounded-full bg-white px-2 py-1 text-[9px] font-medium text-muted-foreground">
+            <div className="text-nano font-medium text-muted-foreground">文档与检索</div>
+            <div className="rounded-full bg-white px-2 py-1 text-nano font-medium text-muted-foreground">
               Upload
             </div>
           </div>
-          <div className="mt-2 rounded-[0.95rem] border border-foreground/8 bg-white px-3 py-2 text-[10px] text-muted-foreground">
+          <div className="mt-2 rounded-[0.95rem] border border-foreground/8 bg-white px-3 py-2 text-nano text-muted-foreground">
             检索：最近一个月设备异常原因
           </div>
           <div className="mt-2 space-y-1.5">
@@ -182,13 +182,13 @@ export function renderSurfacePreview(kind: SurfacePreviewKind) {
     return (
       <div className="grid h-full grid-cols-[minmax(0,1fr)_100px] gap-2">
         <div className="rounded-[1.1rem] border border-foreground/8 bg-muted p-2.5">
-          <div className="text-[10px] font-medium text-muted-foreground">技能列表</div>
+          <div className="text-nano font-medium text-muted-foreground">技能列表</div>
           <div className="mt-2 space-y-1.5">
             {["数据分析", "文档处理", "SQL 助手"].map((label, index) => (
               <div
                 key={label}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px]",
+                  "flex items-center gap-1.5 rounded-md px-2 py-1 text-nano",
                   index === 0
                     ? "border border-foreground/8 bg-foreground text-white"
                     : "border border-foreground/8 bg-white text-muted-foreground",
@@ -201,14 +201,14 @@ export function renderSurfacePreview(kind: SurfacePreviewKind) {
           </div>
         </div>
         <div className="rounded-[1.1rem] border border-foreground/8 bg-white p-2.5">
-          <div className="text-[10px] font-medium text-muted-foreground">已安装</div>
+          <div className="text-nano font-medium text-muted-foreground">已安装</div>
           <div className="mt-2 flex flex-col items-center justify-center gap-1">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-success-container text-success">
-              <span className="text-[10px] font-bold">8</span>
+              <span className="text-nano font-bold">8</span>
             </div>
-            <div className="text-[9px] text-muted-foreground">个技能</div>
+            <div className="text-nano text-muted-foreground">个技能</div>
           </div>
-          <div className="mt-2 rounded-md bg-foreground px-2 py-1 text-[9px] text-center text-white">
+          <div className="mt-2 rounded-md bg-foreground px-2 py-1 text-nano text-center text-white">
             安装
           </div>
         </div>
@@ -246,8 +246,8 @@ export function renderSurfacePreview(kind: SurfacePreviewKind) {
         </div>
       </div>
       <div className="rounded-[1.1rem] border border-foreground/8 bg-white p-2.5">
-        <div className="text-[10px] font-medium text-muted-foreground">实体详情</div>
-        <div className="mt-2 rounded-[0.95rem] border border-foreground/8 bg-muted px-3 py-2 text-[10px] text-muted-foreground">
+        <div className="text-nano font-medium text-muted-foreground">实体详情</div>
+        <div className="mt-2 rounded-[0.95rem] border border-foreground/8 bg-muted px-3 py-2 text-nano text-muted-foreground">
           设备 A
         </div>
         <div className="mt-2 space-y-1.5">

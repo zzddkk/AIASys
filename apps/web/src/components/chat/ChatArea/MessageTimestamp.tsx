@@ -18,7 +18,7 @@ export function MessageTimestamp() {
   return (
     <span
       className={`mt-1 text-muted-foreground ${
-        layout === "compact" ? "px-0.5 text-[9px]" : "px-1 text-[10px]"
+        layout === "compact" ? "px-0.5 text-nano" : "px-1 text-nano"
       } ${isUser ? "self-end" : "self-start"}`}
     >
       {timeString}

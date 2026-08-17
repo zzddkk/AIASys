@@ -92,7 +92,7 @@ export function PanelErrorState({
           type="button"
           variant="outline"
           size="sm"
-          className="mt-4 h-8 gap-1.5 rounded-lg px-3 text-[12px]"
+          className="mt-4 gap-1.5 rounded-lg px-3 text-caption"
           onClick={onRetry}
         >
           重试

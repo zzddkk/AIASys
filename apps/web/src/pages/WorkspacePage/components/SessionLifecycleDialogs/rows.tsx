@@ -57,7 +57,7 @@ export function ExecutionRecordRows({
                   {getExecutionRiskLabel(record)}
                 </span>
               </div>
-              <span className="rounded border border-border/60 bg-background px-2 py-0.5 text-[10px] text-muted-foreground">
+              <span className="rounded border border-border/60 bg-background px-2 py-0.5 text-nano text-muted-foreground">
                 {formatExecutionShortTime(record.finished_at || record.started_at)}
               </span>
             </div>
@@ -144,7 +144,7 @@ export function ConversationHistoryRows({
                 ) : null}
               </div>
               {hasTimestamp ? (
-                <span className="rounded border border-border/60 bg-background px-2 py-0.5 text-[10px] text-muted-foreground">
+                <span className="rounded border border-border/60 bg-background px-2 py-0.5 text-nano text-muted-foreground">
                   {timestampLabel}
                 </span>
               ) : null}

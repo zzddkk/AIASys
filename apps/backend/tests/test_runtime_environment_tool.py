@@ -13,8 +13,8 @@ from app.models.workspace import ExecutionResourceGroup, WorkspaceRuntimeBinding
 from app.services import runtime_environment as runtime_environment_module
 from app.services import workspace_registry as workspace_registry_module
 from app.services.history import current_session_id, current_user_id, current_workspace
-from app.services.runtime.runtime_execution import resolve_runtime_execution_plan
 from app.services.node_runtime import _validate_npm_package_names
+from app.services.runtime.runtime_execution import resolve_runtime_execution_plan
 from app.services.runtime_environment import RuntimeEnvironmentService, _validate_package_names
 from app.services.session import SessionManager
 from app.services.workspace_registry import WorkspaceRegistryService

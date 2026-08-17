@@ -1,11 +1,11 @@
 # 组件架构
 
-> 当前前端主链里最重要的组件边界，重点覆盖聊天区、右侧执行空间和 `DataAnalysisPage` 页面组件。
+> 当前前端主链里最重要的组件边界，重点覆盖聊天区、右侧执行空间和 `WorkspacePage` 页面组件。
 
 ## 当前页面骨架
 
 ```text
-DataAnalysisPage
+WorkspacePage
   -> TopBar
   -> ChatArea
   -> InputArea
@@ -77,7 +77,7 @@ components/layout/WorkspaceSidebar/
 - `database`
   展示当前会话数据库 schema
 
-## DataAnalysisPage 局部组件
+## WorkspacePage 局部组件
 
 ### `TopBar.tsx`
 
@@ -101,7 +101,7 @@ components/layout/WorkspaceSidebar/
 
 ## 组件边界原则
 
-1. 页面生命周期在 `DataAnalysisPage` 和其 hooks 中，组件只消费状态，不重建一套流程。
+1. 页面生命周期在 `WorkspacePage` 和其 hooks 中，组件只消费状态，不重建一套流程。
 2. `ChatArea` 和 `WorkspaceSidebar` 是同一执行过程的两种展示，不应各自维护独立业务真相。
 3. 右侧边栏的导出、数据库查看和工具预览都是会话相关能力，不能脱离 `sessionId` 单独工作。
 4. 新增组件前先判断它是页面局部 UI，还是应进 `components/chat` / `components/layout` 的通用层。

@@ -12,7 +12,6 @@ const BaseMenuPortal = Menu.Portal;
 const DropdownMenuPortal = BaseMenuPortal;
 const BaseMenuPopup = Menu.Popup;
 const BaseMenuPositioner = Menu.Positioner;
-const BaseMenuBackdrop = Menu.Backdrop;
 const BaseMenuItem = Menu.Item;
 const BaseMenuGroup = Menu.Group;
 const BaseMenuGroupLabel = Menu.GroupLabel;
@@ -69,7 +68,6 @@ const DropdownMenuContent = React.forwardRef<
       side={side as any}
       className="z-50"
     >
-      <BaseMenuBackdrop className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
       <BaseMenuPopup
         ref={ref}
         data-slot="dropdown-menu-content"

@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any, Optional
 
 from app.core.aiasys_config import load_aiasys_config
 from app.core.workspace_path import WorkspacePath
+from app.models.llm_provider import normalize_force_thinking_capabilities
 from app.services.agent.models.llm_config import AiasysLlmConfig, LoopControl
 from app.services.agent.runtime_backends import (
     AgentRuntimeBackend,
@@ -547,6 +548,15 @@ class SessionMixin:
                         caps = mcfg.get("capabilities", [])
                         if isinstance(caps, list) and "always_thinking" not in caps:
                             mcfg["capabilities"] = [*caps, "always_thinking"]
+                    # 强制思考模型（step 系列：API 无 off 档，服务端默认深度思考）
+                    # 归一化 always_thinking——与上方 openai_responses 同一处理点
+                    caps = mcfg.get("capabilities", [])
+                    if isinstance(caps, list):
+                        mcfg["capabilities"] = normalize_force_thinking_capabilities(
+                            caps,
+                            provider_cfg.get("base_url"),
+                            mcfg.get("model"),
+                        )
 
                 # 根据前端传入的 thinking 配置动态覆盖选中模型的 reasoning 设置
                 if thinking_enabled is not None and selected_model_id:
@@ -562,6 +572,11 @@ class SessionMixin:
                             mcfg["capabilities"] = caps
                             if thinking_effort is not None:
                                 mcfg["thinking_effort"] = thinking_effort
+                        elif "always_thinking" in caps:
+                            # 强制思考模型的「关」无效（服务端默认思考，无 off 档），
+                            # 不打 disabled、不剥离能力——请求照常带 effort，
+                            # 前端三态化后这类模型本就不再有「关闭」入口。
+                            pass
                         else:
                             mcfg["capabilities"] = [
                                 c for c in caps if c not in ("thinking", "always_thinking")

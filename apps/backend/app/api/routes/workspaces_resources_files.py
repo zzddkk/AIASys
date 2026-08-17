@@ -11,7 +11,9 @@ import asyncio
 import logging
 import mimetypes
 import os
+import re
 import shutil
+from contextlib import closing
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -426,7 +428,9 @@ def _create_graph_db_at_path(
     graph_desc = request.description or ""
 
     try:
-        with sqlite3.connect(_sys_path(file_path)) as conn:
+        # closing 保证连接关闭：`with sqlite3.connect(...)` 只管事务不管连接，
+        # 连接不关会在 Windows 上锁住 .db 文件，导致后续删除/重命名失败。
+        with closing(sqlite3.connect(_sys_path(file_path))) as conn:
             # 使用 DELETE journal，避免新建资源后文件树出现 -wal / -shm 临时文件。
             conn.execute("PRAGMA journal_mode = DELETE")
             conn.execute("""
@@ -509,6 +513,142 @@ def _create_graph_db_at_path(
         raise HTTPException(status_code=500, detail=f"创建知识图谱数据库失败: {exc}") from exc
 
 
+def _create_resource_db(
+    *,
+    kind: Literal["knowledge", "graph"],
+    workspace_id: str,
+    request: CreateKnowledgeDbRequest | CreateGraphDbRequest,
+    current_user: UserInfo,
+    scope: Literal["workspace", "global"],
+) -> FileCreateResponse:
+    """创建工作区/全局层的知识库或知识图谱资源数据库文件（四个 create-*-db 端点的单源实现）。
+
+    workspace 与 global 两种作用域仅差四处：资源落盘的根路径、前置 404 校验、
+    历史记录的根、以及响应 meta/log 里的逻辑前缀。这里把四处差异参数化，
+    端点薄壳只负责按 scope 提供根路径解析与（仅 workspace）404 校验。
+    """
+    is_knowledge = kind == "knowledge"
+    required_suffix = ".kb.db" if is_knowledge else ".graph.db"
+    resource_label = "知识库" if is_knowledge else "知识图谱"
+    logical_prefix = "/workspace" if scope == "workspace" else "/global"
+    source = "workspace_asset" if scope == "workspace" else "global_workspace_asset"
+
+    normalized_path = _normalize_resource_db_path(
+        request.path,
+        required_suffix=required_suffix,
+        resource_label=resource_label,
+    )
+
+    # 1) 解析落盘根路径；workspace 作用域额外做工作区存在性校验（404）。
+    if scope == "workspace":
+        service = get_workspace_registry_service()
+        try:
+            service.get_workspace(current_user.user_id, workspace_id, include_conversations=False)
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Operation failed") from exc
+        root = service.get_workspace_root(current_user.user_id, workspace_id)
+        file_path = _ensure_path_within_root(root, normalized_path)
+    else:
+        root = _resolve_user_global_workspace_root(current_user.user_id)
+        file_path = _resolve_user_global_workspace_file_path(
+            current_user.user_id,
+            normalized_path.as_posix(),
+        )
+
+    existed_before = file_path.exists()
+    if existed_before and not request.overwrite:
+        raise HTTPException(status_code=409, detail="文件已存在")
+
+    # 2) 计算资源 id / 名称 / 描述（kb 走 SQLiteKBService 建库，graph 直接落表）。
+    if is_knowledge:
+        kb_name = (
+            request.name.strip()
+            if request.name
+            else _resource_id_from_db_path(normalized_path, required_suffix)
+        )
+        kb_description = request.description or ""
+        kb = SQLiteKBService().create_knowledge_base(
+            current_user.user_id,
+            KnowledgeBaseCreate(name=kb_name, description=kb_description),
+        )
+        resource_id = kb.id
+        resource_name = kb.name
+        resource_description = kb.description or ""
+    else:
+        graph_request = request
+        assert isinstance(graph_request, CreateGraphDbRequest)
+        resource_id = (
+            graph_request.graph_id.strip()
+            if graph_request.graph_id
+            else _resource_id_from_db_path(normalized_path, required_suffix)
+        )
+        resource_name = graph_request.name.strip() if graph_request.name else resource_id
+        resource_description = graph_request.description or ""
+
+    # 3) 建父目录 → 记历史 → 写资源文件与 metadata。
+    os.makedirs(_sys_path(file_path.parent), exist_ok=True)
+    _record_file_history(
+        root,
+        normalized_path,
+        operation="before_overwrite",
+        current_user=current_user,
+    )
+    if is_knowledge:
+        _write_knowledge_db_metadata(
+            file_path=file_path,
+            normalized_path=normalized_path,
+            kb_id=resource_id,
+            name=resource_name,
+            description=resource_description,
+            logical_prefix=logical_prefix,
+        )
+        meta = _knowledge_db_resource_meta(
+            normalized_path=normalized_path,
+            kb_id=resource_id,
+            name=resource_name,
+            description=resource_description,
+            logical_prefix=logical_prefix,
+            workspace_id=workspace_id,
+            source=source,
+        )
+    else:
+        assert isinstance(request, CreateGraphDbRequest)
+        _create_graph_db_at_path(
+            file_path=file_path,
+            normalized_path=normalized_path,
+            request=request,
+            logical_prefix=logical_prefix,
+        )
+        meta = _graph_db_resource_meta(
+            normalized_path=normalized_path,
+            graph_id=resource_id,
+            name=resource_name,
+            description=resource_description,
+            logical_prefix=logical_prefix,
+            workspace_id=workspace_id,
+            source=source,
+        )
+
+    logger.info(
+        "%s文件创建: %s/%s%s -> %s",
+        resource_label,
+        current_user.user_id,
+        workspace_id if scope == "workspace" else "",
+        normalized_path.as_posix(),
+        resource_id,
+    )
+
+    return FileCreateResponse(
+        success=True,
+        filename=normalized_path.as_posix(),
+        path=f"{logical_prefix}/{normalized_path.as_posix()}",
+        size=file_path.stat().st_size,
+        overwritten=existed_before,
+        created_by=current_user.user_id,
+        meta=meta,
+    )
+
+
 def _write_knowledge_db_metadata(
     *,
     file_path: Path,
@@ -521,7 +661,8 @@ def _write_knowledge_db_metadata(
     import sqlite3
 
     try:
-        with sqlite3.connect(_sys_path(file_path)) as conn:
+        # closing 保证连接关闭，理由同 _create_graph_db_at_path。
+        with closing(sqlite3.connect(_sys_path(file_path))) as conn:
             conn.execute("PRAGMA journal_mode = DELETE")
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS _aiasys_metadata (
@@ -893,6 +1034,106 @@ async def download_workspace_file(
     )
 
 
+def split_base_and_ext(filename: str) -> tuple[str, str]:
+    """分离文件名主干和扩展名（在最后一个点处分割）
+
+    规则：
+    - "report.pdf" → ("report", ".pdf")
+    - "file.tar.gz" → ("file.tar", ".gz")
+    - "README" → ("README", "")
+    - ".env" → (".env", "")  ← 点文件视为主文件名
+
+    注意：
+    - dot_pos <= 0 时视为无扩展名（点文件或纯文件名）
+    """
+    dot_pos = filename.rfind(".")
+    if dot_pos <= 0:
+        return filename, ""
+    return filename[:dot_pos], filename[dot_pos:]
+
+
+def get_next_numbered_name(filename: str) -> str:
+    """生成下一个编号变体（末尾数字递增）
+
+    规则：
+    - "report.pdf" → "report (1).pdf"
+    - "report (1).pdf" → "report (2).pdf"
+    - "file (2026) final.pdf" → "file (2026) final (1).pdf"
+    - "file.tar.gz" → "file.tar (1).gz"
+    """
+    base, ext = split_base_and_ext(filename)
+    # re.match 从开头匹配到末尾，确保只匹配最后一个 "(数字)"
+    match = re.match(r"^(.*) \((\d+)\)$", base)
+    if match:
+        prefix = match.group(1)
+        n = int(match.group(2)) + 1
+        return f"{prefix} ({n}){ext}"
+    else:
+        return f"{base} (1){ext}"
+
+
+def _write_file_with_unique_name(
+    target_path: Path,
+    file: UploadFile,
+) -> tuple[Path, int]:
+    """使用 xb 排他性创建，自动处理重名，返回 (实际路径, 写入大小)
+
+    并发安全：依赖文件系统原子性判断，不预先扫描目录
+    异常清理：写入失败时删除本次创建的文件
+
+    流程：
+    1. 尝试创建候选文件（"xb" 模式）
+       - 成功：进入写入阶段
+       - FileExistsError：递增编号，生成下一个候选名
+    2. 写入文件内容
+       - 成功：返回实际路径和大小
+       - 异常：删除本次创建的文件，重新抛出异常
+    """
+    from .files_utils import _copyfileobj_with_limit
+
+    candidate_name = target_path.name
+
+    while True:
+        candidate_path = target_path.parent / candidate_name
+
+        # === 阶段1：排他性创建（原子操作）===
+        try:
+            output = open(_sys_path(candidate_path), "xb")
+        except FileExistsError:
+            # 文件已存在（可能是并发场景），生成下一个候选名
+            candidate_name = get_next_numbered_name(candidate_name)
+            continue
+
+        # === 阶段2：写入文件内容 ===
+        try:
+            with output:
+                size = _copyfileobj_with_limit(file.file, output)
+            # 写入成功，返回实际路径和大小
+            return candidate_path, size
+
+        except Exception:
+            # 写入失败：关闭文件句柄、删除本次创建的文件
+            try:
+                if not output.closed:
+                    output.close()
+            except Exception:
+                pass
+
+            # 删除本次创建的文件（可能是空文件或半写入文件）
+            try:
+                os.unlink(_sys_path(candidate_path))
+            except OSError as cleanup_exc:
+                # 清理失败记录警告日志，不静默忽略
+                logger.warning(
+                    "Failed to remove incomplete upload: %s (error: %s)",
+                    candidate_path,
+                    cleanup_exc,
+                )
+
+            # 重新抛出原始异常，保留完整 traceback
+            raise
+
+
 @router.post("/{workspace_id}/files/upload")
 async def upload_workspace_file(
     workspace_id: str,
@@ -920,30 +1161,26 @@ async def upload_workspace_file(
 
     file_path = _ensure_path_within_root(workspace_root, normalized_path)
     os.makedirs(_sys_path(file_path.parent), exist_ok=True)
-    _record_file_history(
-        workspace_root,
-        normalized_path,
-        operation="before_overwrite",
-        current_user=current_user,
-    )
 
+    # 执行写入（自动处理重名）
     def _write_upload_file():
-        with open(_sys_path(file_path), "wb") as f:
-            from .files_utils import _copyfileobj_with_limit
+        return _write_file_with_unique_name(file_path, file)
 
-            _copyfileobj_with_limit(file.file, f)
-        return file_path.stat().st_size
+    actual_path, uploaded_size = await asyncio.to_thread(_write_upload_file)
 
-    uploaded_size = await asyncio.to_thread(_write_upload_file)
+    # 返回实际保存的文件名（可能与请求不同）
+    # workspace_root 必须 resolve：actual_path 来自 _ensure_path_within_root 的
+    # resolve() 结果（8.3 短名会被展开），而 workspace_root 若来自 TEMP 等环境变量
+    # 可能是 RUNNER~1 短名形式——两者文本不一致时 relative_to 直接 ValueError
+    # （2026-08-13 GitHub windows runner 实测，e2e 上传用例 9 连挂的根因）。
+    actual_filename = actual_path.relative_to(workspace_root.resolve()).as_posix()
 
-    logger.info(
-        f"工作区文件上传: {current_user.user_id}/{workspace_id}/{normalized_path.as_posix()}"
-    )
+    logger.info(f"工作区文件上传: {current_user.user_id}/{workspace_id}/{actual_filename}")
 
     return {
         "success": True,
-        "filename": normalized_path.as_posix(),
-        "path": f"/workspace/{normalized_path.as_posix()}",
+        "filename": actual_filename,
+        "path": f"/workspace/{actual_filename}",
         "size": uploaded_size,
         "uploaded_by": current_user.user_id,
     }
@@ -1003,74 +1240,12 @@ async def create_knowledge_db_file(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """在工作区中创建知识库 .kb.db 资源文件，并登记为可用知识库。"""
-
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(current_user.user_id, workspace_id, include_conversations=False)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    normalized_path = _normalize_resource_db_path(
-        request.path,
-        required_suffix=".kb.db",
-        resource_label="知识库",
-    )
-    workspace_root = service.get_workspace_root(current_user.user_id, workspace_id)
-    file_path = _ensure_path_within_root(workspace_root, normalized_path)
-    existed_before = file_path.exists()
-    if existed_before and not request.overwrite:
-        raise HTTPException(status_code=409, detail="文件已存在")
-
-    kb_name = (
-        request.name.strip()
-        if request.name
-        else _resource_id_from_db_path(normalized_path, ".kb.db")
-    )
-    kb_description = request.description or ""
-    kb = SQLiteKBService().create_knowledge_base(
-        current_user.user_id,
-        KnowledgeBaseCreate(name=kb_name, description=kb_description),
-    )
-    os.makedirs(_sys_path(file_path.parent), exist_ok=True)
-    _record_file_history(
-        workspace_root,
-        normalized_path,
-        operation="before_overwrite",
+    return _create_resource_db(
+        kind="knowledge",
+        workspace_id=workspace_id,
+        request=request,
         current_user=current_user,
-    )
-    _write_knowledge_db_metadata(
-        file_path=file_path,
-        normalized_path=normalized_path,
-        kb_id=kb.id,
-        name=kb.name,
-        description=kb.description or "",
-        logical_prefix="/workspace",
-    )
-
-    logger.info(
-        "知识库文件创建: %s/%s/%s -> %s",
-        current_user.user_id,
-        workspace_id,
-        normalized_path.as_posix(),
-        kb.id,
-    )
-
-    return FileCreateResponse(
-        success=True,
-        filename=normalized_path.as_posix(),
-        path=f"/workspace/{normalized_path.as_posix()}",
-        size=file_path.stat().st_size,
-        overwritten=existed_before,
-        created_by=current_user.user_id,
-        meta=_knowledge_db_resource_meta(
-            normalized_path=normalized_path,
-            kb_id=kb.id,
-            name=kb.name,
-            description=kb.description or "",
-            logical_prefix="/workspace",
-            workspace_id=workspace_id,
-            source="workspace_asset",
-        ),
+        scope="workspace",
     )
 
 
@@ -1081,67 +1256,12 @@ async def create_graph_db_file(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """在工作区中创建空的知识图谱 .db 文件并初始化表结构。"""
-
-    service = get_workspace_registry_service()
-    try:
-        service.get_workspace(current_user.user_id, workspace_id, include_conversations=False)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Operation failed") from exc
-
-    normalized_path = _normalize_resource_db_path(
-        request.path,
-        required_suffix=".graph.db",
-        resource_label="知识图谱",
-    )
-    workspace_root = service.get_workspace_root(current_user.user_id, workspace_id)
-    file_path = _ensure_path_within_root(workspace_root, normalized_path)
-    existed_before = file_path.exists()
-    if existed_before and not request.overwrite:
-        raise HTTPException(status_code=409, detail="文件已存在")
-
-    graph_id = (
-        request.graph_id.strip()
-        if request.graph_id
-        else _resource_id_from_db_path(normalized_path, ".graph.db")
-    )
-    graph_name = request.name.strip() if request.name else graph_id
-    graph_description = request.description or ""
-    _record_file_history(
-        workspace_root,
-        normalized_path,
-        operation="before_overwrite",
-        current_user=current_user,
-    )
-    _create_graph_db_at_path(
-        file_path=file_path,
-        normalized_path=normalized_path,
+    return _create_resource_db(
+        kind="graph",
+        workspace_id=workspace_id,
         request=request,
-        logical_prefix="/workspace",
-    )
-
-    logger.info(
-        "知识图谱文件创建: %s/%s/%s",
-        current_user.user_id,
-        workspace_id,
-        normalized_path.as_posix(),
-    )
-
-    return FileCreateResponse(
-        success=True,
-        filename=normalized_path.as_posix(),
-        path=f"/workspace/{normalized_path.as_posix()}",
-        size=file_path.stat().st_size,
-        overwritten=existed_before,
-        created_by=current_user.user_id,
-        meta=_graph_db_resource_meta(
-            normalized_path=normalized_path,
-            graph_id=graph_id,
-            name=graph_name,
-            description=graph_description,
-            logical_prefix="/workspace",
-            workspace_id=workspace_id,
-            source="workspace_asset",
-        ),
+        current_user=current_user,
+        scope="workspace",
     )
 
 
@@ -1853,68 +1973,12 @@ async def create_global_workspace_knowledge_db_file(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """在用户默认层全局工作区中创建知识库 .kb.db 资源文件。"""
-    normalized_path = _normalize_resource_db_path(
-        request.path,
-        required_suffix=".kb.db",
-        resource_label="知识库",
-    )
-    global_path = _resolve_user_global_workspace_file_path(
-        current_user.user_id,
-        normalized_path.as_posix(),
-    )
-    existed_before = global_path.exists()
-    if existed_before and not request.overwrite:
-        raise HTTPException(status_code=409, detail="文件已存在")
-
-    kb_name = (
-        request.name.strip()
-        if request.name
-        else _resource_id_from_db_path(normalized_path, ".kb.db")
-    )
-    kb_description = request.description or ""
-    kb = SQLiteKBService().create_knowledge_base(
-        current_user.user_id,
-        KnowledgeBaseCreate(name=kb_name, description=kb_description),
-    )
-    os.makedirs(_sys_path(global_path.parent), exist_ok=True)
-    _record_file_history(
-        _resolve_user_global_workspace_root(current_user.user_id),
-        normalized_path,
-        operation="before_overwrite",
+    return _create_resource_db(
+        kind="knowledge",
+        workspace_id=workspace_id,
+        request=request,
         current_user=current_user,
-    )
-    _write_knowledge_db_metadata(
-        file_path=global_path,
-        normalized_path=normalized_path,
-        kb_id=kb.id,
-        name=kb.name,
-        description=kb.description or "",
-        logical_prefix="/global",
-    )
-
-    logger.info(
-        "全局知识库文件创建: %s/%s -> %s",
-        current_user.user_id,
-        normalized_path.as_posix(),
-        kb.id,
-    )
-
-    return FileCreateResponse(
-        success=True,
-        filename=normalized_path.as_posix(),
-        path=f"/global/{normalized_path.as_posix()}",
-        size=global_path.stat().st_size,
-        overwritten=existed_before,
-        created_by=current_user.user_id,
-        meta=_knowledge_db_resource_meta(
-            normalized_path=normalized_path,
-            kb_id=kb.id,
-            name=kb.name,
-            description=kb.description or "",
-            logical_prefix="/global",
-            workspace_id=workspace_id,
-            source="global_workspace_asset",
-        ),
+        scope="global",
     )
 
 
@@ -1928,61 +1992,12 @@ async def create_global_workspace_graph_db_file(
     current_user: UserInfo = Depends(require_auth()),
 ):
     """在用户默认层全局工作区中创建知识图谱 .graph.db 资源文件。"""
-    normalized_path = _normalize_resource_db_path(
-        request.path,
-        required_suffix=".graph.db",
-        resource_label="知识图谱",
-    )
-    global_path = _resolve_user_global_workspace_file_path(
-        current_user.user_id,
-        normalized_path.as_posix(),
-    )
-    existed_before = global_path.exists()
-    if existed_before and not request.overwrite:
-        raise HTTPException(status_code=409, detail="文件已存在")
-
-    graph_id = (
-        request.graph_id.strip()
-        if request.graph_id
-        else _resource_id_from_db_path(normalized_path, ".graph.db")
-    )
-    graph_name = request.name.strip() if request.name else graph_id
-    graph_description = request.description or ""
-    _record_file_history(
-        _resolve_user_global_workspace_root(current_user.user_id),
-        normalized_path,
-        operation="before_overwrite",
-        current_user=current_user,
-    )
-    _create_graph_db_at_path(
-        file_path=global_path,
-        normalized_path=normalized_path,
+    return _create_resource_db(
+        kind="graph",
+        workspace_id=workspace_id,
         request=request,
-        logical_prefix="/global",
-    )
-
-    logger.info(
-        "全局知识图谱文件创建: %s/%s",
-        current_user.user_id,
-        normalized_path.as_posix(),
-    )
-
-    return FileCreateResponse(
-        success=True,
-        filename=normalized_path.as_posix(),
-        path=f"/global/{normalized_path.as_posix()}",
-        size=global_path.stat().st_size,
-        overwritten=existed_before,
-        created_by=current_user.user_id,
-        meta=_graph_db_resource_meta(
-            normalized_path=normalized_path,
-            graph_id=graph_id,
-            name=graph_name,
-            description=graph_description,
-            logical_prefix="/global",
-            workspace_id=workspace_id,
-            source="global_workspace_asset",
-        ),
+        current_user=current_user,
+        scope="global",
     )
 
 
@@ -2212,24 +2227,23 @@ async def upload_global_workspace_file(
         safe_filename,
     )
     os.makedirs(_sys_path(global_path.parent), exist_ok=True)
-    _record_file_history(
-        _resolve_user_global_workspace_root(current_user.user_id),
-        safe_filename,
-        operation="before_overwrite",
-        current_user=current_user,
-    )
-    with open(_sys_path(global_path), "wb") as f:
-        from .files_utils import _copyfileobj_with_limit
 
-        _copyfileobj_with_limit(file.file, f)
+    # 执行写入（自动处理重名）
+    def _write_upload_file():
+        return _write_file_with_unique_name(global_path, file)
 
-    logger.info("全局工作区文件上传: %s/%s", current_user.user_id, safe_filename)
+    actual_path, uploaded_size = await asyncio.to_thread(_write_upload_file)
+
+    # 返回实际保存的文件名（可能与请求不同）
+    actual_filename = actual_path.name
+
+    logger.info("全局工作区文件上传: %s/%s", current_user.user_id, actual_filename)
 
     return {
         "success": True,
-        "filename": safe_filename,
-        "path": f"/global/{safe_filename}",
-        "size": global_path.stat().st_size,
+        "filename": actual_filename,
+        "path": f"/global/{actual_filename}",
+        "size": uploaded_size,
         "uploaded_by": current_user.user_id,
     }
 

@@ -60,7 +60,7 @@ export function AiMessageContent() {
         <div className="mt-2 pt-2 border-t border-border flex justify-end">
           <button
             onClick={() => actions.onViewExecutionSpace?.(msgItem.taskId!)}
-            className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground hover:text-foreground/80 bg-muted px-2 py-1 rounded transition-colors"
+            className="flex items-center gap-1.5 text-micro font-semibold text-foreground hover:text-foreground/80 bg-muted px-2 py-1 rounded transition-colors"
           >
             <TerminalIcon className="h-3 w-3" />
             查看执行记录

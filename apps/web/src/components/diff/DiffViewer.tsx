@@ -188,7 +188,7 @@ export function DiffViewer({
       data-testid="diff-viewer"
     >
       <div className="flex min-h-11 items-center justify-between gap-3 border-b border-border bg-muted/30 px-3 py-2">
-        <div className="grid min-w-0 flex-1 grid-cols-2 gap-3 text-[11px]">
+        <div className="grid min-w-0 flex-1 grid-cols-2 gap-3 text-micro">
           <div className="min-w-0">
             <div className="text-muted-foreground">左侧</div>
             <div className="truncate font-mono text-foreground">{leftLabel || "left"}</div>
@@ -204,7 +204,7 @@ export function DiffViewer({
               type="button"
               variant="ghost"
               size="sm"
-              className="h-6 gap-1 px-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+              className="h-6 gap-1 px-1.5 text-micro text-muted-foreground hover:text-foreground"
               onClick={() => setShowContext((v) => !v)}
             >
               {showContext ? (
@@ -215,7 +215,7 @@ export function DiffViewer({
               {showContext ? "折叠" : "展开"}
             </Button>
           )}
-          <span className="shrink-0 rounded-md bg-secondary-container px-2 py-1 text-[11px] font-medium text-on-secondary-container">
+          <span className="shrink-0 rounded-md bg-secondary-container px-2 py-1 text-micro font-medium text-on-secondary-container">
             {statusLabel(status)}
           </span>
         </div>
@@ -234,7 +234,7 @@ export function DiffViewer({
       ) : canRenderDiff ? (
         <div className="min-h-0 flex-1 overflow-auto font-mono text-xs leading-5">
           {!showContext && hasContext && (
-            <div className="border-b border-border/40 bg-muted/20 px-3 py-1.5 text-[11px] text-muted-foreground">
+            <div className="border-b border-border/40 bg-muted/20 px-3 py-1.5 text-micro text-muted-foreground">
               已隐藏 {contextRowCount} 行未变更内容
             </div>
           )}

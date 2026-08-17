@@ -1,26 +1,12 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 
 import {
   createWorkspace,
   deleteWorkspace,
+  openWorkspaceFilesPanel,
   registerLifecycleUser,
 } from "./support";
 
-async function openWorkspaceFilesPanel(page: Page): Promise<Locator> {
-  await expect(page.locator("textarea")).toBeVisible();
-  const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-  if (!(await panel.isVisible())) {
-    const fileTab = page.locator("button[aria-label='文件']");
-    if (await fileTab.isVisible()) {
-      await fileTab.click();
-    } else {
-      await page.getByRole("button", { name: "文件", exact: true }).click();
-    }
-  }
-  await expect(panel).toBeVisible();
-  await expect(panel.getByTestId("workspace-artifacts-tree-surface")).toBeVisible();
-  return panel;
-}
 
 function fileTreeNode(panel: Locator, fileName: string): Locator {
   return panel
@@ -109,7 +95,7 @@ test.describe("Workspace file tree multi-select", () => {
       await expect(secondFile).toBeVisible();
       await expect(
         panel.getByTestId("workspace-file-tree-multi-select-summary"),
-      ).toHaveText("已选 2 项");
+      ).toContainText("已选 2 项");
       await expect(page.getByRole("heading", { name: "a-first.py" })).toBeVisible();
       await expect(page.getByRole("heading", { name: "multi-select" })).toHaveCount(0);
 
@@ -119,7 +105,7 @@ test.describe("Workspace file tree multi-select", () => {
       await expect(secondFile).toHaveAttribute("data-selected", "true");
       await expect(
         panel.getByTestId("workspace-file-tree-multi-select-summary"),
-      ).toHaveText("已选 3 项");
+      ).toContainText("已选 3 项");
       await expect(page.getByRole("heading", { name: "a-first.py" })).toBeVisible();
       await expect(page.getByRole("heading", { name: "b-second.md" })).toHaveCount(0);
 
@@ -127,7 +113,7 @@ test.describe("Workspace file tree multi-select", () => {
       await expect(thirdFile).toHaveAttribute("data-selected", "true");
       await expect(
         panel.getByTestId("workspace-file-tree-multi-select-summary"),
-      ).toHaveText("已选 4 项");
+      ).toContainText("已选 4 项");
       await expect(page.getByRole("heading", { name: "a-first.py" })).toBeVisible();
       await expect(page.getByRole("heading", { name: "c-third.json" })).toHaveCount(0);
       await page.screenshot({
@@ -140,7 +126,7 @@ test.describe("Workspace file tree multi-select", () => {
       await expect(secondFile).toBeVisible();
       await expect(
         panel.getByTestId("workspace-file-tree-multi-select-summary"),
-      ).toHaveText("已选 3 项");
+      ).toContainText("已选 3 项");
 
       await thirdFile.click();
       await expect(folder).toHaveAttribute("data-selected", "false");

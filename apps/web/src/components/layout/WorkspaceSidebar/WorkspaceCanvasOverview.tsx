@@ -118,7 +118,7 @@ export function WorkspaceCanvasOverview({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-xl px-3 text-[12px]"
+                  className="gap-1.5 rounded-xl px-3 text-caption"
                   onClick={() => onNewBranch?.()}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -128,7 +128,7 @@ export function WorkspaceCanvasOverview({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-xl px-3 text-[12px]"
+                  className="gap-1.5 rounded-xl px-3 text-caption"
                   data-testid="workspace-context-open-settings"
                   onClick={() => onOpenSettings?.()}
                 >
@@ -139,7 +139,7 @@ export function WorkspaceCanvasOverview({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-xl px-3 text-[12px]"
+                  className="gap-1.5 rounded-xl px-3 text-caption"
                   onClick={onOpenFiles}
                 >
                   <FolderOpen className="h-3.5 w-3.5" />
@@ -149,7 +149,7 @@ export function WorkspaceCanvasOverview({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-xl px-3 text-[12px]"
+                  className="gap-1.5 rounded-xl px-3 text-caption"
                   onClick={() => onViewRecords?.()}
                 >
                   <ScrollText className="h-3.5 w-3.5" />

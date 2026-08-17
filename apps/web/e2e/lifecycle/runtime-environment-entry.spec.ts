@@ -11,8 +11,15 @@ async function waitForBackend(page: Page) {
   await expect
     .poll(
       async () => {
+        // 后端健康检查地址与 readiness.setup.ts 保持同一来源：默认 13001
+        // （dev.sh 缺省后端端口），端口自动切换时由 run_lifecycle_playwright.sh
+        // export PLAYWRIGHT_BACKEND_HEALTH_URL 覆盖。曾写死 13002（某次调试时的
+        // 移位端口），干净端口环境下必然超时。
+        const healthUrl =
+          process.env.PLAYWRIGHT_BACKEND_HEALTH_URL ??
+          "http://127.0.0.1:13001/health";
         const response = await page.request
-          .get("http://127.0.0.1:13001/health", { timeout: 1_000 })
+          .get(healthUrl, { timeout: 1_000 })
           .catch(() => null);
         return response?.ok() ?? false;
       },
@@ -44,42 +51,30 @@ test.describe("Sandbox strategy workspace entry", () => {
 
       await expect(page.locator("textarea")).toBeVisible();
 
-      const runtimeBadge = page.getByTestId("input-runtime-env");
+      // badge 现在用 aria-label（InputArea.tsx:741），点击打开的是主画布的
+      // 执行环境 tab（ExecutionResourcesPanel），不再是独立弹窗。
+      const runtimeBadge = page.getByRole("button", { name: /^运行环境：/ });
       await expect(runtimeBadge).toBeVisible();
       await runtimeBadge.click();
 
-      const dialog = page.getByTestId("runtime-environment-panel");
-      await expect(dialog).toBeVisible();
-      await expect(
-        dialog.getByRole("heading", { name: "沙盒策略", exact: true }),
-      ).toBeVisible();
-      await expect(
-        dialog.getByRole("button", { name: "本地沙盒 UV / Notebook 当前" }),
-      ).toBeVisible();
-      await expect(
-        dialog.getByRole("button", { name: "Docker 沙盒 容器执行" }),
-      ).toBeVisible();
-      await expect(
-        dialog.getByRole("button", { name: "工作区变量 注入 Shell / Python" }),
-      ).toBeVisible();
-      await expect(
-        dialog.getByRole("button", { name: "Python 环境 UV 与解释器" }),
-      ).toBeVisible();
-      await expect(
-        dialog.getByText("当前本地沙盒", { exact: true }),
-      ).toBeVisible();
+      await expect(page.getByText("当前执行模式")).toBeVisible();
+      await expect(page.getByText("资源管理")).toBeVisible();
 
-      await dialog.getByRole("button", { name: "Docker 沙盒 容器执行" }).click();
+      // Docker 区块仍内嵌 ContainerResourcesPanel，登记表单链路不变。
+      // /Docker 沙盒/ 会同时命中面板的分段 tab 和「资源管理」里的导航卡片，
+      // 限定在资源管理 section 内点卡片。
+      await page
+        .locator("section", { hasText: "资源管理" })
+        .getByRole("button", { name: /Docker 沙盒/ })
+        .click();
       const containerDialog = page.getByTestId("container-resources-panel");
       await expect(containerDialog).toBeVisible();
-      await expect(dialog.getByText("Docker 沙盒材料", { exact: true })).toBeVisible();
       await expect(containerDialog.getByRole("button", { name: "登记 Docker 沙盒" })).toBeVisible();
       await containerDialog.getByRole("button", { name: "登记 Docker 沙盒" }).first().click();
       await expect(containerDialog.getByTestId("docker-sandbox-register-form")).toBeVisible();
       await expect(containerDialog.getByRole("button", { name: "登记已有容器" })).toBeVisible();
       await expect(containerDialog.getByRole("button", { name: "按镜像创建容器" })).toBeVisible();
       await expect(containerDialog.getByLabel("容器 ID 或名称")).toBeVisible();
-      await dialog.getByRole("button", { name: "本地沙盒 UV / Notebook 当前" }).click();
 
       await page.screenshot({
         path: testInfo.outputPath("runtime-environment-entry.png"),

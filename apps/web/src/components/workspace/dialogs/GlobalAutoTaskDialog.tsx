@@ -222,7 +222,7 @@ function TaskLastError({ error }: { error: string }) {
   const isLong = error.length > 80 || error.includes("\n");
 
   return (
-    <div className="mt-1 text-[11px] text-error">
+    <div className="mt-1 text-micro text-error">
       <div
         className={
           expanded
@@ -235,7 +235,7 @@ function TaskLastError({ error }: { error: string }) {
       {isLong ? (
         <button
           type="button"
-          className="mt-0.5 text-[11px] underline hover:text-error/80"
+          className="mt-0.5 text-micro underline hover:text-error/80"
           onClick={() => setExpanded((v) => !v)}
         >
           {expanded ? "收起" : "展开"}
@@ -723,7 +723,7 @@ export function GlobalAutoTaskDialog({
                         >
                           <div>
                             <div className="text-sm font-medium">全部工作区</div>
-                            <div className="mt-1 text-[11px] text-muted-foreground">
+                            <div className="mt-1 text-micro text-muted-foreground">
                               {counts.total} 条任务 · {counts.active} 运行中
                             </div>
                           </div>
@@ -737,7 +737,7 @@ export function GlobalAutoTaskDialog({
                       </div>
 
                       <div>
-                        <div className="px-1 pb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        <div className="px-1 pb-2 text-micro font-medium uppercase tracking-[0.14em] text-muted-foreground">
                           工作区列表
                         </div>
                         {workspaceSummaries.length > 0 ? (
@@ -770,7 +770,7 @@ export function GlobalAutoTaskDialog({
                                         </Badge>
                                       ) : null}
                                     </div>
-                                    <div className="mt-1 text-[11px] text-muted-foreground">
+                                    <div className="mt-1 text-micro text-muted-foreground">
                                       {workspace.counts.total} 条任务 · {workspace.counts.active} 运行中
                                     </div>
                                   </div>
@@ -785,7 +785,7 @@ export function GlobalAutoTaskDialog({
                             })}
                           </div>
                         ) : (
-                          <div className="rounded-xl border border-dashed border-border bg-muted/20 px-3 py-6 text-center text-[11px] leading-5 text-muted-foreground">
+                          <div className="rounded-xl border border-dashed border-border bg-muted/20 px-3 py-6 text-center text-micro leading-5 text-muted-foreground">
                             还没有任何工作区挂上自动化任务。
                           </div>
                         )}
@@ -861,7 +861,7 @@ export function GlobalAutoTaskDialog({
                       <Button
                         type="button"
                         size="sm"
-                        className="h-8 gap-1.5 text-[11px]"
+                        className="gap-1.5 text-micro"
                         onClick={() => openCreateDialog()}
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -871,7 +871,7 @@ export function GlobalAutoTaskDialog({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-8 gap-1.5 text-[11px]"
+                        className="gap-1.5 text-micro"
                         onClick={() => void loadAutoTasks()}
                         disabled={isLoading}
                       >
@@ -899,14 +899,14 @@ export function GlobalAutoTaskDialog({
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                       <div className="flex flex-wrap items-center gap-1">
-                        <span className="text-[11px] text-muted-foreground">状态</span>
+                        <span className="text-micro text-muted-foreground">状态</span>
                         {FILTER_OPTIONS.map((option) => (
                           <Button
                             key={option.value}
                             type="button"
-                            size="sm"
+                            size="xs"
                             variant={statusFilter === option.value ? "default" : "outline"}
-                            className="h-7 px-2.5 text-[11px]"
+                            className="px-2.5 text-micro"
                             onClick={() => setStatusFilter(option.value)}
                           >
                             {option.label}
@@ -915,14 +915,14 @@ export function GlobalAutoTaskDialog({
                       </div>
                       <div className="h-4 w-px bg-border" />
                       <div className="flex flex-wrap items-center gap-1">
-                        <span className="text-[11px] text-muted-foreground">类别</span>
+                        <span className="text-micro text-muted-foreground">类别</span>
                         {CATEGORY_FILTER_OPTIONS.map((option) => (
                           <Button
                             key={option.value}
                             type="button"
-                            size="sm"
+                            size="xs"
                             variant={categoryFilter === option.value ? "default" : "outline"}
-                            className="h-7 px-2.5 text-[11px]"
+                            className="px-2.5 text-micro"
                             onClick={() => setCategoryFilter(option.value)}
                           >
                             {option.label}
@@ -959,7 +959,7 @@ export function GlobalAutoTaskDialog({
                                   <Badge
                                     variant="outline"
                                     className={cn(
-                                      "h-5 shrink-0 whitespace-nowrap px-2 py-0 text-[11px]",
+                                      "h-5 shrink-0 whitespace-nowrap px-2 py-0 text-micro",
                                       STATUS_BADGE_CLASS[task.status],
                                     )}
                                   >
@@ -967,7 +967,7 @@ export function GlobalAutoTaskDialog({
                                   </Badge>
                                 </div>
 
-                                <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[12px] text-muted-foreground">
+                                <div className="mt-1 flex flex-wrap items-center gap-x-2 text-caption text-muted-foreground">
                                   <span className="font-medium text-foreground/80">
                                     {formatScheduleValue(task)}
                                   </span>
@@ -990,17 +990,17 @@ export function GlobalAutoTaskDialog({
                                   <span>·</span>
                                   <span>{task.workspace_title || task.workspace_id}</span>
                                   {task.workspace_id === currentWorkspaceId ? (
-                                    <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                                    <span className="rounded-md bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">
                                       当前工作区
                                     </span>
                                   ) : null}
                                 </div>
 
-                                <div className="mt-1 truncate text-[12px] leading-5 text-muted-foreground/80">
+                                <div className="mt-1 truncate text-caption leading-5 text-muted-foreground/80">
                                   {summarizeText(task.prompt, 120)}
                                 </div>
 
-                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-micro text-muted-foreground">
                                   <span>下次 {formatTimestamp(task.next_run_at)}</span>
                                   <span>上次 {formatTimestamp(task.last_run_at)}</span>
                                   <span>已触发 {task.fired_count} 次</span>
@@ -1021,9 +1021,8 @@ export function GlobalAutoTaskDialog({
                                   <TooltipTrigger asChild>
                                     <Button
                                       type="button"
-                                      size="icon"
+                                      size="icon-sm"
                                       variant="ghost"
-                                      className="h-8 w-8"
                                       onClick={() => void handleRunNow(task)}
                                       disabled={isMutating}
                                     >
@@ -1040,9 +1039,8 @@ export function GlobalAutoTaskDialog({
                                   <TooltipTrigger asChild>
                                     <Button
                                       type="button"
-                                      size="icon"
+                                      size="icon-sm"
                                       variant="ghost"
-                                      className="h-8 w-8"
                                       onClick={() => openEditDialog(task)}
                                       disabled={isMutating}
                                     >
@@ -1055,9 +1053,8 @@ export function GlobalAutoTaskDialog({
                                   <TooltipTrigger asChild>
                                     <Button
                                       type="button"
-                                      size="icon"
+                                      size="icon-sm"
                                       variant="ghost"
-                                      className="h-8 w-8"
                                       onClick={() => void handleToggleTask(task)}
                                       disabled={isMutating || task.status === "completed"}
                                     >
@@ -1076,9 +1073,9 @@ export function GlobalAutoTaskDialog({
                                   <TooltipTrigger asChild>
                                     <Button
                                       type="button"
-                                      size="icon"
+                                      size="icon-sm"
                                       variant="ghost"
-                                      className="h-8 w-8 text-error hover:text-error hover:bg-error-container"
+                                      className="text-error hover:text-error hover:bg-error-container"
                                       onClick={() => setPendingDeleteTask(task)}
                                       disabled={isMutating}
                                     >

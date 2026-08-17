@@ -1,0 +1,43 @@
+{
+  /*
+   * e2e 目录的类型检查。
+   *
+   * 为什么需要单独一份：tsconfig.app.json 只 include src，tsconfig.node.json 只
+   * include vite.config.ts，于是 e2e/ 从来不在任何 tsc 项目里——**整个目录零类型检查**。
+   * 代价是实测到的：workspace-asset-tree-header-and-count.spec.ts 里有一处
+   * `await registerLifecycleUser(api)` 丢掉了返回值，后面却在用 `user.userId`，
+   * 运行时报 ReferenceError: user is not defined。这是编译期就该拦住的错误，
+   * 却要等到有人真去跑那条 e2e 才暴露——而它因为 Windows 上 webServer 起不来，
+   * 长期没人跑过。
+   *
+   * 挂进 tsconfig.json 的 references 后，`tsc -b`（即 npm run build）与 CI 都会覆盖它。
+   *
+   * DOM lib 是必需的：spec 里有 locator.evaluate(node => node.getBoundingClientRect())
+   * 这类在浏览器上下文里执行的回调。
+   */
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.e2e.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["e2e/**/*.ts", "playwright.lifecycle.config.ts", "playwright.manual.config.ts"],
+  // e2e/manual 是人工审查用的一次性脚本（截图 + console.log，本就不该有断言），
+  // 21 个类型错误全在那边。它们不进 CI，也不该拖住 lifecycle 的类型门。
+  "exclude": ["e2e/manual/**"]
+}

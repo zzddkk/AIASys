@@ -115,7 +115,7 @@ export function CheckpointReviewDialog({
         if (!open) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent size="md" className="overflow-y-auto">
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div>

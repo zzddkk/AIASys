@@ -7,7 +7,6 @@
  */
 
 import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import { cn } from "@/lib/utils";
 import { knowledgeApi } from "@/lib/api/knowledge";
 import { getModelDefaults, getModels, type LLMModelConfig } from "@/lib/api/llm";
 import type {
@@ -573,12 +572,9 @@ export function KnowledgeBaseMarket({
           }}
         >
           <DialogContent
-            className={cn(
-              "flex h-[92vh] max-h-[92vh] flex-col gap-0 overflow-hidden p-0",
-              isSplitLayout
-                ? "w-[min(1280px,calc(100vw-2rem))] max-w-[min(1280px,calc(100vw-2rem))]"
-                : "max-w-4xl",
-            )}
+            size={isSplitLayout ? "full" : "lg"}
+            tall
+            className="overflow-hidden"
           >
             {content}
           </DialogContent>

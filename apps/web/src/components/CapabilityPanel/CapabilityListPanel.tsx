@@ -257,11 +257,11 @@ export function CapabilityListPanel({
       <div className="border-b px-3 py-2">
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
+          <Input size="sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="搜索能力..."
-            className="h-8 pl-8 pr-7 text-xs"
+            className="pl-8 pr-7 text-xs"
           />
           {searchQuery && (
             <button
@@ -284,7 +284,7 @@ export function CapabilityListPanel({
               type="button"
               onClick={() => setFilterKind(f.id)}
               className={cn(
-                "rounded px-2 py-0.5 text-[11px] transition-colors",
+                "rounded px-2 py-0.5 text-micro transition-colors",
                 filterKind === f.id
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
@@ -301,7 +301,7 @@ export function CapabilityListPanel({
               type="button"
               onClick={() => setFilterStatus(f.id)}
               className={cn(
-                "rounded px-2 py-0.5 text-[11px] transition-colors",
+                "rounded px-2 py-0.5 text-micro transition-colors",
                 filterStatus === f.id
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
@@ -375,7 +375,7 @@ export function CapabilityListPanel({
                           e.stopPropagation();
                           void handleInstall(capId);
                         }}
-                        className="inline-flex h-6 items-center justify-center rounded bg-primary px-2 text-[10px] font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                        className="inline-flex h-6 items-center justify-center rounded bg-primary px-2 text-nano font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                       >
                         {processingId === capId ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
@@ -389,7 +389,7 @@ export function CapabilityListPanel({
                     )}
                   </div>
                 </div>
-                <div className="text-[11px] text-muted-foreground truncate">
+                <div className="text-micro text-muted-foreground truncate">
                   {KIND_LABEL[cap.kind] ?? cap.kind} · {STATUS_LABEL[status] ?? status}
                 </div>
               </div>
@@ -403,7 +403,7 @@ export function CapabilityListPanel({
             ) : isWorkspaceConfig ? (
               <div className="space-y-2">
                 <p>当前工作区未安装任何能力</p>
-                <p className="text-[10px] opacity-70">请去全局设置中安装</p>
+                <p className="text-nano opacity-70">请去全局设置中安装</p>
               </div>
             ) : (
               "暂无能力"
@@ -413,7 +413,7 @@ export function CapabilityListPanel({
       </div>
 
       {/* 统计 */}
-      <div className="shrink-0 border-t px-3 py-1.5 text-[11px] text-muted-foreground flex items-center justify-between">
+      <div className="shrink-0 border-t px-3 py-1.5 text-micro text-muted-foreground flex items-center justify-between">
         <span>共 {filteredItems.length} 项</span>
         <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => void load()}>
           <RefreshCw className="h-3 w-3" />

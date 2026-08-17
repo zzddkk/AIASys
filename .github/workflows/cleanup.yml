@@ -12,6 +12,9 @@ permissions:
 jobs:
   cleanup:
     runs-on: ubuntu-latest
+    # 硬上限：没有它时挂起的 job 会跑到 GitHub 默认的 6 小时上限。
+    # 挂起比失败更糟——看不到结论、烧配额、还阻塞队列。删除过期缓存/artifact，纯 API 调用。
+    timeout-minutes: 10
     steps:
       - name: Delete workflow runs older than 7 days
         uses: Mattraks/delete-workflow-runs@v2

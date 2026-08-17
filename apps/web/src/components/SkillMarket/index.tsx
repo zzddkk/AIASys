@@ -193,7 +193,7 @@ export function SkillMarket({
           <Input
             ref={searchInputRef}
             placeholder="搜索技能..."
-            className="pl-9 h-9"
+            className="pl-9"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -206,7 +206,7 @@ export function SkillMarket({
         <div className="flex-1" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 gap-1 text-xs">
+            <Button variant="outline" size="default" className="gap-1 text-xs">
               <Plus className="h-3.5 w-3.5" />
               添加
             </Button>
@@ -242,9 +242,9 @@ export function SkillMarket({
         {workspaceId && onImportArchive ? (
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={handleImportClick}
-            className="h-9 gap-1 text-xs"
+            className="gap-1 text-xs"
             disabled={isLoading}
           >
             <FileArchive className="h-3.5 w-3.5" />
@@ -325,7 +325,7 @@ export function SkillMarket({
       </div>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="flex flex-col h-[85vh] overflow-hidden p-0 max-w-3xl bg-background">
+        <DialogContent size="md" tall className="overflow-hidden bg-background">
           <DialogHeader className="shrink-0 px-6 pt-6">
             <DialogTitle>
               {previewEntry?.display_name || previewEntry?.name || "技能预览"}
@@ -359,11 +359,11 @@ export function SkillMarket({
                             <KeyRound className="h-3.5 w-3.5 text-warning" />
                             {field.name}
                             {field.required ? (
-                              <Badge variant="secondary" className="text-[10px]">必填</Badge>
+                              <Badge variant="secondary" className="text-nano">必填</Badge>
                             ) : null}
                           </div>
                           {field.description ? (
-                            <div className="mt-0.5 text-[11px] text-muted-foreground">
+                            <div className="mt-0.5 text-micro text-muted-foreground">
                               {field.description}
                             </div>
                           ) : null}
@@ -388,7 +388,7 @@ export function SkillMarket({
       </Dialog>
 
       <Dialog open={createGuideOpen} onOpenChange={setCreateGuideOpen}>
-        <DialogContent className="flex flex-col h-auto max-h-[85vh] overflow-hidden p-0 max-w-md bg-background">
+        <DialogContent size="sm" className="flex flex-col h-auto overflow-hidden p-0 bg-background">
           <DialogHeader className="shrink-0 px-6 pt-6">
             <DialogTitle>创建技能</DialogTitle>
             <DialogDescription>

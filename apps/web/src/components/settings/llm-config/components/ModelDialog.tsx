@@ -83,7 +83,7 @@ export function ModelDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>{isCreate ? "新建模型" : "编辑模型"}</DialogTitle>
           <DialogDescription>

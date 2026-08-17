@@ -54,7 +54,7 @@ export function GlobalChannelDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[min(85vh,800px)] overflow-hidden flex flex-col p-0">
+      <DialogContent size="md" className="max-h-[min(85vh,800px)] overflow-hidden flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-2 pr-12 shrink-0">
           <DialogDescription className="sr-only">
             管理通信渠道连接资产，包括微信、飞书等平台的绑定与配置。

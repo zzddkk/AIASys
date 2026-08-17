@@ -147,14 +147,29 @@ class AcpClientRuntimeSession:
             )
         except Exception as exc:
             logger.exception("ACP prompt failed")
-            yield AgentRuntimeEvent(kind="content", content_type="text", text=f"ACP error: {exc}")
+            yield AgentRuntimeEvent(
+                kind="content",
+                content_type="text",
+                text=f"ACP error: {exc}",
+                display_hint="visible",
+            )
             return
 
         response_text, reasoning_text = result
         if reasoning_text:
-            yield AgentRuntimeEvent(kind="content", content_type="think", think=reasoning_text)
+            yield AgentRuntimeEvent(
+                kind="content",
+                content_type="think",
+                think=reasoning_text,
+                display_hint="visible",
+            )
         if response_text:
-            yield AgentRuntimeEvent(kind="content", content_type="text", text=response_text)
+            yield AgentRuntimeEvent(
+                kind="content",
+                content_type="text",
+                text=response_text,
+                display_hint="visible",
+            )
 
     # ---- sync ACP driver (runs in thread pool) --------------------------------
 

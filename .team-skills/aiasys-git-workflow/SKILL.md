@@ -553,8 +553,8 @@ gh release create v0.0.0-beta.1 --prerelease --title "Beta v0.0.0-beta.1"
 git status
 
 # 2. 分批提交
-git add apps/backend/app/api/mcp.py
-git add apps/backend/app/services/mcp_service.py
+git add apps/backend/app/api/routes/mcp.py
+git add apps/backend/app/services/mcp_external_market_service.py
 git commit -m "feat(mcp): 添加 MCP 配置 CRUD 接口
 
 - 实现配置增删改查

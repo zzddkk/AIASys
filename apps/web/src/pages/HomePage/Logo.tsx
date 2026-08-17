@@ -9,7 +9,7 @@ export const Logo = (
     <BrandLockup
       subtitle="Agent Workspace"
       titleClassName="text-[1rem]"
-      subtitleClassName="text-[9px]"
+      subtitleClassName="text-nano"
       markClassName="h-8 w-8"
       {...props}
     />

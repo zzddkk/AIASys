@@ -44,7 +44,7 @@ export function KnowledgeDialogScaffold<TTab extends string>({
 }: KnowledgeDialogScaffoldProps<TTab>) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="grid h-[88vh] max-w-[min(1480px,96vw)] grid-cols-[252px_minmax(0,1fr)] gap-0 overflow-hidden p-0">
+      <DialogContent size="full" tall className="grid-cols-[252px_minmax(0,1fr)] overflow-hidden">
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <DialogDescription className="sr-only">{description}</DialogDescription>
 

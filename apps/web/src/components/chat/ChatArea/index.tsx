@@ -120,6 +120,10 @@ function ChatAreaRoot({
   const isFollowingBottomRef = useRef(true);
   const isProgrammaticScrollRef = useRef(false);
   const programmaticScrollTimerRef = useRef<number | null>(null);
+  // auto 跟随滚动的目标位置。用它区分「我们自己滚的」和「用户拨的」：
+  // 纯时间窗（50ms）会把窗口内的用户上滑误判为程序化滚动而静默吞掉，
+  // 流式密集时每次自动跟随都会武装一个窗口，用户单次上滑被吞的概率接近一半。
+  const programmaticTargetRef = useRef<number | null>(null);
   const isLoadingMoreRef = useRef(false);
   const previousScrollHeightRef = useRef(0);
   const previousItemsRef = useRef<{
@@ -191,9 +195,17 @@ function ChatAreaRoot({
         window.clearTimeout(programmaticScrollTimerRef.current);
       }
       isProgrammaticScrollRef.current = true;
+      // smooth 动画期间位置连续变化、无法按目标位置判定，退化为纯时间窗；
+      // auto 记录目标（scrollTop 上限是 scrollHeight - clientHeight，不是
+      // scrollHeight 本身——浏览器会钳位）。
+      programmaticTargetRef.current =
+        behavior === "smooth"
+          ? null
+          : Math.max(0, container.scrollHeight - container.clientHeight);
       programmaticScrollTimerRef.current = window.setTimeout(() => {
         isProgrammaticScrollRef.current = false;
         programmaticScrollTimerRef.current = null;
+        programmaticTargetRef.current = null;
       }, behavior === "smooth" ? 450 : 50);
 
       if (behavior === "smooth") {
@@ -236,11 +248,22 @@ function ChatAreaRoot({
 
     const atBottom = isNearBottom(container);
     if (isProgrammaticScrollRef.current) {
-      if (atBottom) {
-        setShowScrollToBottom(false);
-        setHasNewContent(false);
+      const target = programmaticTargetRef.current;
+      // auto 模式：滚动位置仍停在我们设定的目标上，才是程序化滚动；
+      // 位置已偏离目标说明是用户拨的，落回下面的正常注册路径。
+      if (target === null || Math.abs(container.scrollTop - target) <= 2) {
+        if (atBottom) {
+          setShowScrollToBottom(false);
+          setHasNewContent(false);
+        }
+        return;
       }
-      return;
+      isProgrammaticScrollRef.current = false;
+      if (programmaticScrollTimerRef.current) {
+        window.clearTimeout(programmaticScrollTimerRef.current);
+        programmaticScrollTimerRef.current = null;
+      }
+      programmaticTargetRef.current = null;
     }
 
     isFollowingBottomRef.current = atBottom;
@@ -404,7 +427,7 @@ function ChatAreaRoot({
             data-testid="chat-scroll-to-bottom"
             size="sm"
             variant="secondary"
-            className="pointer-events-auto h-8 rounded-full border border-border/80 bg-background px-3 text-xs shadow-[0_4px_20px_rgba(0,0,0,0.12)] backdrop-blur-sm hover:bg-muted"
+            className="pointer-events-auto rounded-full border border-border/80 bg-background px-3 text-xs shadow-[0_4px_20px_rgba(0,0,0,0.12)] backdrop-blur-sm hover:bg-muted"
             onClick={() => scrollToBottom("smooth")}
             title="回到底部"
           >
@@ -448,6 +471,16 @@ function ChatAreaList({
         : undefined,
     overscan: 4,
   });
+
+  // e2e 探针实测定位：virtual-core 默认的尺寸补偿会把「start 在视口上方的行」
+  // 的每次长高都折算成 scrollTo 滚动补偿。流式回复的内容全部追加进最后一行，
+  // 该行 start 在视口上方时，用户上滑暂停后仍会被逐 chunk 拖下去（暂停按钮
+  // 已显示、滚动照爬）。最后一行是流式增长源，跳过补偿；其余行保持默认。
+  // 注意该属性是实例字段而非 options 项：virtual-core 3.17 从
+  // this.shouldAdjustScrollPositionOnItemSizeChange 读取，传进 useVirtualizer
+  // options 不会生效（选项只进 this.options，从不被读）。
+  rowVirtualizer.shouldAdjustScrollPositionOnItemSizeChange = (item) =>
+    item.index !== items.length - 1;
 
   return (
     <div

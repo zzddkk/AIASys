@@ -424,7 +424,7 @@ export function PaneRenderer({
                 <div className="text-xs font-medium text-foreground">
                   当前没有打开的对象
                 </div>
-                <div className="mt-0.5 text-[11px] text-muted-foreground/70">
+                <div className="mt-0.5 text-micro text-muted-foreground/70">
                   从左侧资源树选择文件，或开始一段对话
                 </div>
               </div>

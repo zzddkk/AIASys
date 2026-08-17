@@ -15,7 +15,7 @@ trim_trailing_whitespace = true
 indent_size = 4
 
 # Frontend (TypeScript, JavaScript, JSON, CSS, HTML, YAML): 2-space indentation
-[*.{ts,tsx,js,jsx,json,css,html,md,yaml,yml}]
+[*.{ts,tsx,js,jsx,json,css,html,yaml,yml}]
 indent_size = 2
 
 # Makefile: tabs are required
@@ -24,8 +24,16 @@ indent_style = tab
 indent_size = 4
 
 # Markdown: trailing whitespace is sometimes intentional (e.g. line breaks)
+#
+# indent_size 对 md 显式 unset。markdown 的缩进承担的是视觉对齐职责——ASCII
+# 流程图、树形结构、列表续行——而不是语法结构，要求 2 的倍数没有可执行依据。
+# 此前 md 被纳入前端那条 indent_size = 2 后，仓库里长期存在 22 处「违规」，
+# 全是流程图的对齐缩进，改成偶数反而破坏对齐。一个恒红又必须靠 --no-verify
+# 绕过的检查等于没有检查，还会掩盖同一批文件里真正的问题（见 lefthook.yml
+# 开头关于假 PASS 的纪律）。charset / end_of_line / final_newline 仍然生效。
 [*.md]
 trim_trailing_whitespace = false
+indent_size = unset
 
 # Shell scripts
 [*.{sh,bash}]

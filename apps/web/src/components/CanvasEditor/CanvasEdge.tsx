@@ -139,7 +139,7 @@ export const CanvasEdgeComponent: React.FC<CanvasEdgeProps> = React.memo(
               x={midX}
               y={midY - 8}
               textAnchor="middle"
-              className="pointer-events-none fill-slate-600 text-[11px] font-medium"
+              className="pointer-events-none fill-slate-600 text-micro font-medium"
             >
               {displayLabel}
             </text>

@@ -4,11 +4,13 @@ import {
   Settings,
   Wrench,
   Brain,
+  Container,
   FlaskConical,
   Terminal,
   AlertTriangle,
 } from "lucide-react";
 import { useCallback, useState } from "react";
+import type { ActiveEnvironmentInfo } from "@/pages/WorkspacePage/hooks/workspaceRuntimeControlsTypes";
 import { Button } from "@/components/ui/button";
 import { usePolling } from "@/hooks/usePolling";
 import {
@@ -61,6 +63,8 @@ interface DockHeaderProps {
   onOpenToolConfig?: () => void;
   onOpenLLMConfigDialog?: () => void;
   onOpenRuntimeTab?: () => void;
+  /** 当前运行环境（会话级状态徽标，从输入框工具栏迁入 2026-08-14） */
+  activeEnv?: ActiveEnvironmentInfo | null;
 }
 
 export function DockHeader({
@@ -82,6 +86,7 @@ export function DockHeader({
   onOpenToolConfig,
   onOpenLLMConfigDialog,
   onOpenRuntimeTab,
+  activeEnv,
 }: DockHeaderProps) {
   const conversationCount = workspace?.conversations?.length ?? 0;
   const conversationSummaryLabel =
@@ -145,14 +150,48 @@ export function DockHeader({
               compactionState={compactionState}
               variant="dropdown"
             />
+            {/* 运行环境状态徽标（会话级状态，从输入框工具栏迁入；
+                aria-label 保持「运行环境：」前缀，e2e runtime-environment-entry 依赖） */}
+            {activeEnv && onOpenRuntimeTab ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={onOpenRuntimeTab}
+                    aria-label={`运行环境：${activeEnv.name}`}
+                    className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-micro font-medium transition-colors ${
+                      activeEnv.image === "none"
+                        ? "text-warning hover:bg-warning/10"
+                        : activeEnv.image === "docker"
+                          ? "text-info hover:bg-info/10"
+                          : "text-success hover:bg-success/10"
+                    }`}
+                  >
+                    {activeEnv.image === "docker" ? (
+                      <Container className="h-3.5 w-3.5" />
+                    ) : (
+                      <FlaskConical className="h-3.5 w-3.5" />
+                    )}
+                    <span className="max-w-[90px] truncate">
+                      {activeEnv.image === "none" ? "未配置环境" : activeEnv.name}
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={6}>
+                  {activeEnv.image === "none"
+                    ? "未配置运行环境，点击配置"
+                    : `运行环境：${activeEnv.name}，点击管理`}
+                </TooltipContent>
+              </Tooltip>
+            ) : null}
             {(onOpenToolConfig || onOpenLLMConfigDialog || onOpenRuntimeTab) ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 rounded-lg text-muted-foreground"
+                    size="icon-xs"
+                    className="rounded-lg text-muted-foreground"
                     title="会话设置"
                   >
                     <Settings className="h-4 w-4" />
@@ -162,7 +201,7 @@ export function DockHeader({
                   {onOpenToolConfig ? (
                     <DropdownMenuItem onClick={onOpenToolConfig}>
                       <Wrench className="mr-2 h-4 w-4" />
-                      工具配置
+                      会话配置
                     </DropdownMenuItem>
                   ) : null}
                   {onOpenLLMConfigDialog ? (
@@ -183,8 +222,8 @@ export function DockHeader({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="h-7 w-7 rounded-lg text-muted-foreground"
+              size="icon-xs"
+              className="rounded-lg text-muted-foreground"
               onClick={onNewConversation}
               title="新建会话"
             >
@@ -193,8 +232,8 @@ export function DockHeader({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="h-7 w-7 rounded-lg text-muted-foreground"
+              size="icon-xs"
+              className="rounded-lg text-muted-foreground"
               onClick={onClose}
               title="收起右侧栏"
             >

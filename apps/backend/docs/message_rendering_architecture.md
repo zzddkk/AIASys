@@ -73,7 +73,7 @@ type ChatSegment = {
 
 ### 关键代码位置
 
-**事件处理**: `apps/web/src/pages/DataAnalysisPage/hooks/useCodeExecutor/index.ts:289-370`
+**事件处理**: `apps/web/src/pages/WorkspacePage/hooks/useCodeExecutor/index.ts:289-370`
 
 流式输出时，前端通过 SSE 接收事件，直接构建 `ChatSegment` 数组：
 
@@ -120,7 +120,7 @@ if (eventType === "think" && event.content) {
 
 ### 关键代码位置
 
-**数据处理**: `apps/web/src/pages/DataAnalysisPage/hooks/useSessionManagement.ts:87-124`
+**数据处理**: `apps/web/src/pages/WorkspacePage/hooks/useSessionManagement.ts:87-124`
 
 历史加载时，需要将后端返回的数组格式 `content` 转换为前端 `ChatSegment`：
 
@@ -220,10 +220,10 @@ const renderSegments = () => {
 
 | 文件 | 说明 |
 |------|------|
-| `apps/web/src/pages/DataAnalysisPage/hooks/useSessionManagement.ts` | 历史会话加载逻辑 |
-| `apps/web/src/pages/DataAnalysisPage/hooks/useCodeExecutor/index.ts` | 流式输出处理 |
+| `apps/web/src/pages/WorkspacePage/hooks/useSessionManagement.ts` | 历史会话加载逻辑 |
+| `apps/web/src/pages/WorkspacePage/hooks/useCodeExecutor/index.ts` | 流式输出处理 |
 | `apps/web/src/components/chat/AiMessageContent/index.tsx` | AI 消息渲染组件 |
-| `apps/web/src/pages/DataAnalysisPage/types.ts` | ChatItem / ChatSegment 类型定义 |
+| `apps/web/src/pages/WorkspacePage/types.ts` | ChatItem / ChatSegment 类型定义 |
 
 ## 注意事项
 

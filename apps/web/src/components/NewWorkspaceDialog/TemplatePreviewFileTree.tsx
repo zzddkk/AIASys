@@ -41,7 +41,7 @@ function FileContentPreview({
   return (
     <pre
       className={cn(
-        "max-w-full break-all whitespace-pre-wrap rounded-md border border-border/50 p-2 font-mono text-[11px] leading-relaxed text-muted-foreground",
+        "max-w-full break-all whitespace-pre-wrap rounded-md border border-border/50 p-2 font-mono text-micro leading-relaxed text-muted-foreground",
         bgClass,
       )}
     >
@@ -155,7 +155,7 @@ function TreeNodeItem({
             <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
           )}
           <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="truncate text-[11px]">{node.name}</span>
+          <span className="truncate text-micro">{node.name}</span>
         </button>
         {expanded &&
           node.children?.map((child) => (
@@ -182,7 +182,7 @@ function TreeNodeItem({
       style={{ paddingLeft: `${depth * 12 + 16}px` }}
     >
       <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-      <span className="truncate text-[11px]">{node.name}</span>
+      <span className="truncate text-micro">{node.name}</span>
     </button>
   );
 }
@@ -219,7 +219,7 @@ export function TemplatePreviewFileTree({
         ))}
       </div>
       <div className="min-w-0 flex-1 overflow-y-auto">
-        <div className="mb-1 text-[10px] text-muted-foreground">
+        <div className="mb-1 text-nano text-muted-foreground">
           {selectedFile?.relative_path}
         </div>
         <FileContentPreview

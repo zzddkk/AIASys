@@ -17,8 +17,28 @@ import { AiMessageContent } from "./AiMessageContent";
 import { MessageTimestamp } from "./MessageTimestamp";
 import type { ChatAreaLayout } from "./context";
 
-function CompactionSummaryContent({ content }: { content: string }) {
+function formatCompactTokens(value: number): string {
+  // 紧凑格式对齐 codex format_tokens_compact 的取舍：1k 以下原样，以上一位小数
+  return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value);
+}
+
+function CompactionSummaryContent({
+  content,
+  stats,
+}: {
+  content: string;
+  stats?: {
+    tokens_before?: number;
+    tokens_after?: number;
+    saved_tokens?: number;
+    compacted_count?: number;
+  };
+}) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const hasStats =
+    stats &&
+    typeof stats.tokens_before === "number" &&
+    typeof stats.tokens_after === "number";
   return (
     <div className="w-full rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
       <button
@@ -29,6 +49,15 @@ function CompactionSummaryContent({ content }: { content: string }) {
         <span className="flex items-center gap-2">
           <FileText className="h-4 w-4" />
           上下文已压缩为摘要
+          {hasStats && (
+            <span className="rounded bg-muted px-1.5 py-0.5 text-nano font-medium">
+              {formatCompactTokens(stats.tokens_before!)} →{" "}
+              {formatCompactTokens(stats.tokens_after!)} tokens
+              {typeof stats.saved_tokens === "number" &&
+                stats.saved_tokens > 0 &&
+                `，节省 ${formatCompactTokens(stats.saved_tokens)}`}
+            </span>
+          )}
         </span>
         {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
@@ -75,7 +104,14 @@ export const MessageItem = React.memo(function MessageItem({
         <MessageBody>
           <MessageContent>
             {isCompactionSummary ? (
-              <CompactionSummaryContent content={msgItem.content || ""} />
+              <CompactionSummaryContent
+                content={msgItem.content || ""}
+                stats={
+                  msgItem.segments?.find(
+                    (seg) => seg.type === "compaction_summary",
+                  )?.compactionStats
+                }
+              />
             ) : isUser ? (
               <UserMessageContent />
             ) : (

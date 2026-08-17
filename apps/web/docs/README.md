@@ -5,11 +5,11 @@
 ## 当前文档
 
 - `architecture/data-flow.md`
-  当前 `DataAnalysisPage` 从输入、流式事件、会话恢复到右侧边栏的主数据流
+  当前 `WorkspacePage` 从输入、流式事件、会话恢复到右侧边栏的主数据流
 - `architecture/state-management.md`
   当前页面级 Hook、全局 Hook 与侧边栏 / 聊天区状态分层
 - `architecture/components.md`
-  当前聊天区、右侧执行空间、DataAnalysisPage 组件职责
+  当前聊天区、右侧执行空间、WorkspacePage 组件职责
 - `types/core-types.md`
   核心类型定义
 
@@ -23,7 +23,7 @@
 ## 使用边界
 
 1. 文档用于解释结构，不作为运行时真实状态的唯一来源。
-2. 遇到 DataAnalysisPage、会话生命周期、工作区、运行态控制等主链问题时，优先回源码和项目协作规范的状态流资料核对。
+2. 遇到 WorkspacePage、会话生命周期、工作区、运行态控制等主链问题时，优先回源码和项目协作规范的状态流资料核对。
 3. 当前主链重点已经不只是聊天，还包括：
    - `useCodeExecutor` 的会话编排
    - 右侧执行空间的 `tasks/files/database` 三个 Tab

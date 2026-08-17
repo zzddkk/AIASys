@@ -248,7 +248,7 @@ export function FileContextMenu({
         <div className="truncate text-xs font-semibold text-foreground">
           {fileMenu.file.name.split("/").pop()}
         </div>
-        <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
+        <div className="mt-0.5 truncate text-micro text-muted-foreground">
           {fileMenu.file.absolute_path ?? fileMenu.file.name}
         </div>
       </div>
@@ -657,7 +657,7 @@ export function FolderContextMenu({
         <div className="truncate text-xs font-semibold text-foreground">
           {folderMenu.name}
         </div>
-        <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
+        <div className="mt-0.5 truncate text-micro text-muted-foreground">
           {folderMenu.absolutePath ?? getFolderCopyPath?.(folderMenu.path) ?? folderMenu.path}
         </div>
       </div>

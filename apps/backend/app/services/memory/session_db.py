@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import sqlite3
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from app.utils.path_utils import as_system_path
@@ -24,8 +26,28 @@ class SessionDB:
         connection.execute("PRAGMA busy_timeout=30000")
         return connection
 
+    @contextmanager
+    def _session(self) -> Iterator[sqlite3.Connection]:
+        """事务提交 + 连接关闭。
+
+        为什么必须显式 close——sqlite3 的连接上下文管理器**只管事务**，
+        `with sqlite3.connect(...) as conn:` 退出时提交或回滚，但**不关闭连接**。
+        原先 6 处都写成 `with self._connect() as connection`，于是每写一条消息就
+        泄漏一个连接，直到 GC 才释放；WAL 模式还会额外持有 -wal / -shm 两个句柄。
+
+        在 Linux 上这只是个不可见的 fd 泄漏，在 Windows 上会直接变成功能缺陷：
+        目录内有未释放句柄时 os.rename 报 WinError 32，删除工作区因此 500
+        （2026-08-11 现场：sessions.db 被自己进程占用，见 test_session_move_retry.py）。
+        """
+        connection = self._connect()
+        try:
+            with connection:
+                yield connection
+        finally:
+            connection.close()
+
     def _ensure_schema(self) -> None:
-        with self._connect() as connection:
+        with self._session() as connection:
             connection.executescript("""
                 CREATE TABLE IF NOT EXISTS sessions (
                     session_id TEXT PRIMARY KEY,
@@ -87,7 +109,7 @@ class SessionDB:
     ) -> None:
         now = float(created_at if created_at is not None else time.time())
         normalized_content = str(content or "")
-        with self._connect() as connection:
+        with self._session() as connection:
             existing = connection.execute(
                 "SELECT session_id FROM sessions WHERE session_id = ?",
                 (session_id,),
@@ -123,7 +145,7 @@ class SessionDB:
         if limit <= 0:
             return []
 
-        with self._connect() as connection:
+        with self._session() as connection:
             rows = connection.execute(
                 """
                 SELECT id, session_id, role, content, created_at
@@ -157,7 +179,7 @@ class SessionDB:
             clauses.append("s.session_id != ?")
             params.append(exclude_session_id)
         params.append(candidate_limit)
-        with self._connect() as connection:
+        with self._session() as connection:
             rows = connection.execute(
                 """
                 SELECT
@@ -204,7 +226,7 @@ class SessionDB:
     def get_messages_after_id(
         self, last_message_id: int, session_id: str | None = None
     ) -> list[dict]:
-        with self._connect() as connection:
+        with self._session() as connection:
             if session_id:
                 rows = connection.execute(
                     """
@@ -230,7 +252,7 @@ class SessionDB:
         return [dict(row) for row in rows]
 
     def delete_session(self, session_id: str) -> None:
-        with self._connect() as connection:
+        with self._session() as connection:
             connection.execute(
                 "DELETE FROM messages WHERE session_id = ?",
                 (session_id,),

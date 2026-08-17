@@ -1,4 +1,4 @@
-import { Suspense, cloneElement, isValidElement, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 import {
   Database,
@@ -69,7 +69,7 @@ const LazyWorkspaceConversationPanel = lazy(() =>
   ),
 );
 
-type WorkspacePanelView = ActivityPanelView | "channel";
+type WorkspacePanelView = ActivityPanelView;
 type WorkspaceContextPanelLayoutMode = "sidebar" | "center";
 
 function ContextPanelFallback() {
@@ -551,9 +551,34 @@ export function WorkspaceContextPanel({
         </div>
       </div>
     );
+    // 全局工作区资源节点（sidebar 与 activity 两种模式共用）
+    const resourcesNode = resourcesContent ?? (
+      <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+        <Globe className="h-6 w-6 text-muted-foreground/40" />
+        <div className="mt-3 text-sm font-medium text-foreground">暂无全局工作区资源</div>
+        <div className="mt-1 text-xs leading-5 text-muted-foreground">
+          知识库、数据库、图谱等资源在所有任务工作区间共享。
+        </div>
+        {onOpenWorkspaceSettings ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-4 text-xs"
+            onClick={onOpenWorkspaceSettings}
+          >
+            管理全局资源
+          </Button>
+        ) : null}
+      </div>
+    );
+
     // sidebar 模式面板（右侧 Tab 切换）
+    // 注意：resources（全局工作区）按钮在 sidebar 模式的 getViewButtons 里存在，
+    // 这里必须有对应节点，否则点「全局工作区」整栏空白（2026-08-14 实测修复）
     const tabPanels: { id: string; node: React.ReactNode }[] = [
       { id: "artifacts", node: artifactsContent },
+      { id: "resources", node: resourcesNode },
       { id: "subagents", node: subagentContent },
       { id: "search", node: searchNode },
       { id: "file-changes", node: fileChangesNode },
@@ -579,7 +604,7 @@ export function WorkspaceContextPanel({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="mt-4 h-8 text-xs"
+                  className="mt-4 text-xs"
                   onClick={onCreateDatabaseConnection}
                 >
                   创建数据库连接
@@ -589,28 +614,6 @@ export function WorkspaceContextPanel({
           ),
       },
     ];
-
-    // activity 模式面板（左侧 ActivitySidebar 内容）
-    const resourcesNode = resourcesContent ?? (
-      <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-        <Globe className="h-6 w-6 text-muted-foreground/40" />
-        <div className="mt-3 text-sm font-medium text-foreground">暂无全局工作区资源</div>
-        <div className="mt-1 text-xs leading-5 text-muted-foreground">
-          知识库、数据库、图谱等资源在所有任务工作区间共享。
-        </div>
-        {onOpenWorkspaceSettings ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-4 h-8 text-xs"
-            onClick={onOpenWorkspaceSettings}
-          >
-            管理全局资源
-          </Button>
-        ) : null}
-      </div>
-    );
 
     const activityTabPanels: { id: string; node: React.ReactNode }[] = [
       { id: "artifacts", node: artifactsContent },
@@ -686,12 +689,12 @@ export function WorkspaceContextPanel({
   const headerContent = (
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <div className="text-[11px] text-muted-foreground">当前工作区</div>
+        <div className="text-micro text-muted-foreground">当前工作区</div>
         <div className="mt-1 truncate text-sm font-semibold text-foreground">
           {workspaceSummary?.title || "未绑定工作区"}
         </div>
         {showBranchContextInHeader ? (
-          <div className="mt-1 truncate text-[12px] text-muted-foreground">
+          <div className="mt-1 truncate text-caption text-muted-foreground">
             {currentSessionTitle}
           </div>
         ) : null}
@@ -782,7 +785,7 @@ export function WorkspaceContextPanel({
                   type="button"
                   size="sm"
                   variant={activeView === button.id ? "default" : "outline"}
-                  className="h-8 text-[11px]"
+                  className="text-micro"
                   onClick={() => handleActiveViewChange(button.id)}
                 >
                   {button.label}
@@ -794,18 +797,13 @@ export function WorkspaceContextPanel({
           <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
             {tabPanels.map((panel) => {
               const isActive = panel.id === (activeView || "resource-overview");
-              // 为 terminal 面板注入 visible prop
-              let node = panel.node;
-              if (panel.id === "terminal" && isValidElement(node)) {
-                node = cloneElement(node as React.ReactElement<{ visible?: boolean }>, { visible: isActive });
-              }
               return (
                 <div
                   key={panel.id}
                   className="flex h-full w-full min-h-0 flex-col"
                   style={{ display: isActive ? undefined : "none" }}
                 >
-                  {panel.id === "resource-overview" && !activeView ? resourceContent : node}
+                  {panel.id === "resource-overview" && !activeView ? resourceContent : panel.node}
                 </div>
               );
             })}

@@ -444,7 +444,7 @@ export function NodeRuntimeTab({ workspaceId, onNavigateShellEnvironment }: Node
         </div>
 
         <div className="mt-4 flex items-center gap-2">
-          <Input
+          <Input size="sm"
             type="text"
             value={versionInput}
             onChange={(e) => setVersionInput(e.target.value)}
@@ -456,7 +456,7 @@ export function NodeRuntimeTab({ workspaceId, onNavigateShellEnvironment }: Node
             }}
             placeholder="例如 20 或 lts/iron"
             disabled={isInstalling || !workspaceId || !registry?.fnm_available}
-            className="h-8 text-sm"
+            className="text-sm"
           />
           <Button
             type="button"

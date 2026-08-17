@@ -304,7 +304,7 @@ export function UserMessageContent() {
           {otherAttachments.map((name, idx) => (
             <div
               key={`${name}-${idx}`}
-              className="flex items-center gap-1 bg-background/70 border border-border px-2 py-1 rounded text-[11px] text-muted-foreground"
+              className="flex items-center gap-1 bg-background/70 border border-border px-2 py-1 rounded text-micro text-muted-foreground"
             >
               <AttachmentIcon filename={name} />
               <span className="truncate max-w-[180px]">

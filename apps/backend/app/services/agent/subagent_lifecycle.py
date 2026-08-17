@@ -218,6 +218,7 @@ class SubAgentLifecycleManager:
             yield AgentRuntimeEvent(
                 kind="system_warning",
                 text=f"子 Agent {agent_id} 未运行或已关闭",
+                display_hint="visible",
             )
             return
 
@@ -225,6 +226,7 @@ class SubAgentLifecycleManager:
             yield AgentRuntimeEvent(
                 kind="system_warning",
                 text=f"子 Agent {agent_id} 当前不在可输入状态",
+                display_hint="visible",
             )
             return
 
@@ -234,6 +236,7 @@ class SubAgentLifecycleManager:
             yield AgentRuntimeEvent(
                 kind="system_warning",
                 text=f"子 Agent {agent_id} 缺少 launch_spec，无法继续对话",
+                display_hint="visible",
             )
             return
 

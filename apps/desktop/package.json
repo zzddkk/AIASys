@@ -19,7 +19,7 @@
     "dist:ci:mac": "npm run build:web && npm run prepare:runtime && electron-builder --mac dmg zip --publish=never",
     "dist:ci:mac-x64": "npm run build:web && npm run prepare:runtime && electron-builder --mac dmg zip --x64 --publish=never",
     "dist:mac:unsigned": "npm run build:web && npm run prepare:runtime && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg --arm64 -c.mac.notarize=false -c.mac.identity=null",
-    "test:unit": "node --test src/__tests__/*.test.cjs",
+    "test:unit": "node ./scripts/run-unit-tests.cjs",
     "test:integration": "node --test scripts/integration-test.cjs",
     "test:smoke": "node scripts/smoke-test.cjs",
     "test": "npm run test:unit && npm run test:integration"
@@ -55,7 +55,12 @@
       {
         "from": ".dist/backend",
         "to": "backend",
-        "filter": ["**/*", "!.venv", "!.venv/**", "!.venv/**/*"]
+        "filter": [
+          "**/*",
+          "!.venv",
+          "!.venv/**",
+          "!.venv/**/*"
+        ]
       },
       {
         "from": "../../LICENSE",

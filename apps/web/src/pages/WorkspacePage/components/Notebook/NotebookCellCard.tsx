@@ -253,7 +253,7 @@ export const NotebookCellCard = memo(function NotebookCellCard({
             onChange={(event) => onChangeSource(cell.cell_id, event.target.value)}
             className={
               cell.cell_type === "code"
-                ? "min-h-[180px] resize-y font-mono text-[13px]"
+                ? "min-h-[180px] resize-y font-mono text-body"
                 : "min-h-[140px] resize-y text-sm"
             }
           />
@@ -261,7 +261,7 @@ export const NotebookCellCard = memo(function NotebookCellCard({
 
         {cell.outputs.length > 0 ? (
           <div className="space-y-3 rounded-2xl border border-border bg-muted/20 px-4 py-4">
-            <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            <div className="text-micro font-medium uppercase tracking-wide text-muted-foreground">
               Outputs
             </div>
             {cell.outputs.map((output, outputIndex) => (

@@ -14,7 +14,7 @@
 
 ## ChatSegment
 
-AI 消息的内容分段，位于 `pages/DataAnalysisPage/types.ts`。
+AI 消息的内容分段，位于 `pages/WorkspacePage/types.ts`。
 
 ```typescript
 type ChatSegment = {
@@ -83,7 +83,7 @@ type ChatSegment = {
 
 ## ChatItem
 
-聊天消息项，位于 `pages/DataAnalysisPage/types.ts`。
+聊天消息项，位于 `pages/WorkspacePage/types.ts`。
 
 ```typescript
 type ChatItem = {
@@ -246,7 +246,7 @@ steps.forEach((step) => {
 
 ## WorkerRecord
 
-Worker Agent 状态记录，位于 `pages/DataAnalysisPage/types.ts`。
+Worker Agent 状态记录，位于 `pages/WorkspacePage/types.ts`。
 
 ```typescript
 type WorkerRecord = {
@@ -303,10 +303,10 @@ TaskEvent (流式事件)
 
 | 场景 | 主要类型 | 文件位置 |
 |------|----------|----------|
-| 消息渲染 | `ChatItem`, `ChatSegment` | `DataAnalysisPage/types.ts` |
+| 消息渲染 | `ChatItem`, `ChatSegment` | `WorkspacePage/types.ts` |
 | 流式处理 | `TaskEvent` | `types/task.ts` |
 | 历史恢复 | `ExecutionStep` | `types/execution.ts` |
-| Worker展示 | `WorkerRecord` | `DataAnalysisPage/types.ts` |
+| Worker展示 | `WorkerRecord` | `WorkspacePage/types.ts` |
 
 ---
 

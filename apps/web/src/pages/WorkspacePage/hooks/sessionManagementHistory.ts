@@ -260,7 +260,13 @@ export function restoreChatItemsFromHistory(
           sender: "system",
           role: "system",
           content: content,
-          segments: [{ type: "compaction_summary", content }],
+          segments: [
+            {
+              type: "compaction_summary",
+              content,
+              compactionStats: msg.compaction_stats ?? undefined,
+            },
+          ],
           timestamp: new Date(timeValue),
           isStreaming: false,
         });

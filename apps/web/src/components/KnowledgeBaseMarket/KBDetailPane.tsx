@@ -167,7 +167,7 @@ export function KBDetailPane({
       <div className="border-b border-border/80 px-6 py-6">
         {!isSplitLayout ? (
           <div className="mb-3 flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="h-7 px-2" onClick={onBack}>
+            <Button variant="ghost" size="xs" className="px-2" onClick={onBack}>
               <ChevronLeft className="mr-1 h-4 w-4" />
               返回
             </Button>
@@ -272,7 +272,7 @@ export function KBDetailPane({
               <div className="rounded-2xl border border-border bg-muted/40 p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div className="text-sm font-semibold text-foreground">编辑知识库配置</div>
-                  <Button variant="ghost" size="sm" className="h-7 px-2" onClick={cancelEditing} disabled={isSaving}>
+                  <Button variant="ghost" size="xs" className="px-2" onClick={cancelEditing} disabled={isSaving}>
                     取消
                   </Button>
                 </div>
@@ -498,8 +498,8 @@ export function KBDetailPane({
                     <DocumentStatusBadge status={doc.status} />
                     <Button
                       variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      size="icon-sm"
+                      className="text-muted-foreground hover:text-destructive"
                       onClick={() => onDeleteDoc(doc.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />

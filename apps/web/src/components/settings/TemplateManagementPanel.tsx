@@ -164,7 +164,7 @@ export function TemplateManagementPanel({ onNavigate }: TemplateManagementPanelP
           if (!open) setConfirmDeleteId(null);
         }}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent size="xs">
           <DialogHeader>
             <DialogTitle className="text-base">确认删除模板</DialogTitle>
             <DialogDescription className="text-xs">

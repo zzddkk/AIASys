@@ -14,13 +14,12 @@ import uuid
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
-from app.utils.path_utils import as_system_path
-
 import networkx as nx
 
 from app.core.config import (
     get_user_global_resources_dir,  # 保留用于 _legacy_db_path_for 和 _scan_graph_dirs 兼容旧数据扫描
 )
+from app.utils.path_utils import as_system_path
 
 from ..models.entity import Entity
 from ..models.relation import Relation
@@ -381,7 +380,11 @@ class SQLiteGraphStore:
         for db_file in db_files:
             kg_id = db_file.stem
             try:
-                with sqlite3.connect(as_system_path(str(db_file))) as conn:
+                # 注意：`with sqlite3.connect(...)` 只管事务、不关连接，退出 with 后
+                # 连接仍打开。Windows 上未关闭的连接会锁住 .db 文件，导致后续
+                # 删除图谱报 WinError 32。故显式 try/finally 关闭。
+                conn = sqlite3.connect(as_system_path(str(db_file)))
+                try:
                     conn.row_factory = sqlite3.Row
                     conn.execute("""
                         CREATE TABLE IF NOT EXISTS graph_metadata (
@@ -402,6 +405,11 @@ class SQLiteGraphStore:
                         "SELECT key, value FROM graph_metadata WHERE key IN ('name', 'description')"
                     ).fetchall()
                     metadata = {row["key"]: row["value"] for row in metadata_rows}
+                    # 原 `with conn:` 会在正常退出时提交；改为显式 try/finally 后
+                    # 必须自行 commit，否则上面的 CREATE TABLE IF NOT EXISTS 不落盘。
+                    conn.commit()
+                finally:
+                    conn.close()
                 graphs.append(
                     {
                         "kg_id": kg_id,

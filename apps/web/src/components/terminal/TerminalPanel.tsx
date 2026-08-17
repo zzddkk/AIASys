@@ -268,7 +268,7 @@ export function TerminalPanel({
               </div>
             </div>
             {state.error && state.error !== "WebSocket 连接失败" && (
-              <div className="w-full rounded-md bg-muted px-2 py-1.5 text-left text-[11px] font-mono text-muted-foreground">
+              <div className="w-full rounded-md bg-muted px-2 py-1.5 text-left text-micro font-mono text-muted-foreground">
                 {state.error}
               </div>
             )}

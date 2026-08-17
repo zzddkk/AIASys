@@ -25,7 +25,7 @@ function WorkerIndicatorItem({ worker, onClick }: WorkerIndicatorItemProps) {
   return (
     <div
       onClick={() => onClick?.(worker.name)}
-      className="flex items-center space-x-1.5 px-2 py-0.5 bg-muted border border-border rounded-full text-[10px] text-muted-foreground group hover:border-border/80 transition-colors cursor-pointer hover:bg-accent"
+      className="flex items-center space-x-1.5 px-2 py-0.5 bg-muted border border-border rounded-full text-nano text-muted-foreground group hover:border-border/80 transition-colors cursor-pointer hover:bg-accent"
     >
       {worker.status === "running" ? (
         <Cpu size={10} className="text-warning" />

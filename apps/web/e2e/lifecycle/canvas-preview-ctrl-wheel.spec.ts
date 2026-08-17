@@ -3,43 +3,10 @@ import { expect, test, type APIRequestContext, type Page } from "@playwright/tes
 import {
   createWorkspace,
   deleteWorkspace,
+  openGlobalResourcesPanel,
+  openWorkspaceFilesPanel,
   registerLifecycleUser,
 } from "./support";
-
-async function openWorkspaceFilesPanel(page: Page) {
-  await expect(page.locator("textarea")).toBeVisible();
-  const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-  if (!(await panel.isVisible())) {
-    const fileTab = page.locator("button[aria-label='文件']");
-    if (await fileTab.isVisible()) {
-      await fileTab.click();
-    } else {
-      await page.getByRole("button", { name: "资产", exact: true }).click();
-    }
-  }
-  await expect(panel).toBeVisible();
-  return panel;
-}
-
-async function openGlobalResourcesPanel(page: Page) {
-  await expect(page.locator("textarea")).toBeVisible();
-  const globalTab = page
-    .locator("button[aria-label='全局工作区'], button[aria-label='全局资源']")
-    .first();
-  if ((await globalTab.count()) > 0 && (await globalTab.isVisible())) {
-    await globalTab.click();
-  } else {
-    const globalButton = page
-      .getByRole("button", { name: "全局工作区", exact: true })
-      .or(page.getByRole("button", { name: "全局资源", exact: true }))
-      .first();
-    await globalButton.click();
-  }
-  const panel = page.locator('[data-testid="workspace-global-resources-panel"]');
-  await expect(panel).toBeVisible();
-  await expect(panel.getByTestId("workspace-global-resources-tree-surface")).toBeVisible();
-  return panel;
-}
 
 async function dispatchCtrlWheel(page: Page, deltaY: number) {
   await page.evaluate((wheelDeltaY) => {
@@ -266,6 +233,36 @@ test.describe("Canvas preview ctrl wheel", () => {
       await expect(propertiesPanel.getByLabel("节点状态")).toHaveCount(0);
       await propertiesPanel.getByRole("button", { name: "关闭属性面板" }).click();
       await expect(propertiesPanel).toHaveCount(0);
+
+      // 在这里先单独校验一次 subpath 落盘，不要只留文末那个把 8 个字段一起比的 poll。
+      //
+      // 两个作用。一是补上原本缺失的等待：redo 之后 scheduleSave 只是起了个 300ms 定时器，
+      // 原测试不等它就继续点「打开文件」，画布随之重载，新值还没落盘就被旧内容盖回去，
+      // 于是文末断言看到 subpath 停在 #初始位置。二是定位：文末那个 poll 跨了「改 subpath →
+      // 撤销 → 重做 → 关面板 → 打开关联文件 → 重新在主画布打开 → 改连线标签与箭头」整条链，
+      // 任一环节丢写都是同一条 deep-equality 失败，读不出丢在哪。
+      //
+      // 拆开之后：这条红 = 重做没落盘；这条绿而文末红 = 后续步骤把它覆盖回去了。
+      //
+      // 注意这条 poll 顺带把「编辑后立刻切走会丢写」那个场景挡在了覆盖范围之外——它等到
+      // 落盘完成才继续，后面的卸载就不再触碰 pending。那个场景由 canvas-unsaved-flush
+      // 单独覆盖，不要把它合回这里。
+      await expect
+        .poll(
+          async () => {
+            const response = await api.get(
+              `/api/workspaces/${workspace.workspaceId}/files/content/${canvasFileName}`,
+            );
+            expect(response.ok()).toBeTruthy();
+            const body = await response.json();
+            const parsed = JSON.parse(String(body.content));
+            return parsed.nodes.find(
+              (node: { id: string }) => node.id === "node-file",
+            )?.subpath;
+          },
+          { message: "重做后的 subpath 应当已落盘" },
+        )
+        .toBe("#验证结论");
 
       const fileOpenButtons = page
         .locator('[data-canvas-node-id="node-file"]')

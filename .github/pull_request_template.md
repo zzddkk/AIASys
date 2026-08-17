@@ -32,6 +32,7 @@ Resolve #(issue_number)
 - [ ] PR 目标分支为 `dev`（而非 `main`）；release PR 目标分支为 `main`
 - [ ] 已关联相关 Issue（如有）
 - [ ] 代码已在本地通过测试
+- [ ] 未使用 `git commit --no-verify` 绕过 pre-commit 检查（确有必要绕过时，请在「描述」里说明原因与后续处理）
 - [ ] commit message 符合 Conventional Commits 格式
 - [ ] 本次 PR 的 commit 已按逻辑原子拆分（一个 commit 只做一件事；PR 可包含多个 commit）
 - [ ] 涉及用户可感知的功能/修复/优化时，已同步更新 `docs/changelog/`

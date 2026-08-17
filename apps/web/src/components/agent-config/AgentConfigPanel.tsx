@@ -1123,12 +1123,12 @@ export default function AgentConfigPanel({
                       {previewConfig.enabledTools.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {previewConfig.enabledTools.slice(0, 12).map((tool) => (
-                            <Badge key={tool} variant="outline" className="text-[10px]">
+                            <Badge key={tool} variant="outline" className="text-nano">
                               {tool}
                             </Badge>
                           ))}
                           {previewConfig.enabledTools.length > 12 ? (
-                            <Badge variant="secondary" className="text-[10px]">
+                            <Badge variant="secondary" className="text-nano">
                               +{previewConfig.enabledTools.length - 12}
                             </Badge>
                           ) : null}

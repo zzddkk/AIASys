@@ -47,7 +47,7 @@ class FakeLlmClient(BaseLlmClient):
         self.last_max_tokens = max_tokens
         # Yield the response in one chunk
         yield LlmChunk(delta=LlmDelta(content=self.response_text))
-        yield LlmChunk(delta=LlmDelta(), finish_reason="stop")
+        yield LlmChunk(delta=LlmDelta(), finish_reason="completed")
 
     async def aclose(self) -> None:
         pass
@@ -79,7 +79,7 @@ class FakeUsageLlmClient(BaseLlmClient):
     async def chat_stream(self, messages, tools, temperature, max_tokens, request_options=None):
         del request_options
         yield LlmChunk(delta=LlmDelta(content=self.response_text), usage=self.usage)
-        yield LlmChunk(delta=LlmDelta(), finish_reason="stop")
+        yield LlmChunk(delta=LlmDelta(), finish_reason="completed")
 
     async def aclose(self) -> None:
         pass
@@ -795,3 +795,37 @@ class TestSessionCompactionLogic:
         chat_messages = [m for m in messages if m.get("role") != "system"]
         assert len(chat_messages) == 0
         assert not should_auto_compact(0, 100, trigger_ratio=0.85)
+
+    @pytest.mark.asyncio
+    async def test_compaction_summary_carries_stats_for_frontend_marker(self):
+        """压缩摘要消息必须携带 compaction_stats（前端压缩标记显示 before → after）。
+
+        统计字段随 history.json 持久化；缺了它，历史里的压缩标记只能显示
+        「已压缩为摘要」，没有 token 变化信息。
+        """
+        system_msg = {"role": "system", "content": "s" * 400}
+        chat_msgs = [
+            {"role": "user", "content": "u1"},
+            {"role": "assistant", "content": "a1"},
+            {"role": "user", "content": "u2"},
+            {"role": "assistant", "content": "a2"},
+        ]
+        session = _TestSession(
+            [system_msg, *chat_msgs], estimate_text_tokens([system_msg, *chat_msgs])
+        )
+        async for _ in session._maybe_compact_context():
+            pass
+
+        summary = next(
+            (m for m in session.messages if m.get("origin") == "compaction_summary"),
+            None,
+        )
+        assert summary is not None
+        stats = summary.get("compaction_stats")
+        assert isinstance(stats, dict)
+        # 小消息合成场景 after 可能大于 before（摘要比原文长），不断言大小关系，
+        # 只断言字段齐全与 saved 的计算口径
+        assert isinstance(stats["tokens_before"], int)
+        assert isinstance(stats["tokens_after"], int)
+        assert stats["saved_tokens"] == max(0, stats["tokens_before"] - stats["tokens_after"])
+        assert stats["compacted_count"] >= 0

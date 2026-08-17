@@ -5,11 +5,11 @@
  */
 
 import { useState } from "react";
-import { 
-  Clock, 
-  Loader2, 
-  CheckCircle2, 
-  AlertCircle, 
+import {
+  Clock,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
   Ban,
   ChevronDown,
   ChevronRight,
@@ -138,7 +138,7 @@ export function SubAgentTaskCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm truncate">{task.title}</span>
-            <Badge variant="outline" className={cn("text-[10px] h-4", config.color)}>
+            <Badge variant="outline" className={cn("text-nano h-4", config.color)}>
               {config.label}
             </Badge>
           </div>

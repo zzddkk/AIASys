@@ -33,8 +33,7 @@ TURNS = [
     {
         "id": "MT-001",
         "prompt": (
-            "请用 WriteFile 在当前工作区创建文件 test_multi_turn.txt，"
-            "内容为：secret_code=42"
+            "请用 WriteFile 在当前工作区创建文件 test_multi_turn.txt，内容为：secret_code=42"
         ),
         "expect_tools": ["WriteFile"],
         "description": "轮1: 创建文件，建立上下文",
@@ -47,10 +46,7 @@ TURNS = [
     },
     {
         "id": "MT-003",
-        "prompt": (
-            "刚才读到的文件内容里，secret_code 的值是多少？"
-            "直接告诉我，不要再去读文件。"
-        ),
+        "prompt": ("刚才读到的文件内容里，secret_code 的值是多少？直接告诉我，不要再去读文件。"),
         "expect_tools": [],  # 期望不调工具，直接从上下文回答
         "description": "轮3: 验证上下文连续性——模型应记得 tool 返回的 42",
         "check_context": True,
@@ -121,14 +117,10 @@ def evaluate_turn(turn: dict, result: dict) -> dict:
     elif turn.get("check_context"):
         # 上下文连续性检查：期望不调工具
         if tool_names:
-            failures.append(
-                f"期望不调用工具（应从上下文回答），但调了: {tool_names}"
-            )
+            failures.append(f"期望不调用工具（应从上下文回答），但调了: {tool_names}")
         # 检查回答中是否包含 "42"
         if "42" not in assistant_text:
-            failures.append(
-                f"回答中未包含 42，可能上下文断裂。回答摘要: {assistant_text[:200]}"
-            )
+            failures.append(f"回答中未包含 42，可能上下文断裂。回答摘要: {assistant_text[:200]}")
 
     status = "PASS" if not failures else "FAIL"
     return {"status": status, "failures": failures, "tool_names": tool_names}
@@ -184,7 +176,9 @@ def run_test(session_id: str):
     print("=" * 70)
     for r in results:
         icon = "✅" if r["status"] == "PASS" else "❌"
-        print(f"  {icon} {r['test_id']}: {r['status']} | tools={r['tool_names']} | {r['elapsed_sec']}s")
+        print(
+            f"  {icon} {r['test_id']}: {r['status']} | tools={r['tool_names']} | {r['elapsed_sec']}s"
+        )
         if r.get("failures"):
             for f in r["failures"]:
                 print(f"       → {f}")

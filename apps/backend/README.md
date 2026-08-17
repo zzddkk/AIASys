@@ -104,7 +104,7 @@ apps/backend/
 
 ## 存储说明
 
-会话数据目录：`apps/backend/workspaces/{user_id}/{session_id}/`
+会话数据目录：`apps/backend/data/workspaces/{user_id}/{session_id}/`
 
 - `metadata.json`: 会话元数据
 - `history.json`: 消息历史

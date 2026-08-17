@@ -54,7 +54,7 @@ npm run start
 - 优先复用已运行的 backend / frontend
 - 若未运行，则自动拉起 backend
 - 默认端口若被其他 checkout 占用，会自动回退到新的空闲端口
-- 启动 `apps/web/scripts/local_preview_server.py` 承接 `apps/web/dist`
+- 启动 `apps/web/scripts/committed/local_preview_server.py` 承接 `apps/web/dist`
 - 通过本地代理把 `/api` 和 `/health` 转发到 backend
 
 如果你显式设置了 `AIASYS_DESKTOP_FRONTEND_PORT` / `AIASYS_DESKTOP_BACKEND_PORT`，

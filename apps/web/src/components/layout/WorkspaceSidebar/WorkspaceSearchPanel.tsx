@@ -41,7 +41,7 @@ export function WorkspaceSearchPanel({
             className="h-9 w-full rounded-lg border border-input bg-muted/50 pl-9 pr-3 font-mono text-xs outline-none transition-colors placeholder:text-muted-foreground/60 focus:bg-background focus:ring-1 focus:ring-ring"
           />
         </div>
-        <div className="mt-2 text-[11px] text-muted-foreground">
+        <div className="mt-2 text-micro text-muted-foreground">
           {trimmedQuery ? `${results.length} 个匹配项` : "显示最近的工作区文件"}
         </div>
       </div>
@@ -71,7 +71,7 @@ export function WorkspaceSearchPanel({
                     <span className="block truncate font-mono text-xs">
                       {file.name}
                     </span>
-                    <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                    <span className="mt-0.5 block truncate text-micro text-muted-foreground">
                       {file.mtime
                         ? new Date(file.mtime).toLocaleString("zh-CN", {
                             hour12: false,

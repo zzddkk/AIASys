@@ -29,7 +29,7 @@ class _SingleTurnCaptureClient:
         self.request_options.append(request_options)
         yield LlmChunk(
             delta=LlmDelta(content="ok"),
-            finish_reason="stop",
+            finish_reason="completed",
             usage={"prompt_tokens": 1, "completion_tokens": 1},
         )
 
@@ -206,7 +206,9 @@ async def test_request_thinking_disable_reaches_runtime_request_options(
                     "model-1": {
                         "provider": "provider-1",
                         "model": "test-model",
-                        "capabilities": ["always_thinking"],
+                        # 可开关模型：「关」必须透传到请求侧。
+                        # （always_thinking 的强制思考模型走相反契约，见下方新测试）
+                        "capabilities": ["thinking"],
                         "thinking_effort": "high",
                     }
                 },
@@ -287,3 +289,84 @@ system_prompt_path = "./prompt.md"
     assert client.request_options[0].thinking_disabled is True
     assert client.request_options[0].thinking_effort is None
     assert client.request_options[0].thinking_budget_tokens is None
+
+
+async def test_request_thinking_disable_ignored_for_always_thinking_model(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    """强制思考模型（always_thinking）的「关」不下发到请求侧。
+
+    依据：Step 的 effort 取值域无 off 档（step-code 2026-08-02 实测），
+    服务端默认深度思考——「关」对这类模型是假控件。请求侧按真实能力
+    声明 thinking_enabled=True；前端三态化后这类模型也没有「关闭」入口。
+    """
+
+    class StubLLMConfigService:
+        def get_full_config(self, _user_id: str):
+            return {
+                "providers": {
+                    "provider-1": {
+                        "type": "openai_chat_completions",
+                        "base_url": "https://api.stepfun.com/v1",
+                        "api_key": "test-key",
+                    }
+                },
+                "models": {
+                    "model-1": {
+                        "provider": "provider-1",
+                        "model": "step-3.7-flash",
+                        "capabilities": ["thinking"],
+                        "thinking_effort": "high",
+                    }
+                },
+                "default_model": "model-1",
+            }
+
+    class StubAgentConfigService:
+        def get_effective_runtime_config(self, mode, user_id, session_id=None):
+            class RuntimeConfig:
+                def model_dump(self):
+                    return {}
+
+            return RuntimeConfig()
+
+    class DummyService(session_module.SessionMixin):
+        pass
+
+    agent_file = tmp_path / "agent.toml"
+    prompt_path = tmp_path / "prompt.md"
+    prompt_path.write_text("system prompt", encoding="utf-8")
+    agent_file.write_text(
+        """
+[agent]
+name = "test-agent"
+model = "model-1"
+tools = []
+system_prompt_path = "./prompt.md"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(session_module, "get_llm_config_service", lambda: StubLLMConfigService())
+    monkeypatch.setattr(
+        session_module,
+        "get_agent_config_service",
+        lambda: StubAgentConfigService(),
+    )
+
+    config = DummyService()._get_config(
+        model=None,
+        user_id="user-1",
+        model_id="model-1",
+        session_id="session-1",
+        thinking_enabled=False,
+        thinking_effort=None,
+    )
+
+    # stepfun 端点 + step- 模型名 → 归一化出 always_thinking；
+    # 用户传的 false 被忽略，不打 thinking_disabled
+    model_cfg = config.models["model-1"]
+    caps = getattr(model_cfg, "capabilities", None) or []
+    assert "always_thinking" in caps
+    assert not getattr(model_cfg, "thinking_disabled", False)

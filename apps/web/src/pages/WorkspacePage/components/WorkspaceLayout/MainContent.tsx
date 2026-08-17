@@ -40,7 +40,6 @@ export function MainContent({
   thinkingEffort,
   setThinkingEnabled,
   setThinkingEffort,
-  selectedModelSupportsThinking,
   hasMCPConfig,
   onOpenDatabaseConnectionsDialog,
   onCreateDatabaseConnectionDialog,
@@ -60,7 +59,6 @@ export function MainContent({
   onDeleteConversation,
   onImportConversation,
   activeTabRequest,
-  requestSidebarTab,
 }: MainContentProps) {
   const { session, user } = useAuthContext();
   const token = session?.token;
@@ -158,17 +156,17 @@ export function MainContent({
     restoreTerminalTabs();
   }, [executorSessionId, resetPaneTree, restoreTerminalTabs]);
 
-  // Ctrl+` 切换到侧边栏终端 Tab
+  // Ctrl+` 打开/聚焦主画布终端 Tab（终端 UI 在主画布，不走侧边栏路由）
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "`") {
         e.preventDefault();
-        requestSidebarTab?.("terminal");
+        openTerminalTab();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [requestSidebarTab]);
+  }, [openTerminalTab]);
 
   useEffect(() => {
     if (!activeTabRequest || !currentWorkspaceId) {
@@ -468,7 +466,6 @@ export function MainContent({
               thinkingEffort={thinkingEffort}
               setThinkingEnabled={setThinkingEnabled}
               setThinkingEffort={setThinkingEffort}
-              selectedModelSupportsThinking={selectedModelSupportsThinking}
               onOpenLLMConfigDialog={onOpenLLMConfigDialog}
               onOpenToolConfig={onOpenToolConfig}
               onOpenRuntimeTab={openRuntimeTab}

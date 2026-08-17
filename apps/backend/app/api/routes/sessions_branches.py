@@ -41,6 +41,7 @@ from .sessions_helpers import (
 from .sessions_models import (
     CreateSessionRequest,
     SessionResponse,
+    UpdateAuthorizationModeRequest,
     UpdateTaskProfileRequest,
     UpdateTitleRequest,
 )
@@ -1061,6 +1062,47 @@ async def update_session_task_profile(
         raise
     except Exception as e:
         logger.error(f"更新会话任务配置失败: {e}")
+        raise HTTPException(status_code=500, detail="Operation failed") from e
+
+
+@router.post("/{user_id}/{session_id}/authorization-mode")
+async def update_session_authorization_mode(
+    user_id: str,
+    session_id: str,
+    request: UpdateAuthorizationModeRequest,
+    current_user: UserInfo = Depends(require_auth()),
+):
+    """更新当前会话的能力授权模式（manual/smart/auto/full_auto）。"""
+    if not current_user.can_access_user_data(user_id):
+        raise HTTPException(status_code=403, detail="You can only update your own session")
+
+    try:
+        metadata = session_manager.get_session(session_id, user_id)
+        if not metadata:
+            raise HTTPException(status_code=404, detail="会话不存在")
+        if _is_runtime_busy(user_id, session_id):
+            raise HTTPException(
+                status_code=409,
+                detail="当前会话正在执行，不能并发改写授权模式，请等待本轮完成。",
+            )
+
+        updated = session_manager.update_authorization_mode(
+            session_id=session_id,
+            user_id=user_id,
+            authorization_mode=request.authorization_mode,
+        )
+        if updated is None:
+            raise HTTPException(status_code=500, detail="更新授权模式失败")
+
+        return {
+            "success": True,
+            "authorization_mode": updated.authorization_mode,
+            "authorization_mode_effect": "next_run_only",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"更新会话授权模式失败: {e}")
         raise HTTPException(status_code=500, detail="Operation failed") from e
 
 

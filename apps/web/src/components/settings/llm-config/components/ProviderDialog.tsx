@@ -98,7 +98,7 @@ export function ProviderDialog({
           添加服务商
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>{editingProvider ? "编辑服务商" : "添加服务商"}</DialogTitle>
           <DialogDescription>

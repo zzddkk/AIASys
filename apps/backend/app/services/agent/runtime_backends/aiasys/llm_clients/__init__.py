@@ -70,6 +70,13 @@ def create_llm_client(
     if reasoning_key is None:
         reasoning_key = _get_provider_attr(provider, "reasoning_key")
 
+    # 正文内推理标签（如 "think"）。同样 model 级优先。未配置时为 None = 不剥离，
+    # 行为与历史一致；仅对显式声明该形态的 provider 生效，避免吃掉用户正文里合法的
+    # <think> 字样。根因见 参考资料/thinking内容泄露正文的根因分析.md
+    reasoning_in_content_tag = _get_provider_attr(model_config, "reasoning_in_content_tag")
+    if reasoning_in_content_tag is None:
+        reasoning_in_content_tag = _get_provider_attr(provider, "reasoning_in_content_tag")
+
     if protocol == "openai_chat_completions":
         return OpenAIChatClient(
             api_key=api_key,
@@ -77,6 +84,7 @@ def create_llm_client(
             model=model,
             reasoning_key=reasoning_key,
             reasoning_format=reasoning_format,
+            reasoning_in_content_tag=reasoning_in_content_tag,
         )
     if protocol == "openai_responses":
         return CodexChatClient(api_key=api_key, base_url=base_url, model=model)

@@ -43,6 +43,8 @@ class EventMixin:
             "turn_has_content": False,
             "current_host_step": 0,
             "pending_host_step": False,
+            # 显示流分层：当前 turn 的消息 display_hint，turn_begin 事件携带此值
+            "display_hint": "visible",
         }
 
     def _build_worker_lifecycle_event(
@@ -132,18 +134,24 @@ class EventMixin:
             )
 
         if item.kind == "content" and item.content_type == "text":
-            return {
+            event: dict[str, Any] = {
                 "type": "content",
                 "content_type": "text",
                 "text": item.text or "",
             }
+            if item.display_hint is not None:
+                event["display_hint"] = item.display_hint
+            return event
 
         if item.kind == "content" and item.content_type == "think":
-            return {
+            event = {
                 "type": "content",
                 "content_type": "think",
                 "think": item.think or "",
             }
+            if item.display_hint is not None:
+                event["display_hint"] = item.display_hint
+            return event
 
         if item.kind == "tool_call":
             event = {
@@ -152,6 +160,8 @@ class EventMixin:
                 "tool_name": item.tool_name or "unknown",
                 "arguments": item.arguments or {},
             }
+            if item.display_hint is not None:
+                event["display_hint"] = item.display_hint
             if item.subagent_name is not None:
                 event["subagent_name"] = item.subagent_name
             if item.subagent_type is not None:
@@ -169,6 +179,8 @@ class EventMixin:
                 "is_error": bool(item.is_error),
                 "subagent_name": item.subagent_name,
             }
+            if item.display_hint is not None:
+                event["display_hint"] = item.display_hint
             if item.parent_tool_call_id is not None:
                 event["parent_tool_call_id"] = item.parent_tool_call_id
             if item.agent_id is not None:
@@ -327,6 +339,13 @@ class EventMixin:
     ) -> list[dict[str, Any]]:
         events: list[dict[str, Any]] = []
 
+        # 显示流分层：将当前 item 的 display_hint 同步到 projection state，
+        # 使后续 _project_host_control_event 生成的 turn_begin 携带正确的渲染语义。
+        # 这样前端收到 turn_begin 时就知道该 turn 应 visible / collapsed / hidden。
+        item_display_hint = getattr(item, "display_hint", None)
+        if item_display_hint is not None:
+            state["display_hint"] = item_display_hint
+
         if _is_tool_call_part(item):
             pending_tool_call = state.get("pending_tool_call")
             if pending_tool_call is not None:
@@ -442,7 +461,13 @@ class EventMixin:
             state["pending_host_step"] = False
             state["turn_has_content"] = False
             state["turn_n"] = state.get("turn_n", 0) + 1
-            return [{"type": "turn_begin", "turn_n": state["turn_n"]}]
+            return [
+                {
+                    "type": "turn_begin",
+                    "turn_n": state["turn_n"],
+                    "display_hint": state.get("display_hint", "visible"),
+                }
+            ]
 
         if _is_step_begin_item(item):
             return []
@@ -470,7 +495,13 @@ class EventMixin:
         state["turn_started"] = True
         state["turn_n"] = state.get("turn_n", 0) + 1
         state["turn_has_content"] = False
-        events.append({"type": "turn_begin", "turn_n": state["turn_n"]})
+        events.append(
+            {
+                "type": "turn_begin",
+                "turn_n": state["turn_n"],
+                "display_hint": state.get("display_hint", "visible"),
+            }
+        )
 
     def _flush_projected_output(
         self: "AgentService",

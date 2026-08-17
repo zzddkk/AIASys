@@ -75,7 +75,7 @@ function DialogWorkbenchRail({
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-border bg-muted/90 px-3 py-2.5">
-          <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="text-micro uppercase tracking-[0.18em] text-muted-foreground">
             节点
           </div>
           <div className="mt-1 text-lg font-semibold text-foreground">
@@ -83,7 +83,7 @@ function DialogWorkbenchRail({
           </div>
         </div>
         <div className="rounded-xl border border-border bg-muted/90 px-3 py-2.5">
-          <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="text-micro uppercase tracking-[0.18em] text-muted-foreground">
             关系
           </div>
           <div className="mt-1 text-lg font-semibold text-foreground">
@@ -91,7 +91,7 @@ function DialogWorkbenchRail({
           </div>
         </div>
         <div className="rounded-xl border border-border bg-muted/90 px-3 py-2.5">
-          <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="text-micro uppercase tracking-[0.18em] text-muted-foreground">
             社区
           </div>
           <div className="mt-1 text-lg font-semibold text-foreground">
@@ -99,7 +99,7 @@ function DialogWorkbenchRail({
           </div>
         </div>
         <div className="rounded-xl border border-border bg-muted/90 px-3 py-2.5">
-          <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="text-micro uppercase tracking-[0.18em] text-muted-foreground">
             当前模式
           </div>
           <div className="mt-1 text-sm font-semibold text-foreground">
@@ -112,7 +112,7 @@ function DialogWorkbenchRail({
         </div>
       </div>
 
-      <div className="mt-5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+      <div className="mt-5 text-micro uppercase tracking-[0.2em] text-muted-foreground">
         工作模式
       </div>
       <div className="mt-2 space-y-2">

@@ -228,7 +228,7 @@ function TreeNodeItem({
             className="h-3.5 w-3.5"
           />
           <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="truncate text-[11px]">{node.name}</span>
+          <span className="truncate text-micro">{node.name}</span>
         </div>
         {node.children?.map((child) => (
           <TreeNodeItem
@@ -276,7 +276,7 @@ function TreeNodeItem({
             }
           }}
           className={cn(
-            "truncate text-[11px] text-left hover:underline",
+            "truncate text-micro text-left hover:underline",
             isPreviewing && "text-primary font-medium",
           )}
           title="点击预览文件内容"
@@ -287,16 +287,16 @@ function TreeNodeItem({
       {showPreview && (
         <div style={{ marginLeft: `${depth * 12 + 20}px` }}>
           {isPreviewLoading && isPreviewing ? (
-            <div className="py-2 text-[10px] text-muted-foreground flex items-center gap-1">
+            <div className="py-2 text-nano text-muted-foreground flex items-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" />
               加载中...
             </div>
           ) : displayContent ? (
-            <pre className="mx-1 my-0.5 rounded border border-border/50 bg-muted/30 px-2 py-1 font-mono text-[10px] leading-relaxed text-muted-foreground break-all whitespace-pre-wrap">
+            <pre className="mx-1 my-0.5 rounded border border-border/50 bg-muted/30 px-2 py-1 font-mono text-nano leading-relaxed text-muted-foreground break-all whitespace-pre-wrap">
               {displayContent}
             </pre>
           ) : (
-            <div className="py-2 text-[10px] text-muted-foreground">暂无预览内容</div>
+            <div className="py-2 text-nano text-muted-foreground">暂无预览内容</div>
           )}
         </div>
       )}
@@ -392,7 +392,7 @@ export function TemplateFileTreeSelector({
           onCheckedChange={handleSelectAll}
           className="h-3.5 w-3.5"
         />
-        <span className="text-[11px] font-medium">全选</span>
+        <span className="text-micro font-medium">全选</span>
       </div>
       <div className="border-t border-border pt-1">
         {tree.map((node) => (

@@ -75,17 +75,17 @@ export function TemplateMarketPanel() {
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
+            <Input size="sm"
               placeholder="搜索模板..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 pl-8 text-xs"
+              className="pl-8 text-xs"
             />
           </div>
           <div className="flex flex-wrap gap-1.5">
             <Badge
               variant={selectedCategory === "" ? "default" : "secondary"}
-              className="cursor-pointer text-[10px]"
+              className="cursor-pointer text-nano"
               onClick={() => setSelectedCategory("")}
             >
               全部
@@ -94,7 +94,7 @@ export function TemplateMarketPanel() {
               <Badge
                 key={cat}
                 variant={selectedCategory === cat ? "default" : "secondary"}
-                className="cursor-pointer text-[10px]"
+                className="cursor-pointer text-nano"
                 onClick={() => setSelectedCategory(cat)}
               >
                 {cat}
@@ -135,11 +135,11 @@ export function TemplateMarketPanel() {
                         {item.name}
                       </span>
                       {item.official && (
-                        <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">
+                        <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-nano text-primary">
                           官方
                         </span>
                       )}
-                      <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                      <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-nano text-muted-foreground">
                         {item.category}
                       </span>
                     </div>
@@ -149,7 +149,7 @@ export function TemplateMarketPanel() {
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center gap-3 text-[11px] text-muted-foreground">
+                <div className="mt-3 flex items-center gap-3 text-micro text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <FileText className="h-3 w-3" />
                     {item.file_count} 个文件
@@ -165,8 +165,8 @@ export function TemplateMarketPanel() {
                 <div className="mt-3 flex items-center justify-end gap-2">
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
+                    size="xs"
+                    className="text-xs"
                     onClick={() => handleOpenDetail(item.item_id)}
                   >
                     详情
@@ -174,8 +174,8 @@ export function TemplateMarketPanel() {
                   {item.is_installed ? (
                     <Button
                       variant="outline"
-                      size="sm"
-                      className="h-7 text-xs"
+                      size="xs"
+                      className="text-xs"
                       disabled
                     >
                       <CheckCircle2 className="mr-1 h-3 w-3" />
@@ -184,8 +184,8 @@ export function TemplateMarketPanel() {
                   ) : (
                     <Button
                       variant="default"
-                      size="sm"
-                      className="h-7 text-xs"
+                      size="xs"
+                      className="text-xs"
                       onClick={() => handleInstall(item.item_id)}
                       disabled={installingItemId === item.item_id}
                     >
@@ -206,7 +206,7 @@ export function TemplateMarketPanel() {
 
       {/* 详情 Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent size="sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               {detail ? (
@@ -228,26 +228,26 @@ export function TemplateMarketPanel() {
               {/* 基本信息 */}
               <div className="flex flex-wrap gap-2">
                 {detail.item.official && (
-                  <Badge variant="default" className="text-[10px]">
+                  <Badge variant="default" className="text-nano">
                     官方
                   </Badge>
                 )}
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" className="text-nano">
                   {detail.item.category}
                 </Badge>
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="outline" className="text-nano">
                   {detail.item.env_kind === "none"
                     ? "无环境"
                     : detail.item.env_kind === "uv"
                       ? "Python 环境"
                       : detail.item.env_kind}
                 </Badge>
-                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <span className="flex items-center gap-1 text-micro text-muted-foreground">
                   <FileText className="h-3 w-3" />
                   {detail.item.file_count} 个文件
                 </span>
                 {detail.item.capability_count > 0 && (
-                  <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-1 text-micro text-muted-foreground">
                     <Puzzle className="h-3 w-3" />
                     {detail.item.capability_count} 项能力
                   </span>
@@ -286,12 +286,12 @@ export function TemplateMarketPanel() {
                     {detail.recommended_capabilities.map((cap) => (
                       <div
                         key={cap.capability_id}
-                        className="flex items-center gap-2 rounded-sm px-2 py-1 text-[11px]"
+                        className="flex items-center gap-2 rounded-sm px-2 py-1 text-micro"
                       >
                         <Puzzle className="h-3 w-3 text-muted-foreground" />
                         <span className="text-foreground">{cap.capability_id}</span>
                         {cap.required && (
-                          <Badge variant="outline" className="text-[9px]">
+                          <Badge variant="outline" className="text-nano">
                             必需
                           </Badge>
                         )}
@@ -311,7 +311,7 @@ export function TemplateMarketPanel() {
                     {Object.entries(detail.env_vars).map(([key, value]) => (
                       <div
                         key={key}
-                        className="flex items-center gap-2 rounded-sm bg-muted/40 px-2 py-1 text-[11px]"
+                        className="flex items-center gap-2 rounded-sm bg-muted/40 px-2 py-1 text-micro"
                       >
                         <span className="font-mono text-muted-foreground">{key}</span>
                         <span className="text-foreground">=</span>

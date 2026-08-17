@@ -4,8 +4,23 @@ Import-safe module with no dependencies — can be imported from anywhere
 without risk of circular imports.
 """
 
+import contextvars
 import os
 from pathlib import Path
+
+# _HERMES_HOME is set by ClawHermesMixin._hermes_import_scope in the calling
+# task's context before any vendored module is imported.  Reading it here
+# gives each asyncio task its own HERMES_HOME value, eliminating the global
+# os.environ race when multiple workers share one event loop.
+_HERMES_HOME: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "HERMES_HOME", default=None
+)
+
+
+def _hermes_home_override() -> str | None:
+    """Return the per-task HERMES_HOME override if one is active, else None."""
+    val = _HERMES_HOME.get(None)
+    return val if val else None
 
 
 def get_hermes_home() -> Path:
@@ -14,6 +29,9 @@ def get_hermes_home() -> Path:
     Reads HERMES_HOME env var, falls back to ~/.hermes.
     This is the single source of truth — all other copies should import this.
     """
+    override = _hermes_home_override()
+    if override is not None:
+        return Path(override)
     return Path(os.getenv("HERMES_HOME", Path.home() / ".hermes"))
 
 
@@ -34,7 +52,11 @@ def get_default_hermes_root() -> Path:
     Import-safe — no dependencies beyond stdlib.
     """
     native_home = Path.home() / ".hermes"
-    env_home = os.environ.get("HERMES_HOME", "")
+    override = _hermes_home_override()
+    if override is not None:
+        env_home = override
+    else:
+        env_home = os.environ.get("HERMES_HOME", "")
     if not env_home:
         return native_home
     env_path = Path(env_home)
@@ -128,7 +150,11 @@ def get_subprocess_home() -> str | None:
     Activation is directory-based: if the ``home/`` subdirectory doesn't
     exist, returns ``None`` and behavior is unchanged.
     """
-    hermes_home = os.getenv("HERMES_HOME")
+    override = _hermes_home_override()
+    if override is not None:
+        hermes_home = override
+    else:
+        hermes_home = os.getenv("HERMES_HOME")
     if not hermes_home:
         return None
     profile_home = os.path.join(hermes_home, "home")

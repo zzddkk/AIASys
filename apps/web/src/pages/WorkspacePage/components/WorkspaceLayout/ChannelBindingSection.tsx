@@ -101,13 +101,13 @@ export function ChannelBindingSection({
             </SelectContent>
           </Select>
           {selectedChannel ? (
-            <div className="text-[11px] leading-5 text-muted-foreground">
+            <div className="text-micro leading-5 text-muted-foreground">
               已选：{getPlatformName(selectedChannel.platform)} · {selectedChannel.name}
               {selectedChannel.enabled ? " · 已启用" : " · 已禁用"}
               {!selectedChannel.is_configured ? " · 未配置" : ""}
             </div>
           ) : (
-            <div className="text-[11px] leading-5 text-muted-foreground">
+            <div className="text-micro leading-5 text-muted-foreground">
               还没有可用的频道。请先从顶部「频道」入口创建微信、飞书或钉钉频道。
             </div>
           )}
@@ -151,7 +151,7 @@ export function ChannelBindingSection({
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 w-full justify-between px-2 text-xs text-muted-foreground hover:text-foreground"
+              className="w-full justify-between px-2 text-xs text-muted-foreground hover:text-foreground"
             >
               <span>高级配置</span>
               <ChevronDown
@@ -171,7 +171,7 @@ export function ChannelBindingSection({
                 onChange={(event) => setChatId(event.target.value)}
                 placeholder="例如：微信 wxid_xxx / 飞书 oc_xxx"
               />
-              <div className="text-[11px] leading-5 text-muted-foreground">
+              <div className="text-micro leading-5 text-muted-foreground">
                 微信和飞书都可以先留空并直接启动监听。第一条入站消息会自动认领到
                 {scopeLabelShort}。
               </div>
@@ -217,7 +217,7 @@ export function ChannelBindingSection({
         </Collapsible>
 
         {boundPlatformMeta && !boundPlatformMeta.runtime_enabled ? (
-          <div className="mt-2 text-[11px] leading-5 text-muted-foreground">
+          <div className="mt-2 text-micro leading-5 text-muted-foreground">
             {boundPlatformMeta.display_name} 已列入平台目录，但当前 runtime 还没接通；现在可直接使用微信和飞书。
           </div>
         ) : null}

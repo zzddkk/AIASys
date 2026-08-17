@@ -74,6 +74,7 @@ def _build_session_status_payload(metadata: SessionMetadata, execution_summary: 
         "recovery_policy_lock_reason": recovery_policy_lock_reason,
         "enabled_expert_role_ids": getattr(metadata, "enabled_expert_role_ids", None),
         "expert_role_tool_ids": getattr(metadata, "expert_role_tool_ids", None),
+        "authorization_mode": getattr(metadata, "authorization_mode", None),
         "collaboration_policy": (
             metadata.collaboration_policy.model_dump(mode="json")
             if getattr(metadata, "collaboration_policy", None) is not None

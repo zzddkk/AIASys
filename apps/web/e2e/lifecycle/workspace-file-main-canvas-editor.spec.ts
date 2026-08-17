@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   createWorkspace,
   deleteWorkspace,
+  openWorkspaceFilesPanel,
   registerLifecycleUser,
 } from "./support";
 
@@ -63,10 +64,9 @@ test.describe("Workspace file main canvas editor", () => {
       );
       await expect(page.locator("textarea")).toBeVisible();
 
-      await page.getByRole("button", { name: "当前工作区", exact: true }).click();
-
-      const panel = page.locator('[data-testid="workspace-artifacts-panel"]');
-      await expect(panel).toBeVisible();
+      // 面板默认可能已展开，无条件点击活动栏按钮会把它 togg­le 关掉；
+      // helper 内部先判状态再决定是否点击。
+      const panel = await openWorkspaceFilesPanel(page);
       await expect(panel.getByTestId("workspace-artifacts-tab-global-assets")).toHaveCount(0);
       await expect(panel.getByText(fileName, { exact: true })).toBeVisible();
 

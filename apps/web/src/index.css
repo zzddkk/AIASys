@@ -3,6 +3,58 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================
+    尺寸与排版 token（2026-08-16 建立）
+
+    为什么需要这一层：此前本项目只有颜色 token，没有尺寸/排版规范，
+    于是每个组件自己拍数值。实测硬编码规模：
+      字号 text-[10px] 272 处 / [11px] 503 处 / [12px] 71 处 / [13px] 12 处
+      控件高度 h-7 142 处 / h-8 227 处 / h-9 41 处 / h-10 30 处
+    且原语默认值与实际用量背离（shadcn 默认 h-9/h-10，实际 h-7+h-8 占 84%），
+    逼得调用方逐处覆写——覆写率高本身就是默认值定错位置的证据。
+    因此档位按实测用量重心设定，而非照抄 shadcn 或其他项目。
+
+    参考 DeepSeek Harness 的四层 token 分层思路（base → 色板 → 语义 → 组件），
+    但数值取本项目自己的密度，不搬它的 36px 按钮体系。
+    ============================================================ */
+@theme {
+  /* --- 控件高度四档：档位来自实测用量分布，sm 为默认 --- */
+  --spacing-control-xs: 1.75rem; /* 28px 内联/角落控件（原 h-7，142 处） */
+  --spacing-control-sm: 2rem; /* 32px 默认表单控件（原 h-8，227 处，用量第一） */
+  --spacing-control-md: 2.25rem; /* 36px 舒展表单（原 h-9） */
+  --spacing-control-lg: 2.5rem; /* 40px 主行动/搜索（原 h-10） */
+
+  /* --- 字号阶梯：成对定义 size + line-height，消灭 text-[Npx] --- */
+  --text-nano: 0.625rem; /* 10px */
+  --text-nano--line-height: 0.875rem; /* 14px */
+  --text-micro: 0.6875rem; /* 11px 徽章/角标/密集元信息（用量第一） */
+  --text-micro--line-height: 1rem; /* 16px */
+  --text-caption: 0.75rem; /* 12px 辅助说明 */
+  --text-caption--line-height: 1.125rem; /* 18px */
+  --text-body: 0.8125rem; /* 13px 列表/表单正文 */
+  --text-body--line-height: 1.25rem; /* 20px */
+
+  /* --- 浮层阴影四档：层级越高扩散越大，暗色下由 --shadow-tint 收敛 --- */
+  --shadow-pop-1: 0 1px 2px 0 var(--shadow-tint-weak);
+  --shadow-pop-2: 0 2px 8px 0 var(--shadow-tint-weak), 0 1px 2px 0 var(--shadow-tint);
+  --shadow-pop-3: 0 4px 16px 0 var(--shadow-tint-weak), 0 2px 6px 0 var(--shadow-tint);
+  --shadow-pop-4: 0 12px 32px 0 var(--shadow-tint), 0 4px 12px 0 var(--shadow-tint-weak);
+
+  /* --- 统一缓动（Tailwind 有 --ease-* 命名空间，可生成 ease-standard） --- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 动效时长三档：100 / 200 / 300ms。
+    注意 Tailwind v4 没有 duration 主题命名空间（duration-* 只吃裸数字），
+    在 @theme 里写 --duration-fast 不会生成 .duration-fast 类，是静默失效的死代码
+    （本次实测踩到并移除）。所以 class 侧直接用 duration-100/200/300，
+    CSS 内部需要引用时用下面这三个变量。 */
+:root {
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -129,6 +181,10 @@
 
   --scrollbar-thumb: oklch(0 0 0 / 10%);
   --scrollbar-thumb-hover: oklch(0 0 0 / 20%);
+
+  /* 浮层阴影底色：亮色下用冷灰蓝而非纯黑，避免脏灰感 */
+  --shadow-tint: oklch(0.28 0.03 255 / 12%);
+  --shadow-tint-weak: oklch(0.28 0.03 255 / 6%);
   --image-zoom-overlay: rgba(245, 247, 250, 0.76);
   --image-zoom-button-bg: rgba(255, 255, 255, 0.78);
   --image-zoom-button-border: rgba(15, 23, 42, 0.08);
@@ -200,6 +256,11 @@
 
   --scrollbar-thumb: oklch(1 0 0 / 15%);
   --scrollbar-thumb-hover: oklch(1 0 0 / 25%);
+
+  /* 暗色下纯黑阴影会糊成一团（DeepSeek Harness 就没做这层覆盖，
+      深色面板上阴影偏重）。这里改为更深更透，靠边框而非阴影分层。 */
+  --shadow-tint: oklch(0 0 0 / 40%);
+  --shadow-tint-weak: oklch(0 0 0 / 22%);
   --image-zoom-overlay: rgba(8, 11, 18, 0.7);
   --image-zoom-button-bg: rgba(18, 24, 38, 0.72);
   --image-zoom-button-border: rgba(255, 255, 255, 0.1);
@@ -545,5 +606,51 @@
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb, oklch(0 0 0 / 10%)) transparent;
+  }
+}
+
+/* 思考块运行中扫光动画（借鉴 DeepSeek Harness dsh-reasoning-row-sweep）。
+  纯 CSS、只读 transform/opacity，不触发 layout；尊重减弱动效偏好。 */
+@keyframes aiasys-think-sweep {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.aiasys-think-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.aiasys-think-sweep::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 50%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(0 0 0 / 6%),
+    transparent
+  );
+  animation: aiasys-think-sweep 2.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aiasys-think-sweep::before {
+    animation: none;
   }
 }

@@ -136,7 +136,7 @@ function TaskRow({ task }: { task: SessionTaskItem }) {
       </div>
       <span
         className={cn(
-          "min-w-0 flex-1 truncate text-[11px] leading-4",
+          "min-w-0 flex-1 truncate text-micro leading-4",
           isActive && "font-medium text-foreground",
           isDone && "text-muted-foreground line-through",
           !isActive && !isDone && "text-foreground",
@@ -208,7 +208,7 @@ export function SessionTaskPanel({ tasks = [], planState }: SessionTaskPanelProp
           ) : (
             <ListTodo className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           )}
-          <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+          <span className="min-w-0 flex-1 truncate text-micro text-muted-foreground">
             {isPlanModeActive ? summaryText : `当前任务: ${summaryText}`}
           </span>
           <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -228,11 +228,11 @@ export function SessionTaskPanel({ tasks = [], planState }: SessionTaskPanelProp
           ) : (
             <ListTodo className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           )}
-          <span className="shrink-0 text-[11px] font-medium text-foreground">
+          <span className="shrink-0 text-micro font-medium text-foreground">
             {isPlanModeActive ? "规划模式" : "当前任务"}
           </span>
           {!isPlanModeActive && tasks.length > 0 && (
-            <span className="text-[11px] tabular-nums text-muted-foreground">
+            <span className="text-micro tabular-nums text-muted-foreground">
               ({completedCount}/{tasks.length})
             </span>
           )}
@@ -252,7 +252,7 @@ export function SessionTaskPanel({ tasks = [], planState }: SessionTaskPanelProp
       {isPlanModeActive && (
         <div className="mt-2 space-y-1.5">
           {planState?.current_plan_file && (
-            <div className="text-[11px] text-muted-foreground">
+            <div className="text-micro text-muted-foreground">
               计划文件:{" "}
               <span className="font-medium text-foreground">
                 {planState.current_plan_file}
@@ -262,7 +262,7 @@ export function SessionTaskPanel({ tasks = [], planState }: SessionTaskPanelProp
           <div className="flex items-center gap-1.5">
             <span
               className={cn(
-                "inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium",
+                "inline-flex items-center rounded-md px-1.5 py-0.5 text-nano font-medium",
                 isPlanPendingApproval
                   ? "border border-warning/20 bg-warning-container text-on-warning-container"
                   : "border border-primary/20 bg-primary-container text-on-primary-container",
@@ -284,7 +284,7 @@ export function SessionTaskPanel({ tasks = [], planState }: SessionTaskPanelProp
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="pl-[22px] text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              className="pl-[22px] text-micro text-muted-foreground transition-colors hover:text-foreground"
             >
               +{displayHidden} 更多
             </button>
@@ -293,7 +293,7 @@ export function SessionTaskPanel({ tasks = [], planState }: SessionTaskPanelProp
             <button
               type="button"
               onClick={() => setShowAll(false)}
-              className="pl-[22px] text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              className="pl-[22px] text-micro text-muted-foreground transition-colors hover:text-foreground"
             >
               收起
             </button>
@@ -306,7 +306,7 @@ export function SessionTaskPanel({ tasks = [], planState }: SessionTaskPanelProp
         tasks.length === 0 &&
         planState?.approval_status === "approved" &&
         hasPlanFile && (
-          <div className="mt-2 text-[11px] text-muted-foreground">
+          <div className="mt-2 text-micro text-muted-foreground">
             计划已批准:{" "}
             <span className="text-foreground">{planState.current_plan_file}</span>
           </div>

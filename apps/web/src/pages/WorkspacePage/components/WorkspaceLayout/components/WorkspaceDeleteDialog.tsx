@@ -35,7 +35,7 @@ export function WorkspaceDeleteDialog({
 }: WorkspaceDeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="sm">
         <DialogHeader className="sr-only">
           <DialogTitle>{isBulkDelete ? "清空工作区" : "删除工作区"}</DialogTitle>
           <DialogDescription>

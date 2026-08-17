@@ -197,6 +197,10 @@ class CreateConversationRequest(BaseModel):
     )
 
 
+class ArchiveConversationRequest(BaseModel):
+    archived: bool = Field(..., description="True=归档（从默认列表隐藏），False=取消归档")
+
+
 class WorkspaceConversationSummary(BaseModel):
     workspace_id: str
     conversation_id: str
@@ -217,6 +221,10 @@ class WorkspaceConversationSummary(BaseModel):
     auto_task_id: Optional[str] = None
     automation_continuation_id: Optional[str] = None
     automation_continuation_target_kind: Optional[str] = None
+    # 最后一条用户消息预览（kimi 卡片式会话列表思路），供列表行与搜索使用
+    last_user_preview: Optional[str] = None
+    # 归档（从默认列表隐藏）；数据保留，可在 include_hidden 视图恢复
+    archived: bool = False
 
 
 class WorkspaceSummary(BaseModel):

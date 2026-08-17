@@ -48,7 +48,7 @@ export function AssetTreePanelHeader({
             {icon}
           </span>
           <span
-            className="min-w-0 truncate text-[12px] font-semibold leading-5 text-foreground"
+            className="min-w-0 truncate text-caption font-semibold leading-5 text-foreground"
             title={title}
           >
             {title}
@@ -59,7 +59,7 @@ export function AssetTreePanelHeader({
         ) : null}
       </div>
 
-      <div className="mt-0.5 flex min-w-0 items-center gap-2 pl-6 text-[11px] leading-4 text-muted-foreground">
+      <div className="mt-0.5 flex min-w-0 items-center gap-2 pl-6 text-micro leading-4 text-muted-foreground">
         {description ? (
           <span className="min-w-0 flex-1 truncate" title={description}>
             {description}

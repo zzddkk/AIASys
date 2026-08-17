@@ -142,9 +142,24 @@ function AlertDialogAction({
         <BaseAlertDialogClose
           className={cn(buttonVariants(), className)}
           {...props}
-          render={(closeProps) =>
-            React.cloneElement(child as React.ReactElement, closeProps)
-          }
+          render={(closeProps) => {
+            // base-ui 的 cloneElement 会让 closeProps.onClick 直接覆盖子组件的 onClick，
+            // 导致 asChild 传入的按钮「点了只关弹窗、业务逻辑静默丢失」。
+            // 这里按 Radix Slot 语义手动组合：先跑业务 onClick，再跑关闭逻辑。
+            const childEl = child as React.ReactElement<{
+              onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+            }>;
+            const closeOnClick = (
+              closeProps as { onClick?: (event: React.MouseEvent<HTMLElement>) => void }
+            ).onClick;
+            return React.cloneElement(childEl, {
+              ...closeProps,
+              onClick: (event: React.MouseEvent<HTMLElement>) => {
+                childEl.props.onClick?.(event);
+                closeOnClick?.(event);
+              },
+            });
+          }}
         />
       );
     }

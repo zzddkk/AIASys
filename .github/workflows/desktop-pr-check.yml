@@ -13,6 +13,9 @@ concurrency:
 jobs:
   desktop-check:
     runs-on: ubuntu-latest
+    # 硬上限：没有它时挂起的 job 会跑到 GitHub 默认的 6 小时上限。
+    # 挂起比失败更糟——看不到结论、烧配额、还阻塞队列。web dist + electron linux dir 完整构建。
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v6
@@ -57,3 +60,22 @@ jobs:
 
       - name: Build desktop (Linux dir)
         run: cd apps/desktop && npm run dist:ci:linux
+
+      - name: Smoke test (packaged binary)
+        # 消灭「打包成功但不能启动」的人工验证项：BUILD_CHECKLIST.md 里 12 个历史
+        # BUG 大半属于产物级缺陷（空壳包、路径错、License 乱码导致的运行失败），
+        # 正是这一步能自动拦的类型。脚本启动 dist/linux-unpacked 的真实二进制，
+        # 锁定端口走 service-manager 的端口锁定分支，探测 backend /health 与前端首页。
+        #
+        # 三个前提，若 CI 首跑失败按序排查：
+        # 1. dist:ci:linux（AppImage/deb/zip）构建会保留 dist/linux-unpacked/ 中间
+        #    产物。若 electron-builder 未来不再保留，本步骤会明确报「产物不存在」
+        #    exit 1（本地已验证产物缺失时非零退出，不会假绿），届时改跑 dist:linux:dir。
+        # 2. ubuntu runner 预装 xvfb；Electron 主进程无显示服务器起不来，用
+        #    xvfb-run -a 自动分配 display。
+        # 3. 60s 启动超时覆盖 Linux 首启的 .venv.tar.gz 解压 + uvicorn 启动；
+        #    runner SSD 实测量级 10-30s，若首跑超时先查解压日志再调
+        #    STARTUP_TIMEOUT_MS，不要直接跳过本步骤。
+        run: |
+          cd apps/desktop
+          xvfb-run -a node scripts/smoke-test.cjs

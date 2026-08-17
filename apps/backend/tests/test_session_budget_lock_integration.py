@@ -9,7 +9,6 @@ import asyncio
 import json
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -126,5 +125,3 @@ async def test_save_context_tokens_to_metadata_with_real_lock(tmp_path: Path) ->
     updated = _read_metadata(tmp_path)
     assert updated.budget is not None
     assert updated.budget.context_tokens == 888
-
-

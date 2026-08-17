@@ -4,14 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-import pytest
-
 from app.services.agent.runtime_backends.aiasys.session_stream import (
     SessionStreamMixin,
 )
 from app.services.history.session_history_projection import (
-    USER_PROMPT_EXECUTION_CONTRACT_HEADER,
-    USER_PROMPT_USER_TASK_MARKER,
     unwrap_user_prompt,
     wrap_user_prompt,
 )

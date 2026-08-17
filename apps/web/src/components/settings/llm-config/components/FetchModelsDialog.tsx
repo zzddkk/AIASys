@@ -57,12 +57,12 @@ export function FetchModelsDialog({
   onBatchAdd,
   onManualAdd,
 }: FetchModelsDialogProps) {
-  const existingModelNames = useMemo(() => 
+  const existingModelNames = useMemo(() =>
     new Set(models.filter((m) => m.provider === providerId).map((m) => m.model)),
     [models, providerId]
   );
 
-  const allNewModels = useMemo(() => 
+  const allNewModels = useMemo(() =>
     remoteModels.map((m) => m.model_name).filter((name) => !existingModelNames.has(name)),
     [remoteModels, existingModelNames]
   );
@@ -77,7 +77,7 @@ export function FetchModelsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+      <DialogContent size="sm" className="flex flex-col">
         <DialogHeader>
           <DialogTitle>获取模型列表</DialogTitle>
           <DialogDescription>
@@ -164,34 +164,34 @@ export function FetchModelsDialog({
                             <span className="text-xs text-muted-foreground">({rm.owned_by})</span>
                           )}
                           {isExisting && (
-                            <Badge variant="secondary" className="text-[10px]">已添加</Badge>
+                            <Badge variant="secondary" className="text-nano">已添加</Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-1.5">
                           {rm.context_length !== undefined && (
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                            <Badge variant="outline" className="text-nano px-1 py-0 h-4">
                               {rm.context_length >= 1000
                                 ? `${(rm.context_length / 1000).toFixed(0)}K 上下文`
                                 : `${rm.context_length} 上下文`}
                             </Badge>
                           )}
                           {rm.supports_reasoning && (
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 text-info border-info/20">
+                            <Badge variant="outline" className="text-nano px-1 py-0 h-4 text-info border-info/20">
                               reasoning
                             </Badge>
                           )}
                           {rm.supports_image_in && (
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 text-tertiary border-info/20">
+                            <Badge variant="outline" className="text-nano px-1 py-0 h-4 text-tertiary border-info/20">
                               图片
                             </Badge>
                           )}
                           {rm.supports_video_in && (
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 text-success border-success/20">
+                            <Badge variant="outline" className="text-nano px-1 py-0 h-4 text-success border-success/20">
                               视频
                             </Badge>
                           )}
                           {rm.context_length === undefined && (
-                            <span className="text-[10px] text-warning">未返回上下文长度，将使用默认值</span>
+                            <span className="text-nano text-warning">未返回上下文长度，将使用默认值</span>
                           )}
                         </div>
                       </Label>

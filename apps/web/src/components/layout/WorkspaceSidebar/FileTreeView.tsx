@@ -1301,6 +1301,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
         </div>
       ) : (
         <div
+          className="shrink-0"
           style={{
             height: `${virtualizer.getTotalSize()}px`,
             width: "100%",
@@ -1376,12 +1377,12 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
       {selectedItemKeys.size > 1 ? (
         <div
           data-testid="workspace-file-tree-multi-select-summary"
-          className="mx-3 mt-2 flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-[11px] font-medium text-primary"
+          className="mx-3 mt-2 flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-micro font-medium text-primary"
         >
           <span className="flex-1">已选 {selectedItemKeys.size} 项</span>
           <button
             type="button"
-            className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+            className="rounded px-1.5 py-0.5 text-nano text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
             onClick={() => {
               setMultiSelectedItemKeys(new Set());
               setAnchorItemKey(null);
@@ -1393,7 +1394,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
           {onDeleteFile && (
             <button
               type="button"
-              className="rounded px-1.5 py-0.5 text-[10px] text-error/80 hover:bg-error/10 hover:text-error transition-colors"
+              className="rounded px-1.5 py-0.5 text-nano text-error/80 hover:bg-error/10 hover:text-error transition-colors"
               onClick={() => {
                 // 收集所有选中文件的文件名
                 const selectedFiles: string[] = [];
@@ -1429,9 +1430,13 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
         </div>
       ) : null}
 
-      <div className="mt-4 px-4 py-2 text-[10px] text-muted-foreground/40 font-mono text-center border-t border-border/50 mx-4">
-        END OF FILES
-      </div>
+      {flatNodes.length > 0 ? (
+        <div
+          className="mt-4 px-4 py-2 text-nano text-muted-foreground/40 font-mono text-center border-t border-border/50 mx-4 shrink-0"
+        >
+          END OF FILES
+        </div>
+      ) : null}
 
       <FileContextMenu
         fileMenu={fileMenu}

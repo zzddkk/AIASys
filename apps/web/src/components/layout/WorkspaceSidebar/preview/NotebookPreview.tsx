@@ -138,7 +138,7 @@ export const NotebookPreview: React.FC<NotebookPreviewProps> = ({
             </span>
           </div>
           {runtimeState.runtime_summary?.status_label && (
-            <span className="text-[11px] text-muted-foreground/70">
+            <span className="text-micro text-muted-foreground/70">
               {runtimeState.runtime_summary.status_label}
             </span>
           )}
@@ -188,7 +188,7 @@ export const NotebookPreview: React.FC<NotebookPreviewProps> = ({
                   <div className="rounded-md border border-border overflow-hidden bg-[#1e1e1e]">
                     <Suspense
                       fallback={
-                        <pre className="overflow-x-auto p-4 text-[13px] text-primary-foreground">
+                        <pre className="overflow-x-auto p-4 text-body text-primary-foreground">
                           {renderSource(cell.source)}
                         </pre>
                       }

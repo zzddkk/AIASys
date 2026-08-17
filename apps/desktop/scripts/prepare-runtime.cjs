@@ -1,7 +1,8 @@
 const fs = require("fs");
 const path = require("path");
-const { spawnSync } = require("child_process");
+const { spawnSync } = require("child_process"); // macOS 分支的 otool / install_name_tool 仍在用
 const tar = require("tar");
+const { robocopyDir } = require("../src/utils.cjs");
 
 const desktopRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(desktopRoot, "..", "..");
@@ -27,24 +28,13 @@ function copyPath(sourcePath, targetPath, options = {}) {
   fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 
   // Windows 上 node fs.cpSync 对包含数万个文件的大目录极慢（数分钟），
-  // 而 robocopy 的多线程复制可在十几秒内完成。
+  // 而 robocopy 的多线程复制可在十几秒内完成。实现在 src/utils.cjs 的
+  // robocopyDir（与 afterPack.cjs 共用一份，2026-08-13 收敛）。
   if (
     process.platform === "win32" &&
     fs.statSync(sourcePath).isDirectory()
   ) {
-    const sourceWin = path.resolve(sourcePath);
-    const targetWin = path.resolve(targetPath);
-    fs.rmSync(targetWin, { recursive: true, force: true });
-    fs.mkdirSync(targetWin, { recursive: true });
-    const result = spawnSync(
-      "robocopy",
-      [sourceWin, targetWin, "/E", "/MT:8", "/NFL", "/NDL", "/NJH", "/NJS", "/R:2", "/W:1"],
-      { encoding: "utf-8", windowsHide: true }
-    );
-    // robocopy 退出码 0-7 通常表示成功完成（含文件被跳过/差异）
-    if (result.status !== null && result.status >= 8) {
-      throw new Error(`robocopy 复制失败: ${sourceWin} -> ${targetWin}, exit ${result.status}\n${result.stderr || ""}`);
-    }
+    robocopyDir(sourcePath, targetPath);
     return;
   }
 

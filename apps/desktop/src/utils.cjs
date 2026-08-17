@@ -495,6 +495,43 @@ async function findAvailablePort(host, startPort, excludePorts = []) {
   throw new Error(`无法为 desktop 找到可用端口，起始端口: ${startPort}`);
 }
 
+/**
+ * Windows 上用 robocopy 多线程复制目录。
+ *
+ * 背景：node 的 fs.cpSync 对包含数万个文件的大目录（如 .venv）要数分钟，
+ * robocopy /MT:8 十几秒完成。退出码 0-7 都算成功（含文件被跳过/差异），
+ * >=8 才是失败——这是 robocopy 的语义，不是笔误。
+ * 2026-08-13 收敛：此前 prepare-runtime.cjs（copyPath 内联）与 afterPack.cjs
+ * （copyVenvWithRobocopy）各持一份相同实现。
+ */
+function robocopyDir(sourceDir, targetDir, { label = "目录" } = {}) {
+  fs.rmSync(targetDir, { recursive: true, force: true });
+  fs.mkdirSync(path.dirname(targetDir), { recursive: true });
+  fs.mkdirSync(targetDir, { recursive: true });
+  const result = spawnSync(
+    "robocopy",
+    [
+      path.resolve(sourceDir),
+      path.resolve(targetDir),
+      "/E",
+      "/MT:8",
+      "/NFL",
+      "/NDL",
+      "/NJH",
+      "/NJS",
+      "/R:2",
+      "/W:1",
+    ],
+    { encoding: "utf-8", windowsHide: true }
+  );
+  if (result.status !== null && result.status >= 8) {
+    throw new Error(
+      `robocopy 复制${label}失败: ${sourceDir} -> ${targetDir}, exit ${result.status}\n${result.stderr || ""}`
+    );
+  }
+}
+
+
 module.exports = {
   escapeRegExp,
   commandIncludesPath,
@@ -507,6 +544,7 @@ module.exports = {
   resolveDesiredPort,
   probeFreePort,
   findAvailablePort,
+  robocopyDir,
   terminateProcessSync,
   terminateProcessTreeSync,
 };

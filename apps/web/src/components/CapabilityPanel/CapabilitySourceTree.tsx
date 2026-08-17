@@ -87,7 +87,7 @@ function TreeItem({
         type="button"
         onClick={handleClick}
         className={cn(
-          "flex w-full items-center gap-1 rounded px-1.5 py-0.5 text-[11px] transition-colors",
+          "flex w-full items-center gap-1 rounded px-1.5 py-0.5 text-micro transition-colors",
           isSelected
             ? "bg-primary/10 text-primary"
             : "text-foreground hover:bg-muted/60"
